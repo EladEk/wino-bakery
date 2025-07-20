@@ -54,8 +54,6 @@ export default function AuthPage() {
       window.location.hostname === "localhost" ||
       window.location.hostname === "127.0.0.1"
     ) {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore – dev‑only flag
       auth.settings.appVerificationDisabledForTesting = true;
     }
   }, []);
