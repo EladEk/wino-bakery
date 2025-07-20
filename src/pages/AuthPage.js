@@ -18,42 +18,38 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../contexts/AuthContext";
-import {
-  getRecaptcha,
-  clearRecaptcha,
-} from "../utils/recaptchaSingleton";
-import BreadLoader from "../components/BreadLoader";          // 🥖 loader
+import { getRecaptcha, clearRecaptcha } from "../utils/recaptchaSingleton";
+import BreadLoader from "../components/BreadLoader";
 import "./AuthPage.css";
 
 export default function AuthPage() {
   /* -------- state -------- */
-  const [name, setName]                 = useState("");
-  const [code, setCode]                 = useState("");
-  const phoneRef                        = useRef();
-  const [isLogin, setIsLogin]           = useState(true);
+  const [name, setName] = useState("");
+  const [code, setCode] = useState("");
+  const phoneRef = useRef();
+  const [isLogin, setIsLogin] = useState(true);
   const [verificationId, setVerificationId] = useState(null);
-  const [loading, setLoading]           = useState(false);
-  const [error, setError]               = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [recaptchaReady, setRecaptchaReady] = useState(false);
-  const [cooldown, setCooldown]         = useState(0);
+  const [cooldown, setCooldown] = useState(0);
 
   const { currentUser } = useAuth();
-  const navigate        = useNavigate();
-  const { t }           = useTranslation();
-  const verifierRef     = useRef(null);
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+  const verifierRef = useRef(null);
 
-  /* Disable SMS verification on localhost (test numbers only) */
+  /* Disable SMS verification on localhost */
   useEffect(() => {
     if (["localhost", "127.0.0.1"].includes(window.location.hostname)) {
       auth.settings.appVerificationDisabledForTesting = true;
     }
   }, []);
 
-  /* Helper – build a brand-new v2 Invisible reCAPTCHA */
+  /* Build v2 Invisible reCAPTCHA */
   const buildFreshRecaptcha = async () => {
-    clearRecaptcha();              // wipe old widget / token
-    setRecaptchaReady(false);      // UI guard
-
+    clearRecaptcha();
+    setRecaptchaReady(false);
     const v = getRecaptcha(auth, "recaptcha-container");
     verifierRef.current = v;
     await v.render();
@@ -66,7 +62,7 @@ export default function AuthPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* Cool-down for “Send code” button */
+  /* Cool-down for Send-code button */
   useEffect(() => {
     if (!cooldown) return;
     const id = setInterval(() => setCooldown((c) => c - 1), 1000);
@@ -79,25 +75,25 @@ export default function AuthPage() {
     if (p.startsWith("0")) p = p.slice(1);
     return "+972" + p;
   };
-  const withError = (msg) => { setError(msg); setLoading(false); };
+  const withError = (msg) => {
+    setError(msg);
+    setLoading(false);
+  };
 
   /* -------- Step 1: send SMS -------- */
   const sendVerificationCode = async () => {
     setError("");
-    const raw   = phoneRef.current.value.trim();
+    const raw = phoneRef.current.value.trim();
     const phone = normalizePhone(raw);
-    if (!raw)        return withError(t("phoneRequired")   ?? "Enter phone number");
+    if (!raw) return withError(t("phoneRequired") ?? "Enter phone number");
     if (!isLogin && !name.trim())
-                     return withError(t("nameRequired")    ?? "Enter your name");
-    if (cooldown)    return;
+      return withError(t("nameRequired") ?? "Enter your name");
+    if (cooldown) return;
 
     setLoading(true);
-
     try {
-      /* Always start with a fresh token */
       await buildFreshRecaptcha();
 
-      /* Login mode → ensure number registered */
       if (isLogin) {
         const snap = await getDocs(
           query(collection(db, "users"), where("phone", "==", phone))
@@ -105,7 +101,7 @@ export default function AuthPage() {
         if (snap.empty) {
           return withError(
             t("notRegistered") ??
-            "Number isn’t registered – choose Register instead."
+              "Number isn’t registered – choose Register instead."
           );
         }
       }
@@ -117,15 +113,18 @@ export default function AuthPage() {
       );
 
       setVerificationId(result.verificationId);
-      setCooldown(60);               // throttle button
+      setCooldown(60);
     } catch (err) {
-      /* regenerate token if Firebase consumed it */
-      if (err.code === "auth/internal-error" || err.code === "auth/too-many-requests") {
+      if (
+        err.code === "auth/internal-error" ||
+        err.code === "auth/too-many-requests"
+      ) {
         await buildFreshRecaptcha();
       }
       return withError(
         err.code === "auth/too-many-requests"
-          ? t("tooManyRequests") ?? "Too many attempts – wait a minute and try again."
+          ? t("tooManyRequests") ??
+              "Too many attempts – wait a minute and try again."
           : err.message
       );
     } finally {
@@ -141,10 +140,9 @@ export default function AuthPage() {
     setLoading(true);
 
     try {
-      const cred     = PhoneAuthProvider.credential(verificationId, code);
+      const cred = PhoneAuthProvider.credential(verificationId, code);
       const userCred = await signInWithCredential(auth, cred);
 
-      /* First-time registration → create user doc */
       if (!isLogin) {
         await setDoc(doc(db, "users", userCred.user.uid), {
           phone: normalizePhone(phoneRef.current.value),
@@ -155,7 +153,7 @@ export default function AuthPage() {
         });
       }
 
-      navigate("/");                 // success → home
+      navigate("/");
     } catch (err) {
       return withError(err.message);
     } finally {
@@ -166,18 +164,20 @@ export default function AuthPage() {
   /* -------- UI -------- */
   return (
     <div className="auth-container">
-      {/* Invisible CAPTCHA mount-point */}
-      <div id="recaptcha-container" style={{
-        position: "absolute",
-        top: "-10000px",
-        left: "-10000px",
-        width: "1px",
-        height: "1px",
-        overflow: "hidden",
-      }} />
+      <div
+        id="recaptcha-container"
+        style={{
+          position: "absolute",
+          top: "-10000px",
+          left: "-10000px",
+          width: "1px",
+          height: "1px",
+          overflow: "hidden",
+        }}
+      />
 
       {!recaptchaReady ? (
-        <BreadLoader />                             {/* bread show loader */}
+        <BreadLoader />
       ) : (
         <div>
           <h2 className="auth-title">
@@ -225,11 +225,13 @@ export default function AuthPage() {
                 disabled={loading || cooldown}
                 className="auth-btn"
               >
-                {loading
-                  ? <BreadLoader />                      /* 🥖 button loader */
-                  : cooldown
-                  ? `${t("sendCode") ?? "Send code"} (${cooldown})`
-                  : t("sendCode")}
+                {loading ? (
+                  <BreadLoader />
+                ) : cooldown ? (
+                  `${t("sendCode") ?? "Send code"} (${cooldown})`
+                ) : (
+                  t("sendCode")
+                )}
               </button>
 
               <button
@@ -272,7 +274,7 @@ export default function AuthPage() {
                 disabled={loading}
                 className="auth-btn"
               >
-                {loading ? <BreadLoader /> : t("verifyCode")}   {/* bread loader */}
+                {loading ? <BreadLoader /> : t("verifyCode")}
               </button>
 
               <button
@@ -290,7 +292,6 @@ export default function AuthPage() {
             </form>
           )}
 
-          {/* Error display */}
           {error && (
             <div
               className="auth-error"
