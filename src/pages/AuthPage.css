@@ -1,0 +1,89 @@
+/* src/pages/AuthPage.css */
+
+.auth-container {
+  max-width: 400px;
+  margin: 50px auto;
+}
+
+.auth-title {
+  text-align: center;
+  margin: 0 auto 18px auto;
+  width: fit-content;
+  background: #fffbe6;
+  border-radius: 10px;
+  font-weight: bold;
+  padding: 10px 32px;
+  font-size: 26px;
+  letter-spacing: 1px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.auth-input {
+  width: 240px;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  margin-bottom: 16px;
+  text-align: center;
+  font-size: 16px;
+}
+
+.auth-label {
+  margin-bottom: 4px;
+  font-weight: bold;
+  font-size: 16px;
+  align-self: center;
+  background: #fffbe6;
+  border-radius: 8px;
+  padding: 5px 24px;
+  margin-top: 4px;
+  margin-bottom: 8px;
+  border: 1px solid #e7dab1;
+}
+
+.auth-btn,
+.auth-btn-secondary {
+  width: 180px;
+  margin: 10px auto 0 auto;
+  padding: 10px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 16px;
+  border: 1px solid #dac078;
+  cursor: pointer;
+}
+
+.auth-btn {
+  background: #fffbe6;
+  margin-bottom: 0;
+}
+
+.auth-btn[disabled] {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.auth-btn-secondary {
+  background: #f3f3f3;
+  font-size: 15px;
+  border: 1px solid #ccc;
+  margin: 8px auto 0 auto;
+}
+
+.auth-error {
+  color: red;
+  margin-top: 10px;
+  text-align: center;
+  font-size: 15px;
+}
+
+.auth-loader {
+  text-align: center;
+  margin-top: 80px;
+  font-size: 22px;
+}
