@@ -1,4 +1,3 @@
-// src/pages/AuthPage.js
 import React, { useState, useRef, useEffect } from "react";
 import { auth, db } from "../firebase";
 import {
@@ -23,7 +22,7 @@ import BreadLoader from "../components/BreadLoader";
 import "./AuthPage.css";
 
 export default function AuthPage() {
-  /* -------- state -------- */
+  /* ---------- state ---------- */
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const phoneRef = useRef();
@@ -39,23 +38,21 @@ export default function AuthPage() {
   const { t } = useTranslation();
   const verifierRef = useRef(null);
 
-  /* Disable SMS verification on localhost */
+  /* Disable SMS check locally */
   useEffect(() => {
     if (["localhost", "127.0.0.1"].includes(window.location.hostname)) {
       auth.settings.appVerificationDisabledForTesting = true;
     }
   }, []);
 
-  /* Build (or rebuild) v2 Invisible reCAPTCHA */
+  /* Build / rebuild v2 Invisible reCAPTCHA */
   const buildFreshRecaptcha = async () => {
     clearRecaptcha();
     setRecaptchaReady(false);
 
-    const v = getRecaptcha(auth, "recaptcha-container");
-    verifierRef.current = v;
-
     try {
-      await v.render();
+      const v = await getRecaptcha(auth, "recaptcha-container"); // 🟢 await!
+      verifierRef.current = v;
       setRecaptchaReady(true);
     } catch (e) {
       console.error("reCAPTCHA render failed:", e);
@@ -78,7 +75,7 @@ export default function AuthPage() {
     return () => clearInterval(id);
   }, [cooldown]);
 
-  /* --- helpers --- */
+  /* ---------- helpers ---------- */
   const normalizePhone = (raw) => {
     let p = raw.replace(/\D/g, "");
     if (p.startsWith("0")) p = p.slice(1);
@@ -89,7 +86,7 @@ export default function AuthPage() {
     setLoading(false);
   };
 
-  /* --- Step 1: send SMS --- */
+  /* ---------- Step 1: send SMS ---------- */
   const sendVerificationCode = async () => {
     setError("");
     const raw = phoneRef.current.value.trim();
@@ -141,7 +138,7 @@ export default function AuthPage() {
     }
   };
 
-  /* --- Step 2: verify code --- */
+  /* ---------- Step 2: verify code ---------- */
   const verifyCodeAndSignIn = async () => {
     setError("");
     if (!code.trim())
@@ -170,10 +167,10 @@ export default function AuthPage() {
     }
   };
 
-  /* --- UI --- */
+  /* ---------- UI ---------- */
   return (
     <div className="auth-container">
-      {/* off-screen CAPTCHA mount */}
+      {/* off-screen CAPTCHA */}
       <div
         id="recaptcha-container"
         style={{
