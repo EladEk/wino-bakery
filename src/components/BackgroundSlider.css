@@ -7,13 +7,14 @@
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  background-color: #fafafa;    /* fallback color */
-  opacity: 0;
-  transition: opacity 0.6s;     /* fade effect */
-  z-index: -1;                  /* behind everything */
+  background-color: #fafafa;
   pointer-events: none;
+  transition: opacity 0.6s;
+  z-index: -1;
 }
+
 
 .background-slider.loaded {
   opacity: 1;
 }
+
