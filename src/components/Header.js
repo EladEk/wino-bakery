@@ -2,6 +2,7 @@ import React from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import logo from "../img/LOGO.jpg"; // adjust path as needed
 import "./Header.css";
 
 export default function Header() {
@@ -17,7 +18,7 @@ export default function Header() {
 
   return (
     <header className="app-header">
-      {/* Left side buttons container */}
+      {/* Left buttons (admins only) */}
       <div className="left-buttons">
         {isAdmin && (
           <>
@@ -31,10 +32,10 @@ export default function Header() {
 
       {/* Centered logo */}
       <div className="app-logo" onClick={() => navigate("/")}>
-        <img src="/logo.png" alt="Logo" height="60" />
+        <img src={logo} alt="Logo" height="60" />
       </div>
 
-      {/* Right side buttons container */}
+      {/* Right buttons (non-admins only) */}
       <div className="right-buttons">
         {!isAdmin && (
           <>
@@ -47,6 +48,7 @@ export default function Header() {
             <button onClick={logout}>{t("logout")}</button>
           </>
         )}
+        {/* Admin on admin page gets backHome button on right */}
         {isAdmin && atAdmin && (
           <button onClick={() => navigate("/")}>{t("backHome")}</button>
         )}
