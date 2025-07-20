@@ -28,28 +28,30 @@ export default function AuthPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  // --- Clean up recaptcha (ALWAYS before re-creating) ---
-  const cleanupRecaptcha = () => {
-    if (window.recaptchaVerifier) {
-      try {
-        window.recaptchaVerifier.clear();
-      } catch {}
-      window.recaptchaVerifier = null;
-    }
-  };
+  const recaptchaVerifierRef = useRef(null);
 
-  // --- Create recaptcha only after cleaning up previous one ---
-  const setupRecaptcha = () => {
-    cleanupRecaptcha();
-    window.recaptchaVerifier = new RecaptchaVerifier(
-      auth,
-      "recaptcha-container",
-      {
-        size: "invisible",
-        callback: () => {},
+  useEffect(() => {
+    if (!recaptchaVerifierRef.current) {
+      if (!auth) {
+        console.error("Firebase auth instance is undefined");
+        return;
       }
-    );
-  };
+      recaptchaVerifierRef.current = new RecaptchaVerifier(
+        "recaptcha-container",
+        {
+          size: "invisible",
+          callback: () => {},
+        },
+        auth
+      );
+    }
+    return () => {
+      if (recaptchaVerifierRef.current) {
+        recaptchaVerifierRef.current.clear();
+        recaptchaVerifierRef.current = null;
+      }
+    };
+  }, []);
 
   const normalizePhone = (raw) => {
     let p = raw.replace(/\D/g, "");
@@ -73,18 +75,12 @@ export default function AuthPage() {
     setLoading(true);
 
     try {
-      setupRecaptcha();
-      const appVerifier = window.recaptchaVerifier;
-      const confirmationResult = await signInWithPhoneNumber(
-        auth,
-        phoneNumber,
-        appVerifier
-      );
+      const appVerifier = recaptchaVerifierRef.current;
+      const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
       setVerificationId(confirmationResult.verificationId);
       setPendingPhone(phoneNumber);
     } catch (err) {
       setError(err.message);
-      cleanupRecaptcha();
     } finally {
       setLoading(false);
     }
@@ -112,11 +108,9 @@ export default function AuthPage() {
           createdAt: serverTimestamp(),
         });
       }
-      cleanupRecaptcha();
       setPendingLogin(true);
     } catch (err) {
       setError(err.message);
-      cleanupRecaptcha();
     } finally {
       setLoading(false);
     }
@@ -129,25 +123,17 @@ export default function AuthPage() {
     }
   }, [pendingLogin, currentUser, navigate]);
 
-  useEffect(() => () => cleanupRecaptcha(), []);
-
   if (pendingLogin) {
-    return (
-      <div className="auth-loader">
-        {t("loading") || "Loading..."}
-      </div>
-    );
+    return <div className="auth-loader">{t("loading") || "Loading..."}</div>;
   }
 
   return (
     <div className="auth-container">
-      <h2 className="auth-title">
-        {isLogin ? t("login") : t("register")}
-      </h2>
+      <h2 className="auth-title">{isLogin ? t("login") : t("register")}</h2>
 
       {!verificationId ? (
         <form
-          onSubmit={e => {
+          onSubmit={(e) => {
             e.preventDefault();
             sendVerificationCode();
           }}
@@ -156,7 +142,7 @@ export default function AuthPage() {
           {!isLogin && (
             <input
               value={name}
-              onChange={e => setName(e.target.value)}
+              onChange={(e) => setName(e.target.value)}
               type="text"
               placeholder={t("name")}
               required
@@ -170,7 +156,7 @@ export default function AuthPage() {
             id="phone-input"
             ref={phoneRef}
             type="tel"
-            placeholder="50 123 1111"
+            placeholder="50 123 4567"
             required
             className="auth-input"
             pattern="[0-9]{9,10}"
@@ -180,11 +166,7 @@ export default function AuthPage() {
             autoComplete="tel"
           />
           <div id="recaptcha-container"></div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="auth-btn"
-          >
+          <button type="submit" disabled={loading} className="auth-btn">
             {loading ? t("loading") : t("sendCode")}
           </button>
           <button
@@ -196,7 +178,6 @@ export default function AuthPage() {
               setError("");
               setName("");
               setCode("");
-              cleanupRecaptcha();
             }}
           >
             {isLogin ? t("needAccount") : t("alreadyAccount")}
@@ -204,7 +185,7 @@ export default function AuthPage() {
         </form>
       ) : (
         <form
-          onSubmit={e => {
+          onSubmit={(e) => {
             e.preventDefault();
             verifyCodeAndSignIn();
           }}
@@ -216,32 +197,14 @@ export default function AuthPage() {
           <input
             id="code-input"
             value={code}
-            onChange={e => setCode(e.target.value)}
+            onChange={(e) => setCode(e.target.value)}
             type="text"
             placeholder={t("verificationCode")}
             required
             className="auth-input"
           />
-          <button
-            type="submit"
-            disabled={loading}
-            className="auth-btn"
-          >
+          <button type="submit" disabled={loading} className="auth-btn">
             {loading ? t("loading") : t("verifyCode")}
-          </button>
-          <button
-            type="button"
-            className="auth-btn-secondary"
-            onClick={() => {
-              setIsLogin(!isLogin);
-              setVerificationId(null);
-              setError("");
-              setName("");
-              setCode("");
-              cleanupRecaptcha();
-            }}
-          >
-            {isLogin ? t("needAccount") : t("alreadyAccount")}
           </button>
         </form>
       )}

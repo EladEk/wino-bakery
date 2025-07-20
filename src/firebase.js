@@ -1,4 +1,3 @@
-// src/firebase.js
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
@@ -11,7 +10,7 @@ const firebaseConfig = {
   storageBucket: "wino-fb03d.appspot.com",
   messagingSenderId: "45483660067",
   appId: "1:45483660067:web:fbf7f384c3536d5835b296",
-  measurementId: "G-XWSF568GQD"
+  measurementId: "G-XWSF568GQD",
 };
 
 const app = initializeApp(firebaseConfig);

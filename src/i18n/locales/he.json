@@ -57,5 +57,6 @@
   "adminPanel": "פאנל ניהול",
   "ordered": "הוזמן",
   "verificationCode": "קוד אימות",
-   "paid": "שולם"
+   "paid": "שולם",
+   "sendCode" : "שלח קוד"
 }
