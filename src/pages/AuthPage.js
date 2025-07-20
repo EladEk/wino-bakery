@@ -1,5 +1,5 @@
 // src/pages/AuthPage.js
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { auth, db } from "../firebase";
 import {
   RecaptchaVerifier,
@@ -24,19 +24,20 @@ export default function AuthPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  // Always set up the real RecaptchaVerifier for production
-  const setupRecaptcha = () => {
+  useEffect(() => {
     if (!window.recaptchaVerifier) {
       window.recaptchaVerifier = new RecaptchaVerifier(
+        auth,
         "recaptcha-container",
         {
           size: "invisible",
-          callback: () => {},
-        },
-        auth
+          callback: () => {
+            console.log("reCAPTCHA resolved");
+          },
+        }
       );
     }
-  };
+  }, []);
 
   const sendVerificationCode = async () => {
     setError("");
@@ -48,7 +49,6 @@ export default function AuthPage() {
     setLoading(true);
 
     try {
-      setupRecaptcha();
       const appVerifier = window.recaptchaVerifier;
       const confirmationResult = await signInWithPhoneNumber(
         auth,
@@ -59,7 +59,10 @@ export default function AuthPage() {
     } catch (err) {
       setError(err.message);
       if (window.recaptchaVerifier) {
-        try { window.recaptchaVerifier.clear(); window.recaptchaVerifier = null; } catch {}
+        try {
+          window.recaptchaVerifier.clear();
+          window.recaptchaVerifier = null;
+        } catch {}
       }
     } finally {
       setLoading(false);
