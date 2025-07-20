@@ -125,7 +125,7 @@ export default function HomePage() {
                       <td>
                         {claim ? (
                           <>
-                            <span>{t("ordered")}: {claim.quantity}</span>
+                            <span>{t("ordered")}: </span>
                             <input
                               type="number"
                               min={1}

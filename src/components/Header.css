@@ -4,33 +4,50 @@
   background: #fff;
   display: flex;
   align-items: center;
-  justify-content: center; /* centers logo container */
+  justify-content: center; /* centers the logo container */
   z-index: 100;
+  padding: 0 20px; /* optional padding */
+  box-sizing: border-box;
 }
 
 /* Center logo absolutely centered */
 .app-logo {
   position: absolute;
-  left: 50%;
   top: 50%;
+  left: 50%;
   transform: translate(-50%, -50%);
   cursor: pointer;
 }
 
-/* Left buttons container aligned left */
+/* Left buttons container */
 .left-buttons {
   position: absolute;
   left: 16px;
   display: flex;
   gap: 12px;
   align-items: center;
+  z-index: 101;
 }
 
-/* Right buttons container aligned right */
+/* Right buttons container */
 .right-buttons {
   position: absolute;
   right: 16px;
   display: flex;
   gap: 12px;
   align-items: center;
+  z-index: 101;
+}
+
+/* Button styling (optional) */
+button {
+  padding: 6px 12px;
+  cursor: pointer;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+button:hover {
+  background-color: #e0e0e0;
 }
