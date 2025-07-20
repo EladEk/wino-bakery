@@ -9,12 +9,5 @@
   background-repeat: no-repeat;
   background-color: #fafafa;
   pointer-events: none;
-  transition: opacity 0.6s;
   z-index: -1;
 }
-
-
-.background-slider.loaded {
-  opacity: 1;
-}
-
