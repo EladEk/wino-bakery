@@ -3,36 +3,50 @@ import { RecaptchaVerifier } from "firebase/auth";
 
 /**
  * Singleton wrapper for Firebase *v2 Invisible* reCAPTCHA.
- * (No App Check / Enterprise, completely free.)
  *
- * • getRecaptcha(auth, containerId) – returns existing verifier or creates a new one
- * • clearRecaptcha()               – destroys it so the next login gets a fresh token
+ * • getRecaptcha(auth, containerId) – returns existing verifier
+ *   (rendered or not). If it’s brand-new, we immediately attempt
+ *   to render it with a defensive try/catch so the caller can
+ *   await a fully-initialised widget.
+ *
+ * • clearRecaptcha() – destroys the verifier so the next call
+ *   creates a fresh widget and token.
+ *
+ * No App Check / Enterprise → completely free, no billing needed.
  */
 
 let verifier = null;
 
 /**
- * Get the existing verifier or create a brand-new v2 Invisible reCAPTCHA.
- * @param {import("firebase/auth").Auth} auth  Initialized Firebase Auth instance
- * @param {string} containerId                 DOM id for the off-screen element
- * @returns {import("firebase/auth").RecaptchaVerifier}
+ * Create (or reuse) an invisible v2 reCAPTCHA verifier and render it.
+ * @param {import("firebase/auth").Auth} auth
+ * @param {string} containerId
+ * @returns {Promise<import("firebase/auth").RecaptchaVerifier>}
  */
-export function getRecaptcha(auth, containerId = "recaptcha-container") {
+export async function getRecaptcha(auth, containerId = "recaptcha-container") {
+  /* Re-use if already created & rendered */
   if (verifier) return verifier;
 
   verifier = new RecaptchaVerifier(auth, containerId, {
-    size: "invisible",       // ← v2 Invisible (free)
-    callback: () => {},      // Firebase handles the actual callback internally
+    size: "invisible", // v2 Invisible (free)
+    callback: () => {}, // SDK handles callback internally
   });
+
+  try {
+    await verifier.render(); // initialise iframe & token
+  } catch (e) {
+    console.error("reCAPTCHA render failed (singleton):", e);
+    verifier = null; // discard broken instance
+    throw e; // let caller decide how to react
+  }
 
   return verifier;
 }
 
 /**
- * Destroy the current verifier (call after signOut or on error) so the next
- * call to getRecaptcha() creates a fresh widget and token.
+ * Destroy current verifier so the next login gets a fresh token.
  */
 export function clearRecaptcha() {
-  if (verifier?.clear) verifier.clear();   // remove iframe & token
+  if (verifier?.clear) verifier.clear(); // remove iframe & reset token
   verifier = null;
 }

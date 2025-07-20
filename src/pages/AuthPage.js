@@ -46,14 +46,23 @@ export default function AuthPage() {
     }
   }, []);
 
-  /* Build v2 Invisible reCAPTCHA */
+  /* Build (or rebuild) v2 Invisible reCAPTCHA */
   const buildFreshRecaptcha = async () => {
     clearRecaptcha();
     setRecaptchaReady(false);
+
     const v = getRecaptcha(auth, "recaptcha-container");
     verifierRef.current = v;
-    await v.render();
-    setRecaptchaReady(true);
+
+    try {
+      await v.render();
+      setRecaptchaReady(true);
+    } catch (e) {
+      console.error("reCAPTCHA render failed:", e);
+      setError(
+        "Failed to load verification widget – please refresh the page or check your network."
+      );
+    }
   };
 
   /* First mount */
@@ -62,14 +71,14 @@ export default function AuthPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* Cool-down for Send-code button */
+  /* Cool-down timer */
   useEffect(() => {
     if (!cooldown) return;
     const id = setInterval(() => setCooldown((c) => c - 1), 1000);
     return () => clearInterval(id);
   }, [cooldown]);
 
-  /* -------- helpers -------- */
+  /* --- helpers --- */
   const normalizePhone = (raw) => {
     let p = raw.replace(/\D/g, "");
     if (p.startsWith("0")) p = p.slice(1);
@@ -80,7 +89,7 @@ export default function AuthPage() {
     setLoading(false);
   };
 
-  /* -------- Step 1: send SMS -------- */
+  /* --- Step 1: send SMS --- */
   const sendVerificationCode = async () => {
     setError("");
     const raw = phoneRef.current.value.trim();
@@ -132,7 +141,7 @@ export default function AuthPage() {
     }
   };
 
-  /* -------- Step 2: verify code -------- */
+  /* --- Step 2: verify code --- */
   const verifyCodeAndSignIn = async () => {
     setError("");
     if (!code.trim())
@@ -161,9 +170,10 @@ export default function AuthPage() {
     }
   };
 
-  /* -------- UI -------- */
+  /* --- UI --- */
   return (
     <div className="auth-container">
+      {/* off-screen CAPTCHA mount */}
       <div
         id="recaptcha-container"
         style={{
@@ -184,7 +194,7 @@ export default function AuthPage() {
             {isLogin ? t("login") : t("register")}
           </h2>
 
-          {/* ---------- Phone form ---------- */}
+          {/* -------- Phone form -------- */}
           {!verificationId ? (
             <form
               className="auth-form"
@@ -248,7 +258,7 @@ export default function AuthPage() {
               </button>
             </form>
           ) : (
-            /* ---------- Code form ---------- */
+            /* -------- Code form -------- */
             <form
               className="auth-form"
               onSubmit={(e) => {
