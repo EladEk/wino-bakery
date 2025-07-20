@@ -23,7 +23,7 @@ import BreadLoader from "../components/BreadLoader";
 import "./AuthPage.css";
 
 export default function AuthPage() {
-  /* ---------- state ---------- */
+  // ---------- state ----------
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const phoneRef = useRef();
@@ -37,26 +37,26 @@ export default function AuthPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const verifierRef = useRef(null);
-  const hostDivRef = useRef(null);              // <- current hidden div
+  const hostDivRef = useRef(null);
 
-  /* Disable SMS check on localhost (test numbers only) */
+  // Disable SMS check on localhost
   useEffect(() => {
     if (["localhost", "127.0.0.1"].includes(window.location.hostname)) {
       auth.settings.appVerificationDisabledForTesting = true;
     }
   }, []);
 
-  /* ---------- build / rebuild reCAPTCHA ---------- */
+  // ---------- build / rebuild reCAPTCHA ----------
   const buildFreshRecaptcha = async () => {
     clearRecaptcha();
     setRecaptchaReady(false);
 
-    /* Remove previous hidden div if it exists */
+    // remove previous hidden div
     if (hostDivRef.current?.parentNode) {
       hostDivRef.current.parentNode.removeChild(hostDivRef.current);
     }
 
-    /* Create a brand-new hidden div with a unique id */
+    // create a new hidden div with unique id
     const uniqueId = `recaptcha-container-${Date.now()}`;
     const host = document.createElement("div");
     host.id = uniqueId;
@@ -71,10 +71,8 @@ export default function AuthPage() {
     document.body.appendChild(host);
     hostDivRef.current = host;
 
-    /* Render widget in that unique element */
     try {
-      const v = await getRecaptcha(auth, uniqueId);
-      verifierRef.current = v;
+      verifierRef.current = await getRecaptcha(auth, uniqueId);
       setRecaptchaReady(true);
     } catch (e) {
       console.error("reCAPTCHA render failed:", e);
@@ -84,20 +82,20 @@ export default function AuthPage() {
     }
   };
 
-  /* First mount */
+  // first mount
   useEffect(() => {
     buildFreshRecaptcha();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* Cool-down timer */
+  // cooldown timer
   useEffect(() => {
     if (!cooldown) return;
     const id = setInterval(() => setCooldown((c) => c - 1), 1000);
     return () => clearInterval(id);
   }, [cooldown]);
 
-  /* ---------- helpers ---------- */
+  // helpers
   const normalizePhone = (raw) => {
     let p = raw.replace(/\D/g, "");
     if (p.startsWith("0")) p = p.slice(1);
@@ -108,7 +106,7 @@ export default function AuthPage() {
     setLoading(false);
   };
 
-  /* ---------- Step 1: send SMS ---------- */
+  // ---------- Step 1: send SMS ----------
   const sendVerificationCode = async () => {
     setError("");
     const raw = phoneRef.current.value.trim();
@@ -122,7 +120,7 @@ export default function AuthPage() {
     try {
       await buildFreshRecaptcha();
 
-      /* If logging in, ensure the number is registered */
+      // login mode: ensure number exists
       if (isLogin) {
         const snap = await getDocs(
           query(collection(db, "users"), where("phone", "==", phone))
@@ -161,7 +159,7 @@ export default function AuthPage() {
     }
   };
 
-  /* ---------- Step 2: verify code ---------- */
+  // ---------- Step 2: verify code ----------
   const verifyCodeAndSignIn = async () => {
     setError("");
     if (!code.trim())
@@ -172,26 +170,37 @@ export default function AuthPage() {
       const cred = PhoneAuthProvider.credential(verificationId, code);
       const userCred = await signInWithCredential(auth, cred);
 
-      /* On first-time register, create Firestore user doc */
+      // Register flow: merge profile fields
       if (!isLogin) {
-        await setDoc(doc(db, "users", userCred.user.uid), {
-          phone: normalizePhone(phoneRef.current.value),
-          name,
-          isAdmin: false,
-          isBlocked: false,
-          createdAt: serverTimestamp(),
-        });
+        try {
+          await setDoc(
+            doc(db, "users", userCred.user.uid),
+            {
+              phone: normalizePhone(phoneRef.current.value),
+              name,
+              isAdmin: false,
+              isBlocked: false,
+              createdAt: serverTimestamp(),
+            },
+            { merge: true } // preserve existing flags / admin edits
+          );
+        } catch (e) {
+          console.error("Failed to save profile:", e);
+          setError(
+            "Could not save your name – please check your connection or contact support."
+          );
+        }
       }
 
       navigate("/");
     } catch (err) {
-      return withError(err.message);
+      withError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  /* ---------- UI ---------- */
+  // ---------- UI ----------
   return (
     <div className="auth-container">
       {!recaptchaReady ? (
