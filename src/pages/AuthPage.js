@@ -22,6 +22,7 @@ import {
   getRecaptcha,
   clearRecaptcha,
 } from "../utils/recaptchaSingleton";
+import BreadLoader from "../components/BreadLoader";          // 🥖 loader
 import "./AuthPage.css";
 
 export default function AuthPage() {
@@ -48,7 +49,7 @@ export default function AuthPage() {
     }
   }, []);
 
-  /* Helper – build a brand-new Enterprise reCAPTCHA */
+  /* Helper – build a brand-new v2 Invisible reCAPTCHA */
   const buildFreshRecaptcha = async () => {
     clearRecaptcha();              // wipe old widget / token
     setRecaptchaReady(false);      // UI guard
@@ -93,7 +94,7 @@ export default function AuthPage() {
     setLoading(true);
 
     try {
-      /* ⬇️ ALWAYS start with a fresh token */
+      /* Always start with a fresh token */
       await buildFreshRecaptcha();
 
       /* Login mode → ensure number registered */
@@ -118,7 +119,7 @@ export default function AuthPage() {
       setVerificationId(result.verificationId);
       setCooldown(60);               // throttle button
     } catch (err) {
-      /* regenerate token if Firebase has already consumed it */
+      /* regenerate token if Firebase consumed it */
       if (err.code === "auth/internal-error" || err.code === "auth/too-many-requests") {
         await buildFreshRecaptcha();
       }
@@ -176,7 +177,7 @@ export default function AuthPage() {
       }} />
 
       {!recaptchaReady ? (
-        <div className="auth-loader">{t("loading") ?? "Loading…"}</div>
+        <BreadLoader />                             {/* 🥖 show loader */}
       ) : (
         <div>
           <h2 className="auth-title">
@@ -225,7 +226,7 @@ export default function AuthPage() {
                 className="auth-btn"
               >
                 {loading
-                  ? t("loading")
+                  ? <BreadLoader />                      /* 🥖 button loader */
                   : cooldown
                   ? `${t("sendCode") ?? "Send code"} (${cooldown})`
                   : t("sendCode")}
@@ -271,14 +272,13 @@ export default function AuthPage() {
                 disabled={loading}
                 className="auth-btn"
               >
-                {loading ? t("loading") : t("verifyCode")}
+                {loading ? <BreadLoader /> : t("verifyCode")}   {/* bread loader */}
               </button>
 
               <button
                 type="button"
                 className="auth-btn-secondary"
                 onClick={async () => {
-                  /* user wants a new SMS */
                   setVerificationId(null);
                   setCode("");
                   setError("");
