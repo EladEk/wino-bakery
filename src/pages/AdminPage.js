@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
 import {
   collection,
-  getDocs,
+  onSnapshot,
   addDoc,
   doc,
   updateDoc,
@@ -34,16 +34,20 @@ export default function AdminPage() {
   const { t } = useTranslation();
 
   useEffect(() => {
-    fetchData();
+    const usersUnsub = onSnapshot(collection(db, "users"), (snapshot) => {
+      setUsers(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+    });
+
+    const breadsUnsub = onSnapshot(collection(db, "breads"), (snapshot) => {
+      setBreads(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
+    });
+
+    // Cleanup listeners on unmount
+    return () => {
+      usersUnsub();
+      breadsUnsub();
+    };
   }, []);
-
-  const fetchData = async () => {
-    const usersSnap = await getDocs(collection(db, "users"));
-    setUsers(usersSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
-
-    const breadsSnap = await getDocs(collection(db, "breads"));
-    setBreads(breadsSnap.docs.map((d) => ({ id: d.id, ...d.data() })));
-  };
 
   const handleAddBread = async (e) => {
     e.preventDefault();
@@ -59,7 +63,6 @@ export default function AdminPage() {
     setBreadPieces(1);
     setBreadDescription("");
     setBreadPrice("");
-    await fetchData();
   };
 
   const startEditingBread = (bread) => {
@@ -84,32 +87,20 @@ export default function AdminPage() {
       price: Number(editBreadPrice),
     });
     cancelEditingBread();
-    await fetchData();
   };
   const deleteBread = async (breadId) => {
     await deleteDoc(doc(db, "breads", breadId));
-    await fetchData();
   };
 
   const toggleAdmin = async (user) => {
     await updateDoc(doc(db, "users", user.id), {
       isAdmin: !user.isAdmin,
     });
-    setUsers((u) =>
-      u.map((x) =>
-        x.id === user.id ? { ...x, isAdmin: !x.isAdmin } : x
-      )
-    );
   };
   const toggleBlockUser = async (user) => {
     await updateDoc(doc(db, "users", user.id), {
       isBlocked: !user.isBlocked,
     });
-    setUsers((u) =>
-      u.map((x) =>
-        x.id === user.id ? { ...x, isBlocked: !x.isBlocked } : x
-      )
-    );
   };
 
   const toggleSupplied = async (breadId, idx) => {
@@ -120,11 +111,6 @@ export default function AdminPage() {
     await updateDoc(doc(db, "breads", breadId), {
       claimedBy: updated,
     });
-    setBreads((bs) =>
-      bs.map((b) =>
-        b.id === breadId ? { ...b, claimedBy: updated } : b
-      )
-    );
   };
 
   const togglePaid = async (breadId, idx) => {
@@ -135,11 +121,6 @@ export default function AdminPage() {
     await updateDoc(doc(db, "breads", breadId), {
       claimedBy: updated,
     });
-    setBreads((bs) =>
-      bs.map((b) =>
-        b.id === breadId ? { ...b, claimedBy: updated } : b
-      )
-    );
   };
 
   const startEditingOrder = (breadId, idx, claim) => {
@@ -155,13 +136,11 @@ export default function AdminPage() {
       return;
     }
 
-    // Sum quantities claimed by others except this order
     const otherClaimsTotal = (bread.claimedBy || []).reduce((sum, c, i) => {
       if (i !== idx) return sum + (c.quantity || 0);
       return sum;
     }, 0);
 
-    // Calculate max allowed quantity including current claim quantity
     const maxAllowed = bread.availablePieces + (claim.quantity || 0);
     if (newQty > maxAllowed - otherClaimsTotal) {
       alert(t("notEnoughAvailable"));
@@ -170,7 +149,6 @@ export default function AdminPage() {
 
     const diff = newQty - claim.quantity;
 
-    // Update claimedBy with new quantity, name remains unchanged
     const updated = (bread.claimedBy || []).map((c, i) =>
       i === idx
         ? { ...c, quantity: newQty }
@@ -181,12 +159,11 @@ export default function AdminPage() {
       availablePieces: bread.availablePieces - diff,
     });
     setEditingOrder({});
-    await fetchData();
   };
   const cancelOrderEdit = () => setEditingOrder({});
 
   const handleOrderInputChange = (breadId, idx, field, value) => {
-    if (field !== "quantity") return; // ignore any other fields, name not editable
+    if (field !== "quantity") return;
     const key = `${breadId}_${idx}`;
     setEditingOrder((prev) => ({
       ...prev,
@@ -198,12 +175,10 @@ export default function AdminPage() {
     const bread = breads.find((b) => b.id === breadId);
     const claimToDelete = bread.claimedBy[idx];
     const updated = (bread.claimedBy || []).filter((_, i) => i !== idx);
-    // Increase availablePieces by deleted claim quantity
     await updateDoc(doc(db, "breads", breadId), {
       claimedBy: updated,
       availablePieces: bread.availablePieces + (claimToDelete.quantity || 0),
     });
-    await fetchData();
   };
 
   const totalRevenue = breads.reduce(
@@ -447,7 +422,6 @@ export default function AdminPage() {
                         )}
                       </td>
                       <td>
-                        {/* Show name as text only, no editing */}
                         <span style={{ paddingLeft: 6, display: "inline-block", width: 120 }}>
                           {claim.name}
                         </span>
