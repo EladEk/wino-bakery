@@ -10,6 +10,7 @@ import {
 import { setDoc, doc, serverTimestamp } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function AuthPage() {
   const [name, setName] = useState("");
@@ -21,7 +22,9 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [pendingPhone, setPendingPhone] = useState("");
+  const [pendingLogin, setPendingLogin] = useState(false);
 
+  const { currentUser } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -110,7 +113,7 @@ export default function AuthPage() {
         });
       }
       cleanupRecaptcha();
-      setTimeout(() => navigate("/"), 50); // Short delay for auth context to catch up
+      setPendingLogin(true);
     } catch (err) {
       setError(err.message);
       cleanupRecaptcha();
@@ -119,12 +122,30 @@ export default function AuthPage() {
     }
   };
 
+  // Watch for login and redirect home only after Firebase Auth is ready!
+  useEffect(() => {
+    if (pendingLogin && currentUser) {
+      setPendingLogin(false);
+      navigate("/");
+    }
+  }, [pendingLogin, currentUser, navigate]);
+
   // Reset recaptcha on unmount
   useEffect(() => () => cleanupRecaptcha(), []);
 
+  if (pendingLogin) {
+    return (
+      <div style={{ textAlign: "center", marginTop: 80, fontSize: 22 }}>
+        {t("loading") || "Loading..."}
+      </div>
+    );
+  }
+
   return (
     <div style={{ maxWidth: 400, margin: "50px auto" }}>
-      <h2>{isLogin ? t("login") : t("register")}</h2>
+      <h2 style={{ textAlign: "center" }}>
+        {isLogin ? t("login") : t("register")}
+      </h2>
 
       {!verificationId ? (
         <form
@@ -132,6 +153,7 @@ export default function AuthPage() {
             e.preventDefault();
             sendVerificationCode();
           }}
+          style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
         >
           {!isLogin && (
             <input
@@ -140,39 +162,82 @@ export default function AuthPage() {
               type="text"
               placeholder={t("name")}
               required
-              style={{ marginBottom: 8 }}
+              style={{ marginBottom: 12, width: 240, textAlign: "center" }}
             />
           )}
-          <div style={{ display: "flex", alignItems: "center", marginBottom: 8 }}>
-            <span style={{
-              padding: "8px 10px",
-              background: "#eee",
-              borderRadius: "4px 0 0 4px",
+          <label
+            htmlFor="phone-input"
+            style={{
+              marginBottom: 4,
+              fontWeight: "bold",
+              fontSize: 16,
+              alignSelf: "center"
+            }}
+          >
+            {t("phone") || "Phone:"}
+          </label>
+          <input
+            id="phone-input"
+            ref={phoneRef}
+            type="tel"
+            placeholder="50 123 1111"
+            required
+            style={{
+              width: 240,
+              padding: "8px",
+              borderRadius: 6,
               border: "1px solid #ccc",
-              borderRight: "none"
-            }}>+972</span>
-            <input
-              ref={phoneRef}
-              type="tel"
-              placeholder="50 123 1111"
-              required
-              style={{
-                flex: 1,
-                borderRadius: "0 4px 4px 0",
-                border: "1px solid #ccc",
-                borderLeft: "none",
-                padding: "8px"
-              }}
-              pattern="[0-9]{9,10}"
-              maxLength={10}
-              minLength={8}
-              inputMode="numeric"
-              autoComplete="tel"
-            />
-          </div>
+              marginBottom: 16,
+              textAlign: "center",
+              fontSize: 16
+            }}
+            pattern="[0-9]{9,10}"
+            maxLength={10}
+            minLength={8}
+            inputMode="numeric"
+            autoComplete="tel"
+          />
           <div id="recaptcha-container"></div>
-          <button type="submit" disabled={loading}>
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              width: 180,
+              margin: "10px auto",
+              padding: "10px",
+              borderRadius: 6,
+              background: "#fffbe6",
+              fontWeight: "bold",
+              fontSize: 16,
+              border: "1px solid #dac078",
+              cursor: loading ? "not-allowed" : "pointer"
+            }}
+          >
             {loading ? t("loading") : t("sendCode")}
+          </button>
+          <button
+            type="button"
+            style={{
+              width: 180,
+              margin: "8px auto 0 auto",
+              padding: "10px",
+              borderRadius: 6,
+              background: "#f3f3f3",
+              fontWeight: "bold",
+              fontSize: 15,
+              border: "1px solid #ccc",
+              cursor: "pointer"
+            }}
+            onClick={() => {
+              setIsLogin(!isLogin);
+              setVerificationId(null);
+              setError("");
+              setName("");
+              setCode("");
+              cleanupRecaptcha();
+            }}
+          >
+            {isLogin ? t("needAccount") : t("alreadyAccount")}
           </button>
         </form>
       ) : (
@@ -181,35 +246,81 @@ export default function AuthPage() {
             e.preventDefault();
             verifyCodeAndSignIn();
           }}
+          style={{ display: "flex", flexDirection: "column", alignItems: "center" }}
         >
+          <label
+            htmlFor="code-input"
+            style={{
+              marginBottom: 4,
+              fontWeight: "bold",
+              fontSize: 16,
+              alignSelf: "center"
+            }}
+          >
+            {t("verificationCode") || "Verification Code:"}
+          </label>
           <input
+            id="code-input"
             value={code}
             onChange={e => setCode(e.target.value)}
             type="text"
             placeholder={t("verificationCode")}
             required
+            style={{
+              width: 180,
+              padding: "8px",
+              borderRadius: 6,
+              border: "1px solid #ccc",
+              marginBottom: 16,
+              textAlign: "center",
+              fontSize: 16
+            }}
           />
-          <button type="submit" disabled={loading}>
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              width: 180,
+              margin: "10px auto",
+              padding: "10px",
+              borderRadius: 6,
+              background: "#fffbe6",
+              fontWeight: "bold",
+              fontSize: 16,
+              border: "1px solid #dac078",
+              cursor: loading ? "not-allowed" : "pointer"
+            }}
+          >
             {loading ? t("loading") : t("verifyCode")}
+          </button>
+          <button
+            type="button"
+            style={{
+              width: 180,
+              margin: "8px auto 0 auto",
+              padding: "10px",
+              borderRadius: 6,
+              background: "#f3f3f3",
+              fontWeight: "bold",
+              fontSize: 15,
+              border: "1px solid #ccc",
+              cursor: "pointer"
+            }}
+            onClick={() => {
+              setIsLogin(!isLogin);
+              setVerificationId(null);
+              setError("");
+              setName("");
+              setCode("");
+              cleanupRecaptcha();
+            }}
+          >
+            {isLogin ? t("needAccount") : t("alreadyAccount")}
           </button>
         </form>
       )}
 
-      {error && <div style={{ color: "red", marginTop: 10 }}>{error}</div>}
-
-      <button
-        style={{ marginTop: 20 }}
-        onClick={() => {
-          setIsLogin(!isLogin);
-          setVerificationId(null);
-          setError("");
-          setName("");
-          setCode("");
-          cleanupRecaptcha();
-        }}
-      >
-        {isLogin ? t("needAccount") : t("alreadyAccount")}
-      </button>
+      {error && <div style={{ color: "red", marginTop: 10, textAlign: "center" }}>{error}</div>}
     </div>
   );
 }
