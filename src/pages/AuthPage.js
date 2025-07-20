@@ -120,7 +120,7 @@ export default function AuthPage() {
           <input
             ref={phoneRef}
             type="tel"
-            placeholder="+972 50 123 4567"
+            placeholder="+972 50 123 1111"
             required
           />
           <div id="recaptcha-container"></div>
