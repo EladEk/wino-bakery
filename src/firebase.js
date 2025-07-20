@@ -10,11 +10,14 @@ const firebaseConfig = {
   storageBucket: "wino-fb03d.appspot.com",
   messagingSenderId: "45483660067",
   appId: "1:45483660067:web:fbf7f384c3536d5835b296",
-  measurementId: "G-XWSF568GQD",
+  measurementId: "G-XWSF568GQD"
 };
+
 
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+export { app };
+
