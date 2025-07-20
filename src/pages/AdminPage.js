@@ -28,7 +28,7 @@ export default function AdminPage() {
   const [editBreadPrice, setEditBreadPrice] = useState("");
 
   // Edit-order state
-  const [editingOrder, setEditingOrder] = useState({}); // { [breadId_i]: { quantity, name } }
+  const [editingOrder, setEditingOrder] = useState({}); // { [breadId_idx]: { quantity, name } }
 
   const { t } = useTranslation();
 
@@ -126,7 +126,6 @@ export default function AdminPage() {
     );
   };
 
-  // NEW: Toggle paid
   const togglePaid = async (breadId, idx) => {
     const bread = breads.find((b) => b.id === breadId);
     const updated = (bread.claimedBy || []).map((c, i) =>
@@ -142,18 +141,33 @@ export default function AdminPage() {
     );
   };
 
-  // NEW: Start editing a specific order
   const startEditingOrder = (breadId, idx, claim) => {
     setEditingOrder({ [`${breadId}_${idx}`]: { quantity: claim.quantity, name: claim.name } });
   };
-  // NEW: Save order edit
   const saveOrderEdit = async (breadId, idx, claim) => {
     const bread = breads.find((b) => b.id === breadId);
     const key = `${breadId}_${idx}`;
     const newVal = editingOrder[key];
+    const newQty = Number(newVal.quantity);
+    if (!newQty || newQty < 1) {
+      alert(t("invalidQuantity"));
+      return;
+    }
+
+    // Check available stock considering other orders
+    const otherClaimsTotal = (bread.claimedBy || []).reduce((sum, c, i) => {
+      if (i !== idx) return sum + (c.quantity || 0);
+      return sum;
+    }, 0);
+    const maxAllowed = bread.availablePieces + (claim.quantity || 0);
+    if (newQty > maxAllowed - otherClaimsTotal) {
+      alert(t("notEnoughAvailable"));
+      return;
+    }
+
     const updated = (bread.claimedBy || []).map((c, i) =>
       i === idx
-        ? { ...c, quantity: Number(newVal.quantity), name: newVal.name }
+        ? { ...c, quantity: newQty, name: newVal.name }
         : c
     );
     await updateDoc(doc(db, "breads", breadId), {
@@ -162,7 +176,6 @@ export default function AdminPage() {
     setEditingOrder({});
     await fetchData();
   };
-  // NEW: Cancel editing order
   const cancelOrderEdit = () => setEditingOrder({});
 
   const handleOrderInputChange = (breadId, idx, field, value) => {
@@ -171,6 +184,15 @@ export default function AdminPage() {
       ...prev,
       [key]: { ...prev[key], [field]: value },
     }));
+  };
+
+  const deleteOrder = async (breadId, idx) => {
+    const bread = breads.find((b) => b.id === breadId);
+    const updated = (bread.claimedBy || []).filter((_, i) => i !== idx);
+    await updateDoc(doc(db, "breads", breadId), {
+      claimedBy: updated,
+    });
+    await fetchData();
   };
 
   const totalRevenue = breads.reduce(
@@ -187,7 +209,6 @@ export default function AdminPage() {
     <div style={{ maxWidth: 1000, margin: "30px auto", fontFamily: "inherit" }}>
       <h2>{t("Admin Dashboard")}</h2>
 
-      {/* Add Bread Form */}
       <form
         onSubmit={handleAddBread}
         style={{ margin: "32px 0", background: "#f7f7ee", padding: 24, borderRadius: 10 }}
@@ -240,7 +261,6 @@ export default function AdminPage() {
         </button>
       </form>
 
-      {/* Users Table */}
       <h3>{t("Users")}</h3>
       <div className="table-responsive">
         <table className="cream-table">
@@ -248,7 +268,7 @@ export default function AdminPage() {
             <tr>
               <th>{t("Phone")}</th>
               <th>{t("Name")}</th>
-              <th>{t("name")}</th>
+              <th>{t("Email")}</th>
               <th>{t("Admin")}</th>
               <th>{t("Blocked")}</th>
               <th>{t("Actions")}</th>
@@ -276,10 +296,8 @@ export default function AdminPage() {
         </table>
       </div>
 
-      {/* Each bread in one translucent panel */}
       {breads.map((bread) => (
         <div key={bread.id} className="bread-section">
-          {/* Bread Details */}
           <div className="table-responsive">
             <table className="cream-table">
               <thead>
@@ -359,7 +377,6 @@ export default function AdminPage() {
             </table>
           </div>
 
-          {/* Orders */}
           <h3 className="orders-heading">{t("ordersList")}</h3>
           <div className="table-responsive">
             <table className="cream-table">
@@ -441,12 +458,28 @@ export default function AdminPage() {
                             >
                               {t("Save")}
                             </button>
-                            <button onClick={cancelOrderEdit}>{t("Cancel")}</button>
+                            <button onClick={cancelOrderEdit} style={{ marginRight: 6 }}>
+                              {t("Cancel")}
+                            </button>
+                            <button
+                              onClick={() => deleteOrder(bread.id, i)}
+                              style={{ color: "red" }}
+                            >
+                              {t("Delete")}
+                            </button>
                           </>
                         ) : (
-                          <button onClick={() => startEditingOrder(bread.id, i, claim)}>
-                            {t("Edit")}
-                          </button>
+                          <>
+                            <button onClick={() => startEditingOrder(bread.id, i, claim)} style={{ marginRight: 6 }}>
+                              {t("Edit")}
+                            </button>
+                            <button
+                              onClick={() => deleteOrder(bread.id, i)}
+                              style={{ color: "red" }}
+                            >
+                              {t("Delete")}
+                            </button>
+                          </>
                         )}
                       </td>
                     </tr>
@@ -458,7 +491,6 @@ export default function AdminPage() {
         </div>
       ))}
 
-      {/* Total Revenue */}
       <div className="total-revenue">
         {t("totalRevenue")}: {totalRevenue.toFixed(2)}
       </div>
