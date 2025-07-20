@@ -145,6 +145,7 @@ export default function AdminPage() {
   const startEditingOrder = (breadId, idx, claim) => {
     setEditingOrder({ [`${breadId}_${idx}`]: { quantity: claim.quantity, name: claim.name } });
   };
+
   const saveOrderEdit = async (breadId, idx, claim) => {
     const bread = breads.find((b) => b.id === breadId);
     const key = `${breadId}_${idx}`;
@@ -155,28 +156,38 @@ export default function AdminPage() {
       return;
     }
 
-    // Validate quantity against availability and other claims
+    // Sum quantities claimed by others except this order
     const otherClaimsTotal = (bread.claimedBy || []).reduce((sum, c, i) => {
       if (i !== idx) return sum + (c.quantity || 0);
       return sum;
     }, 0);
+
+    // Calculate max allowed quantity including current claim quantity
     const maxAllowed = bread.availablePieces + (claim.quantity || 0);
     if (newQty > maxAllowed - otherClaimsTotal) {
       alert(t("notEnoughAvailable"));
       return;
     }
 
-    const updated = (bread.claimedBy || []).map((c, i) =>
+    const diff = newQty - claim.quantity;
+
+    // Update claimedBy with new quantity and name
+    const updatedClaims = (bread.claimedBy || []).map((c, i) =>
       i === idx
         ? { ...c, quantity: newQty, name: newVal.name }
         : c
     );
+
+    // Update Firestore document with updated claims and adjusted availablePieces
     await updateDoc(doc(db, "breads", breadId), {
-      claimedBy: updated,
+      claimedBy: updatedClaims,
+      availablePieces: bread.availablePieces - diff,
     });
+
     setEditingOrder({});
     await fetchData();
   };
+
   const cancelOrderEdit = () => setEditingOrder({});
 
   const handleOrderInputChange = (breadId, idx, field, value) => {
@@ -189,9 +200,12 @@ export default function AdminPage() {
 
   const deleteOrder = async (breadId, idx) => {
     const bread = breads.find((b) => b.id === breadId);
+    const claimToDelete = bread.claimedBy[idx];
     const updated = (bread.claimedBy || []).filter((_, i) => i !== idx);
+    // Increase availablePieces by the deleted claim quantity
     await updateDoc(doc(db, "breads", breadId), {
       claimedBy: updated,
+      availablePieces: bread.availablePieces + (claimToDelete.quantity || 0),
     });
     await fetchData();
   };
