@@ -158,17 +158,24 @@ export default function AuthPage() {
       const cred = PhoneAuthProvider.credential(verificationId, code);
       const userCred = await signInWithCredential(auth, cred);
 
+      // Only registration writes a name!
       if (!isLogin) {
         try {
+          console.log(">>> ABOUT TO WRITE USER PROFILE:", {
+            phone: normalizePhone(phoneRef.current.value),
+            name,
+            createdAt: serverTimestamp(),
+          });
           await setDoc(
             doc(db, "users", userCred.user.uid),
             {
               phone: normalizePhone(phoneRef.current.value),
-              name, // <-- Only set name here!
+              name,
               createdAt: serverTimestamp(),
             },
             { merge: true }
           );
+          console.log(">>> WROTE USER PROFILE WITH NAME");
         } catch (e) {
           console.error("Failed to save profile:", e);
           setError(
@@ -195,7 +202,6 @@ export default function AuthPage() {
             {isLogin ? t("login") : t("register")}
           </h2>
 
-          {/* -------- Phone form -------- */}
           {!verificationId ? (
             <form
               className="auth-form"
@@ -317,3 +323,4 @@ export default function AuthPage() {
     </div>
   );
 }
+                               
