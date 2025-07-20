@@ -13,8 +13,8 @@ import { useTranslation } from "react-i18next";
 
 export default function AuthPage() {
   const [name, setName] = useState("");
+  const [code, setCode] = useState("");
   const phoneRef = useRef();
-  const codeRef = useRef();
 
   const [isLogin, setIsLogin] = useState(true);
   const [verificationId, setVerificationId] = useState(null);
@@ -25,6 +25,7 @@ export default function AuthPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
+  // Always clean up recaptcha between flows!
   const cleanupRecaptcha = () => {
     if (window.recaptchaVerifier) {
       try {
@@ -34,6 +35,7 @@ export default function AuthPage() {
     }
   };
 
+  // Always create fresh recaptcha when sending code
   const setupRecaptcha = () => {
     cleanupRecaptcha();
     window.recaptchaVerifier = new RecaptchaVerifier(
@@ -87,15 +89,14 @@ export default function AuthPage() {
 
   const verifyCodeAndSignIn = async () => {
     setError("");
-    const code = codeRef.current.value.trim();
-    if (!code) {
+    if (!code.trim()) {
       setError(t("codeRequired") || "Please enter the verification code");
       return;
     }
     setLoading(true);
 
     try {
-      const credential = PhoneAuthProvider.credential(verificationId, code);
+      const credential = PhoneAuthProvider.credential(verificationId, code.trim());
       const userCredential = await signInWithCredential(auth, credential);
       const user = userCredential.user;
 
@@ -109,7 +110,7 @@ export default function AuthPage() {
         });
       }
       cleanupRecaptcha();
-      setTimeout(() => navigate("/"), 10);
+      setTimeout(() => navigate("/"), 50); // Short delay for auth context to catch up
     } catch (err) {
       setError(err.message);
       cleanupRecaptcha();
@@ -118,6 +119,7 @@ export default function AuthPage() {
     }
   };
 
+  // Reset recaptcha on unmount
   useEffect(() => () => cleanupRecaptcha(), []);
 
   return (
@@ -126,7 +128,7 @@ export default function AuthPage() {
 
       {!verificationId ? (
         <form
-          onSubmit={(e) => {
+          onSubmit={e => {
             e.preventDefault();
             sendVerificationCode();
           }}
@@ -142,6 +144,13 @@ export default function AuthPage() {
             />
           )}
           <div style={{ display: "flex", alignItems: "center", marginBottom: 8 }}>
+            <span style={{
+              padding: "8px 10px",
+              background: "#eee",
+              borderRadius: "4px 0 0 4px",
+              border: "1px solid #ccc",
+              borderRight: "none"
+            }}>+972</span>
             <input
               ref={phoneRef}
               type="tel"
@@ -168,13 +177,14 @@ export default function AuthPage() {
         </form>
       ) : (
         <form
-          onSubmit={(e) => {
+          onSubmit={e => {
             e.preventDefault();
             verifyCodeAndSignIn();
           }}
         >
           <input
-            ref={codeRef}
+            value={code}
+            onChange={e => setCode(e.target.value)}
             type="text"
             placeholder={t("verificationCode")}
             required
@@ -193,6 +203,8 @@ export default function AuthPage() {
           setIsLogin(!isLogin);
           setVerificationId(null);
           setError("");
+          setName("");
+          setCode("");
           cleanupRecaptcha();
         }}
       >
