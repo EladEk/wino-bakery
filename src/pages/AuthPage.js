@@ -6,321 +6,165 @@ import {
   signInWithCredential,
 } from "firebase/auth";
 import {
-  setDoc,
-  doc,
-  serverTimestamp,
-  query,
-  collection,
-  where,
-  getDocs,
+  setDoc, doc, serverTimestamp,
+  query, collection, where, getDocs,
 } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../contexts/AuthContext";
 import { getRecaptcha, clearRecaptcha } from "../utils/recaptchaSingleton";
 import BreadLoader from "../components/BreadLoader";
 import "./AuthPage.css";
 
 export default function AuthPage() {
-  const [name, setName] = useState("");
-  const [code, setCode] = useState("");
-  const phoneRef = useRef();
-  const [isLogin, setIsLogin] = useState(true);
+  /* state */
+  const [name, setName]         = useState("");
+  const [code, setCode]         = useState("");
+  const [isLogin, setIsLogin]   = useState(true);
   const [verificationId, setVerificationId] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [recaptchaReady, setRecaptchaReady] = useState(false);
+  const [loading, setLoading]   = useState(false);
+  const [error, setError]       = useState("");
+  const [recReady, setRecReady] = useState(false);
   const [cooldown, setCooldown] = useState(0);
 
-  const navigate = useNavigate();
-  const { t } = useTranslation();
-  const verifierRef = useRef(null);
+  const phoneRef   = useRef();
+  const verifier   = useRef(null);
   const hostDivRef = useRef(null);
 
-  useEffect(() => {
-    if (["localhost", "127.0.0.1"].includes(window.location.hostname)) {
-      auth.settings.appVerificationDisabledForTesting = true;
-    }
-  }, []);
+  const navigate = useNavigate();
+  const { t }    = useTranslation();
 
-  const buildFreshRecaptcha = async () => {
-    clearRecaptcha();
-    setRecaptchaReady(false);
-
-    if (hostDivRef.current?.parentNode) {
-      hostDivRef.current.parentNode.removeChild(hostDivRef.current);
-    }
-
-    const uniqueId = `recaptcha-container-${Date.now()}`;
-    const host = document.createElement("div");
-    host.id = uniqueId;
-    Object.assign(host.style, {
-      position: "absolute",
-      top: "-10000px",
-      left: "-10000px",
-      width: "1px",
-      height: "1px",
-      overflow: "hidden",
-    });
-    document.body.appendChild(host);
-    hostDivRef.current = host;
-
-    try {
-      verifierRef.current = await getRecaptcha(auth, uniqueId);
-      setRecaptchaReady(true);
-    } catch (e) {
-      console.error("reCAPTCHA render failed:", e);
-      setError(
-        "Failed to load verification widget – please refresh the page or check your network."
-      );
-    }
-  };
-
-  useEffect(() => {
-    buildFreshRecaptcha();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (!cooldown) return;
-    const id = setInterval(() => setCooldown((c) => c - 1), 1000);
-    return () => clearInterval(id);
-  }, [cooldown]);
-
-  const normalizePhone = (raw) => {
+  /* ---------------- helpers ---------------- */
+  const normalizePhone = raw => {
     let p = raw.replace(/\D/g, "");
     if (p.startsWith("0")) p = p.slice(1);
     return "+972" + p;
   };
-  const withError = (msg) => {
-    setError(msg);
-    setLoading(false);
-  };
+  const withError = msg => { setError(msg); setLoading(false); };
 
+  /* ---------------- reCAPTCHA ---------------- */
+  const buildRecaptcha = async () => {
+    clearRecaptcha();
+    setRecReady(false);
+    if (hostDivRef.current?.parentNode)
+      hostDivRef.current.parentNode.removeChild(hostDivRef.current);
+
+    const id = `recaptcha-${Date.now()}`;
+    const div = document.createElement("div");
+    div.id = id;
+    Object.assign(div.style, { position:"absolute", top:"-9999px", left:"-9999px" });
+    document.body.appendChild(div);
+    hostDivRef.current = div;
+
+    try {
+      verifier.current = await getRecaptcha(auth, id);
+      setRecReady(true);
+    } catch (e) {
+      console.error("reCAPTCHA init failed:", e);
+      setError("reCAPTCHA failed – refresh and try again.");
+    }
+  };
+  useEffect(() => { buildRecaptcha(); }, []);
+
+  /* ---------------- SMS step ---------------- */
   const sendVerificationCode = async () => {
     setError("");
     const raw = phoneRef.current.value.trim();
     const phone = normalizePhone(raw);
-    if (!raw) return withError(t("phoneRequired") ?? "Enter phone number");
-    if (!isLogin && !name.trim())
-      return withError(t("nameRequired") ?? "Enter your name");
-    if (cooldown) return;
+    if (!raw)         return withError(t("phoneRequired"));
+    if (!isLogin && !name.trim()) return withError(t("nameRequired"));
+    if (cooldown)     return;
 
     setLoading(true);
     try {
-      await buildFreshRecaptcha();
-
+      await buildRecaptcha();
       if (isLogin) {
-        const snap = await getDocs(
-          query(collection(db, "users"), where("phone", "==", phone))
-        );
-        if (snap.empty) {
-          return withError(
-            t("notRegistered") ??
-              "Number isn’t registered – choose Register instead."
-          );
-        }
+        const q = query(collection(db,"users"), where("phone","==",phone));
+        const s = await getDocs(q);
+        if (s.empty)
+          return withError(t("notRegistered") ?? "Number not registered.");
       }
-
-      const result = await signInWithPhoneNumber(
-        auth,
-        phone,
-        verifierRef.current
-      );
-
-      setVerificationId(result.verificationId);
+      const res = await signInWithPhoneNumber(auth, phone, verifier.current);
+      setVerificationId(res.verificationId);
       setCooldown(60);
-    } catch (err) {
-      if (
-        err.code === "auth/internal-error" ||
-        err.code === "auth/too-many-requests"
-      ) {
-        await buildFreshRecaptcha();
-      }
-      return withError(
-        err.code === "auth/too-many-requests"
-          ? t("tooManyRequests") ??
-              "Too many attempts – wait a minute and try again."
-          : err.message
-      );
-    } finally {
-      setLoading(false);
-    }
+    } catch (e) {
+      return withError(e.message);
+    } finally { setLoading(false); }
   };
 
+  /* ---------------- Verify step ---------------- */
   const verifyCodeAndSignIn = async () => {
-    setError("");
-    if (!code.trim())
-      return withError(t("codeRequired") ?? "Enter verification code");
+    if (!code.trim()) return withError(t("codeRequired"));
     setLoading(true);
-
     try {
       const cred = PhoneAuthProvider.credential(verificationId, code);
-      const userCred = await signInWithCredential(auth, cred);
+      const { user } = await signInWithCredential(auth, cred);
 
-      // Only registration writes a name!
+      /* REGISTER path only */
       if (!isLogin) {
-        try {
-          console.log(">>> ABOUT TO WRITE USER PROFILE:", {
-            phone: normalizePhone(phoneRef.current.value),
-            name,
-            createdAt: serverTimestamp(),
-          });
-          await setDoc(
-            doc(db, "users", userCred.user.uid),
-            {
-              phone: normalizePhone(phoneRef.current.value),
-              name,
-              createdAt: serverTimestamp(),
-            },
-            { merge: true }
-          );
-          console.log(">>> WROTE USER PROFILE WITH NAME");
-        } catch (e) {
-          console.error("Failed to save profile:", e);
-          setError(
-            "Could not save your name – please check your connection or contact support."
-          );
-        }
+        console.log("⏩  about to write user doc:", name);
+        await setDoc(
+          doc(db,"users",user.uid),
+          { phone: normalizePhone(phoneRef.current.value), name,
+            createdAt: serverTimestamp() },
+          { merge:true }
+        );
+        console.log("✅  user doc written");
       }
-
       navigate("/");
-    } catch (err) {
-      withError(err.message);
-    } finally {
-      setLoading(false);
-    }
+    } catch(e){ withError(e.message); }
+    finally   { setLoading(false); }
   };
 
+  /* cooldown timer */
+  useEffect(() => {
+    if (!cooldown) return;
+    const id = setInterval(()=>setCooldown(c=>c-1),1000);
+    return ()=>clearInterval(id);
+  },[cooldown]);
+
+  /* ---------------- UI ---------------- */
   return (
     <div className="auth-container">
-      {!recaptchaReady ? (
-        <BreadLoader />
-      ) : (
+      {!recReady ? <BreadLoader/> : (
         <div>
-          <h2 className="auth-title">
-            {isLogin ? t("login") : t("register")}
-          </h2>
+          <h2 className="auth-title">{isLogin?t("login"):t("register")}</h2>
 
           {!verificationId ? (
-            <form
-              className="auth-form"
-              onSubmit={(e) => {
-                e.preventDefault();
-                sendVerificationCode();
-              }}
-            >
+            <form className="auth-form" onSubmit={e=>{e.preventDefault();sendVerificationCode();}}>
               {!isLogin && (
-                <input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  type="text"
-                  placeholder={t("name")}
-                  required
-                  className="auth-input"
-                />
+                <input value={name} onChange={e=>setName(e.target.value)}
+                       className="auth-input" placeholder={t("name")} required/>
               )}
-
-              <label htmlFor="phone-input" className="auth-label">
-                {t("phone") ?? "Phone:"}
-              </label>
-              <input
-                id="phone-input"
-                ref={phoneRef}
-                type="tel"
-                placeholder="50 123 4567"
-                required
-                className="auth-input"
-                pattern="[0-9]{9,10}"
-                maxLength={10}
-                inputMode="numeric"
-                autoComplete="tel"
-              />
-
-              <button
-                type="submit"
-                disabled={loading || cooldown}
-                className="auth-btn"
-              >
-                {loading ? (
-                  <BreadLoader />
-                ) : cooldown ? (
-                  `${t("sendCode") ?? "Send code"} (${cooldown})`
-                ) : (
-                  t("sendCode")
-                )}
+              <label htmlFor="ph" className="auth-label">{t("phone")}</label>
+              <input id="ph" ref={phoneRef} className="auth-input"
+                     placeholder="50 123 4567" pattern="[0-9]{9,10}" required/>
+              <button className="auth-btn" disabled={loading||cooldown}>
+                {loading ? <BreadLoader/> :
+                 cooldown ? `${t("sendCode")} (${cooldown})` : t("sendCode")}
               </button>
-
-              <button
-                type="button"
-                className="auth-btn-secondary"
-                onClick={() => {
-                  setIsLogin(!isLogin);
-                  setError("");
-                  setName("");
-                  setCode("");
-                }}
-              >
+              <button type="button" className="auth-btn-secondary"
+                      onClick={()=>{setIsLogin(!isLogin);setError("");setName("");setCode("");}}>
                 {isLogin ? t("needAccount") : t("alreadyAccount")}
               </button>
             </form>
           ) : (
-            <form
-              className="auth-form"
-              onSubmit={(e) => {
-                e.preventDefault();
-                verifyCodeAndSignIn();
-              }}
-            >
-              <label htmlFor="code-input" className="auth-label">
-                {t("verificationCode") ?? "Verification Code:"}
-              </label>
-              <input
-                id="code-input"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                type="text"
-                placeholder={t("verificationCode")}
-                required
-                className="auth-input"
-              />
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="auth-btn"
-              >
-                {loading ? <BreadLoader /> : t("verifyCode")}
+            <form className="auth-form" onSubmit={e=>{e.preventDefault();verifyCodeAndSignIn();}}>
+              <label htmlFor="c" className="auth-label">{t("verificationCode")}</label>
+              <input id="c" value={code} onChange={e=>setCode(e.target.value)}
+                     className="auth-input" placeholder={t("verificationCode")} required/>
+              <button className="auth-btn" disabled={loading}>
+                {loading ? <BreadLoader/> : t("verifyCode")}
               </button>
-
-              <button
-                type="button"
-                className="auth-btn-secondary"
-                onClick={async () => {
-                  setVerificationId(null);
-                  setCode("");
-                  setError("");
-                  await buildFreshRecaptcha();
-                }}
-              >
-                {t("changePhone") || "Back / Change phone"}
+              <button type="button" className="auth-btn-secondary"
+                      onClick={async()=>{setVerificationId(null);setCode("");setError("");await buildRecaptcha();}}>
+                {t("changePhone")}
               </button>
             </form>
           )}
 
-          {error && (
-            <div
-              className="auth-error"
-              style={
-                error.includes("not registered") ? { background: "#fff" } : undefined
-              }
-            >
-              {error}
-            </div>
-          )}
+          {error && <div className="auth-error">{error}</div>}
         </div>
       )}
     </div>
   );
 }
-                               
