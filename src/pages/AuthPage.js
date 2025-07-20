@@ -177,9 +177,7 @@ export default function AuthPage() {
             doc(db, "users", userCred.user.uid),
             {
               phone: normalizePhone(phoneRef.current.value),
-              name,
-              isAdmin: false,
-              isBlocked: false,
+              name,                 // ⬅️ this is the only new info
               createdAt: serverTimestamp(),
             },
             { merge: true } // preserve existing flags / admin edits
