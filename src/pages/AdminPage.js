@@ -28,7 +28,7 @@ export default function AdminPage() {
   const [editBreadPrice, setEditBreadPrice] = useState("");
 
   // Edit-order state: key = `${breadId}_${index}`
-  // value = { quantity: number, name: string }
+  // value = { quantity: number }
   const [editingOrder, setEditingOrder] = useState({});
 
   const { t } = useTranslation();
@@ -143,9 +143,8 @@ export default function AdminPage() {
   };
 
   const startEditingOrder = (breadId, idx, claim) => {
-    setEditingOrder({ [`${breadId}_${idx}`]: { quantity: claim.quantity, name: claim.name } });
+    setEditingOrder({ [`${breadId}_${idx}`]: { quantity: claim.quantity } });
   };
-
   const saveOrderEdit = async (breadId, idx, claim) => {
     const bread = breads.find((b) => b.id === breadId);
     const key = `${breadId}_${idx}`;
@@ -171,26 +170,23 @@ export default function AdminPage() {
 
     const diff = newQty - claim.quantity;
 
-    // Update claimedBy with new quantity and name
-    const updatedClaims = (bread.claimedBy || []).map((c, i) =>
+    // Update claimedBy with new quantity, name remains unchanged
+    const updated = (bread.claimedBy || []).map((c, i) =>
       i === idx
-        ? { ...c, quantity: newQty, name: newVal.name }
+        ? { ...c, quantity: newQty }
         : c
     );
-
-    // Update Firestore document with updated claims and adjusted availablePieces
     await updateDoc(doc(db, "breads", breadId), {
-      claimedBy: updatedClaims,
+      claimedBy: updated,
       availablePieces: bread.availablePieces - diff,
     });
-
     setEditingOrder({});
     await fetchData();
   };
-
   const cancelOrderEdit = () => setEditingOrder({});
 
   const handleOrderInputChange = (breadId, idx, field, value) => {
+    if (field !== "quantity") return; // ignore any other fields, name not editable
     const key = `${breadId}_${idx}`;
     setEditingOrder((prev) => ({
       ...prev,
@@ -202,7 +198,7 @@ export default function AdminPage() {
     const bread = breads.find((b) => b.id === breadId);
     const claimToDelete = bread.claimedBy[idx];
     const updated = (bread.claimedBy || []).filter((_, i) => i !== idx);
-    // Increase availablePieces by the deleted claim quantity
+    // Increase availablePieces by deleted claim quantity
     await updateDoc(doc(db, "breads", breadId), {
       claimedBy: updated,
       availablePieces: bread.availablePieces + (claimToDelete.quantity || 0),
@@ -451,18 +447,10 @@ export default function AdminPage() {
                         )}
                       </td>
                       <td>
-                        {isEditing ? (
-                          <input
-                            type="text"
-                            value={isEditing.name}
-                            style={{ width: 100 }}
-                            onChange={e =>
-                              handleOrderInputChange(bread.id, i, "name", e.target.value)
-                            }
-                          />
-                        ) : (
-                          claim.name
-                        )}
+                        {/* Show name as text only, no editing */}
+                        <span style={{ paddingLeft: 6, display: "inline-block", width: 120 }}>
+                          {claim.name}
+                        </span>
                       </td>
                       <td>
                         {isEditing ? (
