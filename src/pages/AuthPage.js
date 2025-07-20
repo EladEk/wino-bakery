@@ -177,7 +177,7 @@ export default function AuthPage() {
       }} />
 
       {!recaptchaReady ? (
-        <BreadLoader />                             {/* 🥖 show loader */}
+        <BreadLoader />                             {/* bread show loader */}
       ) : (
         <div>
           <h2 className="auth-title">
