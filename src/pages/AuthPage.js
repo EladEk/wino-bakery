@@ -13,7 +13,122 @@ import { useAuth } from "../contexts/AuthContext";
 import "./AuthPage.css";
 
 export default function AuthPage() {
-  // ... all your state, logic, hooks, etc.
+  const [name, setName] = useState("");
+  const [code, setCode] = useState("");
+  const phoneRef = useRef();
+
+  const [isLogin, setIsLogin] = useState(true);
+  const [verificationId, setVerificationId] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [pendingPhone, setPendingPhone] = useState("");
+  const [pendingLogin, setPendingLogin] = useState(false);
+
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+
+  // Clean up recaptcha
+  const cleanupRecaptcha = () => {
+    if (window.recaptchaVerifier) {
+      try {
+        window.recaptchaVerifier.clear();
+      } catch {}
+      window.recaptchaVerifier = null;
+    }
+  };
+
+  const setupRecaptcha = () => {
+    cleanupRecaptcha();
+    window.recaptchaVerifier = new RecaptchaVerifier(
+      auth,
+      "recaptcha-container",
+      {
+        size: "invisible",
+        callback: () => {},
+      }
+    );
+  };
+
+  const normalizePhone = (raw) => {
+    let p = raw.replace(/\D/g, "");
+    if (p.startsWith("0")) p = p.slice(1);
+    return "+972" + p;
+  };
+
+  const sendVerificationCode = async () => {
+    setError("");
+    const phoneRaw = phoneRef.current.value.trim();
+    const phoneNumber = normalizePhone(phoneRaw);
+
+    if (!phoneRaw) {
+      setError(t("phoneRequired") || "Please enter a phone number");
+      return;
+    }
+    if (!isLogin && !name.trim()) {
+      setError(t("nameRequired") || "Please enter your name");
+      return;
+    }
+    setLoading(true);
+
+    try {
+      setupRecaptcha();
+      const appVerifier = window.recaptchaVerifier;
+      const confirmationResult = await signInWithPhoneNumber(
+        auth,
+        phoneNumber,
+        appVerifier
+      );
+      setVerificationId(confirmationResult.verificationId);
+      setPendingPhone(phoneNumber);
+    } catch (err) {
+      setError(err.message);
+      cleanupRecaptcha();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifyCodeAndSignIn = async () => {
+    setError("");
+    if (!code.trim()) {
+      setError(t("codeRequired") || "Please enter the verification code");
+      return;
+    }
+    setLoading(true);
+
+    try {
+      const credential = PhoneAuthProvider.credential(verificationId, code.trim());
+      const userCredential = await signInWithCredential(auth, credential);
+      const user = userCredential.user;
+
+      if (!isLogin) {
+        await setDoc(doc(db, "users", user.uid), {
+          phone: pendingPhone || user.phoneNumber,
+          name: name,
+          isAdmin: false,
+          isBlocked: false,
+          createdAt: serverTimestamp(),
+        });
+      }
+      cleanupRecaptcha();
+      setPendingLogin(true);
+    } catch (err) {
+      setError(err.message);
+      cleanupRecaptcha();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (pendingLogin && currentUser) {
+      setPendingLogin(false);
+      navigate("/");
+    }
+  }, [pendingLogin, currentUser, navigate]);
+
+  useEffect(() => () => cleanupRecaptcha(), []);
 
   if (pendingLogin) {
     return (
