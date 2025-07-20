@@ -28,7 +28,7 @@ export default function AuthPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  // Clean up recaptcha
+  // --- Clean up recaptcha (ALWAYS before re-creating) ---
   const cleanupRecaptcha = () => {
     if (window.recaptchaVerifier) {
       try {
@@ -38,6 +38,7 @@ export default function AuthPage() {
     }
   };
 
+  // --- Create recaptcha only after cleaning up previous one ---
   const setupRecaptcha = () => {
     cleanupRecaptcha();
     window.recaptchaVerifier = new RecaptchaVerifier(
