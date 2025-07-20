@@ -25,12 +25,16 @@ export function AuthProvider({ children }) {
           const userDocRef = doc(db, "users", user.uid);
           let snap = await getDoc(userDocRef);
 
-          // FIX: use merge:true to avoid overwriting fields like 'name'
+          // Only set phone/createdAt, never set 'name' (never clobber)
           if (!snap.exists()) {
-            await setDoc(userDocRef, {
-              phone: user.phoneNumber,
-              createdAt: serverTimestamp(),
-            }, { merge: true }); // <-- THIS LINE IS THE FIX!
+            await setDoc(
+              userDocRef,
+              {
+                phone: user.phoneNumber,
+                createdAt: serverTimestamp(),
+              },
+              { merge: true }
+            );
             snap = await getDoc(userDocRef);
           }
 
