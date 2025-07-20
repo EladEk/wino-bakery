@@ -1,9 +1,7 @@
-// src/pages/AuthPage.js – full file
-
+// src/pages/AuthPage.js
 import React, { useState, useRef, useEffect } from "react";
 import { auth, db } from "../firebase";
 import {
-  RecaptchaVerifier,
   signInWithPhoneNumber,
   PhoneAuthProvider,
   signInWithCredential,
@@ -20,107 +18,85 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../contexts/AuthContext";
+import {
+  getRecaptcha,
+  clearRecaptcha,
+} from "../utils/recaptchaSingleton";
 import "./AuthPage.css";
 
-/* -----------------------------------------------------------
-   Singleton: invisible reCAPTCHA Enterprise verifier
-   (avoids double‑mount in React‑18 StrictMode)
------------------------------------------------------------ */
-let recaptchaVerifierSingleton = null;
-
 export default function AuthPage() {
-  /* ----------------- state ----------------- */
-  const [name, setName] = useState("");
-  const [code, setCode] = useState("");
-  const phoneRef = useRef();
-  const [isLogin, setIsLogin] = useState(true);
+  /* -------- state -------- */
+  const [name, setName]                 = useState("");
+  const [code, setCode]                 = useState("");
+  const phoneRef                        = useRef();
+  const [isLogin, setIsLogin]           = useState(true);
   const [verificationId, setVerificationId] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [pendingPhone, setPendingPhone] = useState("");
-  const [pendingLogin, setPendingLogin] = useState(false);
+  const [loading, setLoading]           = useState(false);
+  const [error, setError]               = useState("");
   const [recaptchaReady, setRecaptchaReady] = useState(false);
-  const [cooldown, setCooldown] = useState(0);
+  const [cooldown, setCooldown]         = useState(0);
 
   const { currentUser } = useAuth();
-  const navigate = useNavigate();
-  const { t } = useTranslation();
+  const navigate        = useNavigate();
+  const { t }           = useTranslation();
+  const verifierRef     = useRef(null);
 
-  const recaptchaVerifierRef = useRef(null);
-
-  /* Disable verification in local dev (Firebase test numbers only!) */
+  /* Disable SMS verification on localhost (test numbers only) */
   useEffect(() => {
-    if (
-      window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1"
-    ) {
+    if (["localhost", "127.0.0.1"].includes(window.location.hostname)) {
       auth.settings.appVerificationDisabledForTesting = true;
     }
   }, []);
 
-  /* Initialise Enterprise reCAPTCHA once */
+  /* Helper – build a brand-new Enterprise reCAPTCHA */
+  const buildFreshRecaptcha = async () => {
+    clearRecaptcha();              // wipe old widget / token
+    setRecaptchaReady(false);      // UI guard
+
+    const v = getRecaptcha(auth, "recaptcha-container");
+    verifierRef.current = v;
+    await v.render();
+    setRecaptchaReady(true);
+  };
+
+  /* First mount */
   useEffect(() => {
-    let mounted = true;
-    if (!recaptchaVerifierSingleton) {
-      try {
-        recaptchaVerifierSingleton = new RecaptchaVerifier(
-          auth, // <-- first arg
-          "recaptcha-container",
-          {
-            size: "invisible",
-            type: "enterprise", // reuse App Check token
-          }
-        );
-        recaptchaVerifierSingleton.render().then(() => {
-          if (mounted) setRecaptchaReady(true);
-        });
-      } catch (e) {
-        console.error(e);
-        setError("reCAPTCHA init failed: " + e.message);
-      }
-    } else {
-      setRecaptchaReady(true);
-    }
-    recaptchaVerifierRef.current = recaptchaVerifierSingleton;
-    return () => {
-      mounted = false;
-    };
+    buildFreshRecaptcha();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* Cool‑down timer for Send‑Code button */
+  /* Cool-down for “Send code” button */
   useEffect(() => {
-    if (cooldown === 0) return;
+    if (!cooldown) return;
     const id = setInterval(() => setCooldown((c) => c - 1), 1000);
     return () => clearInterval(id);
   }, [cooldown]);
 
-  /* ----------------- helpers ----------------- */
+  /* -------- helpers -------- */
   const normalizePhone = (raw) => {
     let p = raw.replace(/\D/g, "");
     if (p.startsWith("0")) p = p.slice(1);
     return "+972" + p;
   };
+  const withError = (msg) => { setError(msg); setLoading(false); };
 
-  const withError = (msg) => {
-    setError(msg);
-    setLoading(false);
-  };
-
-  /* ----------------- Step 1: send SMS ----------------- */
+  /* -------- Step 1: send SMS -------- */
   const sendVerificationCode = async () => {
     setError("");
-    const raw = phoneRef.current.value.trim();
+    const raw   = phoneRef.current.value.trim();
     const phone = normalizePhone(raw);
-    if (!raw) return withError(t("phoneRequired") ?? "Enter phone number");
+    if (!raw)        return withError(t("phoneRequired")   ?? "Enter phone number");
     if (!isLogin && !name.trim())
-      return withError(t("nameRequired") ?? "Enter your name");
-
-    /* prevent hammering */
-    if (cooldown > 0) return;
+                     return withError(t("nameRequired")    ?? "Enter your name");
+    if (cooldown)    return;
 
     setLoading(true);
+
     try {
-      /* Login mode → ensure number exists in Firestore */
+      /* ⬇️ ALWAYS start with a fresh token */
+      await buildFreshRecaptcha();
+
+      /* Login mode → ensure number registered */
       if (isLogin) {
         const snap = await getDocs(
           query(collection(db, "users"), where("phone", "==", phone))
@@ -128,52 +104,57 @@ export default function AuthPage() {
         if (snap.empty) {
           return withError(
             t("notRegistered") ??
-              "Number isn’t registered – choose Register instead."
+            "Number isn’t registered – choose Register instead."
           );
         }
       }
 
-      const appVerifier = recaptchaVerifierRef.current;
-      if (!appVerifier) throw new Error("reCAPTCHA not ready");
-      const result = await signInWithPhoneNumber(auth, phone, appVerifier);
+      const result = await signInWithPhoneNumber(
+        auth,
+        phone,
+        verifierRef.current
+      );
+
       setVerificationId(result.verificationId);
-      setPendingPhone(phone);
-      setCooldown(60); // 60 s throttle
+      setCooldown(60);               // throttle button
     } catch (err) {
-      if (err.code === "auth/too-many-requests") {
-        return withError(
-          t("tooManyRequests") ??
-            "Too many attempts – wait a minute and try again."
-        );
+      /* regenerate token if Firebase has already consumed it */
+      if (err.code === "auth/internal-error" || err.code === "auth/too-many-requests") {
+        await buildFreshRecaptcha();
       }
-      return withError(err.message);
+      return withError(
+        err.code === "auth/too-many-requests"
+          ? t("tooManyRequests") ?? "Too many attempts – wait a minute and try again."
+          : err.message
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  /* ----------------- Step 2: verify code ----------------- */
+  /* -------- Step 2: verify code -------- */
   const verifyCodeAndSignIn = async () => {
     setError("");
     if (!code.trim())
       return withError(t("codeRequired") ?? "Enter verification code");
-
     setLoading(true);
+
     try {
-      const cred = PhoneAuthProvider.credential(verificationId, code);
+      const cred     = PhoneAuthProvider.credential(verificationId, code);
       const userCred = await signInWithCredential(auth, cred);
 
-      /* Register flow → create Firestore user document */
+      /* First-time registration → create user doc */
       if (!isLogin) {
         await setDoc(doc(db, "users", userCred.user.uid), {
-          phone: pendingPhone,
+          phone: normalizePhone(phoneRef.current.value),
           name,
           isAdmin: false,
           isBlocked: false,
           createdAt: serverTimestamp(),
         });
       }
-      setPendingLogin(true);
+
+      navigate("/");                 // success → home
     } catch (err) {
       return withError(err.message);
     } finally {
@@ -181,31 +162,20 @@ export default function AuthPage() {
     }
   };
 
-  /* Redirect home once AuthContext updates */
-  useEffect(() => {
-    if (pendingLogin && currentUser) {
-      setPendingLogin(false);
-      navigate("/");
-    }
-  }, [pendingLogin, currentUser, navigate]);
-
-  /* ----------------- UI ----------------- */
+  /* -------- UI -------- */
   return (
     <div className="auth-container">
-      {/* reCAPTCHA div kept off‑screen */}
-      <div
-        id="recaptcha-container"
-        style={{
-          position: "absolute",
-          top: "-10000px",
-          left: "-10000px",
-          width: "1px",
-          height: "1px",
-          overflow: "hidden",
-        }}
-      />
+      {/* Invisible CAPTCHA mount-point */}
+      <div id="recaptcha-container" style={{
+        position: "absolute",
+        top: "-10000px",
+        left: "-10000px",
+        width: "1px",
+        height: "1px",
+        overflow: "hidden",
+      }} />
 
-      {pendingLogin || !recaptchaReady ? (
+      {!recaptchaReady ? (
         <div className="auth-loader">{t("loading") ?? "Loading…"}</div>
       ) : (
         <div>
@@ -213,7 +183,7 @@ export default function AuthPage() {
             {isLogin ? t("login") : t("register")}
           </h2>
 
-          {/* --------------- Phone form --------------- */}
+          {/* ---------- Phone form ---------- */}
           {!verificationId ? (
             <form
               className="auth-form"
@@ -222,7 +192,6 @@ export default function AuthPage() {
                 sendVerificationCode();
               }}
             >
-              {/* Name only when registering */}
               {!isLogin && (
                 <input
                   value={name}
@@ -252,12 +221,12 @@ export default function AuthPage() {
 
               <button
                 type="submit"
-                disabled={loading || cooldown > 0}
+                disabled={loading || cooldown}
                 className="auth-btn"
               >
                 {loading
                   ? t("loading")
-                  : cooldown > 0
+                  : cooldown
                   ? `${t("sendCode") ?? "Send code"} (${cooldown})`
                   : t("sendCode")}
               </button>
@@ -276,7 +245,7 @@ export default function AuthPage() {
               </button>
             </form>
           ) : (
-            /* --------------- Code form --------------- */
+            /* ---------- Code form ---------- */
             <form
               className="auth-form"
               onSubmit={(e) => {
@@ -308,10 +277,12 @@ export default function AuthPage() {
               <button
                 type="button"
                 className="auth-btn-secondary"
-                onClick={() => {
+                onClick={async () => {
+                  /* user wants a new SMS */
                   setVerificationId(null);
                   setCode("");
                   setError("");
+                  await buildFreshRecaptcha();
                 }}
               >
                 {t("changePhone") || "Back / Change phone"}
@@ -319,14 +290,12 @@ export default function AuthPage() {
             </form>
           )}
 
-          {/* Error box – white background only for notRegistered */}
+          {/* Error display */}
           {error && (
             <div
               className="auth-error"
               style={
-                error.includes("not registered")
-                  ? { background: "#fff" }
-                  : undefined
+                error.includes("not registered") ? { background: "#fff" } : undefined
               }
             >
               {error}

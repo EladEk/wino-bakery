@@ -4,6 +4,7 @@ import { auth, db } from "../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import BreadLoader from "../components/BreadLoader";
+import { clearRecaptcha } from "../utils/recaptchaSingleton";   // 🆕 destroy verifier on logout
 
 const AuthContext = createContext();
 
@@ -16,16 +17,19 @@ export function AuthProvider({ children }) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  /* Watch Firebase auth state */
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
       setLoading(true);
+
       if (user) {
         try {
           const userDocRef = doc(db, "users", user.uid);
           let userDoc = await getDoc(userDocRef);
+
+          /* First-time SMS login: create a minimal user document */
           if (!userDoc.exists()) {
-            // If user logs in before registering, create minimal doc
             await setDoc(userDocRef, {
               phone: user.phoneNumber,
               name: "",
@@ -35,19 +39,27 @@ export function AuthProvider({ children }) {
             });
             userDoc = await getDoc(userDocRef);
           }
+
           setUserData(userDoc.data());
         } catch (err) {
+          console.error("Failed to load user profile:", err);
           setUserData(null);
         }
       } else {
         setUserData(null);
       }
+
       setLoading(false);
     });
+
     return unsubscribe;
   }, []);
 
-  const logout = () => signOut(auth);
+  /* Disconnect button uses this */
+  const logout = async () => {
+    await signOut(auth);   // normal Firebase sign-out
+    clearRecaptcha();      // 🔑 ensure fresh Enterprise token next login
+  };
 
   const value = {
     currentUser,
