@@ -56,5 +56,6 @@
   "updateOrder": "Update Order",
   "adminPanel": "Admin Panel",
   "ordered": "Ordered",
-  "verificationCode": "Verification Code"
+  "verificationCode": "Verification Code",
+   "paid": "Paid"
 }
