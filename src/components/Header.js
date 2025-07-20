@@ -2,7 +2,7 @@ import React from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import logo from "../img/LOGO.jpg"; // Adjust the path as needed
+import logo from "../img/LOGO.jpg";
 import "./Header.css";
 
 export default function Header() {
@@ -18,16 +18,9 @@ export default function Header() {
 
   return (
     <header className="app-header">
-      {/* Left buttons: shown only if admin */}
+      {/* Left side: logout only for admins */}
       <div className="left-buttons">
-        {isAdmin && (
-          <>
-            {atHome && (
-              <button onClick={() => navigate("/admin")}>{t("adminPanel")}</button>
-            )}
-            <button onClick={logout}>{t("logout")}</button>
-          </>
-        )}
+        {isAdmin && <button onClick={logout}>{t("logout")}</button>}
       </div>
 
       {/* Centered logo */}
@@ -35,23 +28,15 @@ export default function Header() {
         <img src={logo} alt="Logo" height="60" />
       </div>
 
-      {/* Right buttons: shown only if NOT admin */}
+      {/* Right side: Admin Panel always if at home, Back Home if at admin, plus logout if non-admin */}
       <div className="right-buttons">
-        {!isAdmin && (
-          <>
-            {atHome && (
-              <button onClick={() => navigate("/admin")}>{t("adminPanel")}</button>
-            )}
-            {atAdmin && (
-              <button onClick={() => navigate("/")}>{t("backHome")}</button>
-            )}
-            <button onClick={logout}>{t("logout")}</button>
-          </>
+        {atHome && (
+          <button onClick={() => navigate("/admin")}>{t("adminPanel")}</button>
         )}
-        {/* Admin on admin page sees "Back Home" on right */}
-        {isAdmin && atAdmin && (
+        {atAdmin && (
           <button onClick={() => navigate("/")}>{t("backHome")}</button>
         )}
+        {!isAdmin && <button onClick={logout}>{t("logout")}</button>}
       </div>
     </header>
   );
