@@ -4,7 +4,6 @@ import { auth, db } from "../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import BreadLoader from "../components/BreadLoader";
-import { clearRecaptcha } from "../utils/recaptchaSingleton";   // 🆕 destroy verifier on logout
 
 const AuthContext = createContext();
 
@@ -17,7 +16,7 @@ export function AuthProvider({ children }) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  /* Watch Firebase auth state */
+  /* Keep Firebase ↔ React state in sync */
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
@@ -26,21 +25,19 @@ export function AuthProvider({ children }) {
       if (user) {
         try {
           const userDocRef = doc(db, "users", user.uid);
-          let userDoc = await getDoc(userDocRef);
+          let snap = await getDoc(userDocRef);
 
-          /* First-time SMS login: create a minimal user document */
-          if (!userDoc.exists()) {
+          /* First login ever → create a minimal profile */
+          if (!snap.exists()) {
             await setDoc(userDocRef, {
               phone: user.phoneNumber,
               name: "",
-              isAdmin: false,
-              isBlocked: false,
               createdAt: serverTimestamp(),
             });
-            userDoc = await getDoc(userDocRef);
+            snap = await getDoc(userDocRef); // re-read to get the data
           }
 
-          setUserData(userDoc.data());
+          setUserData(snap.data());
         } catch (err) {
           console.error("Failed to load user profile:", err);
           setUserData(null);
@@ -55,11 +52,9 @@ export function AuthProvider({ children }) {
     return unsubscribe;
   }, []);
 
-  /* Disconnect button uses this */
-  const logout = async () => {
-    await signOut(auth);   // normal Firebase sign-out
-    clearRecaptcha();      // 🔑 ensure fresh Enterprise token next login
-  };
+  async function logout() {
+    await signOut(auth);
+  }
 
   const value = {
     currentUser,
