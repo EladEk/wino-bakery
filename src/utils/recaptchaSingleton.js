@@ -17,6 +17,7 @@ export async function getRecaptcha(auth, containerId) {
 
   verifier = new RecaptchaVerifier(auth, containerId, {
     size: "invisible",
+    type: "enterprise",
     callback: () => {},
   });
 
