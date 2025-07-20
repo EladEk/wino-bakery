@@ -27,6 +27,9 @@ export default function AdminPage() {
   const [editBreadDescription, setEditBreadDescription] = useState("");
   const [editBreadPrice, setEditBreadPrice] = useState("");
 
+  // Edit-order state
+  const [editingOrder, setEditingOrder] = useState({}); // { [breadId_i]: { quantity, name } }
+
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -123,6 +126,53 @@ export default function AdminPage() {
     );
   };
 
+  // NEW: Toggle paid
+  const togglePaid = async (breadId, idx) => {
+    const bread = breads.find((b) => b.id === breadId);
+    const updated = (bread.claimedBy || []).map((c, i) =>
+      i === idx ? { ...c, paid: !c.paid } : c
+    );
+    await updateDoc(doc(db, "breads", breadId), {
+      claimedBy: updated,
+    });
+    setBreads((bs) =>
+      bs.map((b) =>
+        b.id === breadId ? { ...b, claimedBy: updated } : b
+      )
+    );
+  };
+
+  // NEW: Start editing a specific order
+  const startEditingOrder = (breadId, idx, claim) => {
+    setEditingOrder({ [`${breadId}_${idx}`]: { quantity: claim.quantity, name: claim.name } });
+  };
+  // NEW: Save order edit
+  const saveOrderEdit = async (breadId, idx, claim) => {
+    const bread = breads.find((b) => b.id === breadId);
+    const key = `${breadId}_${idx}`;
+    const newVal = editingOrder[key];
+    const updated = (bread.claimedBy || []).map((c, i) =>
+      i === idx
+        ? { ...c, quantity: Number(newVal.quantity), name: newVal.name }
+        : c
+    );
+    await updateDoc(doc(db, "breads", breadId), {
+      claimedBy: updated,
+    });
+    setEditingOrder({});
+    await fetchData();
+  };
+  // NEW: Cancel editing order
+  const cancelOrderEdit = () => setEditingOrder({});
+
+  const handleOrderInputChange = (breadId, idx, field, value) => {
+    const key = `${breadId}_${idx}`;
+    setEditingOrder((prev) => ({
+      ...prev,
+      [key]: { ...prev[key], [field]: value },
+    }));
+  };
+
   const totalRevenue = breads.reduce(
     (sum, bread) =>
       sum +
@@ -198,7 +248,7 @@ export default function AdminPage() {
             <tr>
               <th>{t("Phone")}</th>
               <th>{t("Name")}</th>
-              <th>{t("Email")}</th>
+              <th>{t("name")}</th>
               <th>{t("Admin")}</th>
               <th>{t("Blocked")}</th>
               <th>{t("Actions")}</th>
@@ -316,34 +366,92 @@ export default function AdminPage() {
               <thead>
                 <tr>
                   <th>{t("supplied")}</th>
+                  <th>{t("paid") || "Paid"}</th>
                   <th>{t("cost")}</th>
                   <th>{t("price")}</th>
                   <th>{t("orderedAt")}</th>
                   <th>{t("quantity")}</th>
-                  <th>{t("email")}</th>
+                  <th>{t("name")}</th>
+                  <th>{t("Actions")}</th>
                 </tr>
               </thead>
               <tbody>
-                {(bread.claimedBy || []).map((claim, i) => (
-                  <tr key={i}>
-                    <td style={{ textAlign: "center" }}>
-                      <input
-                        type="checkbox"
-                        checked={!!claim.supplied}
-                        onChange={() => toggleSupplied(bread.id, i)}
-                      />
-                    </td>
-                    <td>{((claim.quantity || 0) * bread.price).toFixed(2)}</td>
-                    <td>{bread.price?.toFixed(2)}</td>
-                    <td>
-                      {claim.timestamp?.seconds
-                        ? new Date(claim.timestamp.seconds * 1000).toLocaleString()
-                        : ""}
-                    </td>
-                    <td>{claim.quantity}</td>
-                    <td>{claim.name}</td>
-                  </tr>
-                ))}
+                {(bread.claimedBy || []).map((claim, i) => {
+                  const key = `${bread.id}_${i}`;
+                  const isEditing = editingOrder[key];
+
+                  return (
+                    <tr key={i}>
+                      <td style={{ textAlign: "center" }}>
+                        <input
+                          type="checkbox"
+                          checked={!!claim.supplied}
+                          onChange={() => toggleSupplied(bread.id, i)}
+                        />
+                      </td>
+                      <td style={{ textAlign: "center" }}>
+                        <input
+                          type="checkbox"
+                          checked={!!claim.paid}
+                          onChange={() => togglePaid(bread.id, i)}
+                        />
+                      </td>
+                      <td>{((claim.quantity || 0) * bread.price).toFixed(2)}</td>
+                      <td>{bread.price?.toFixed(2)}</td>
+                      <td>
+                        {claim.timestamp?.seconds
+                          ? new Date(claim.timestamp.seconds * 1000).toLocaleString()
+                          : ""}
+                      </td>
+                      <td>
+                        {isEditing ? (
+                          <input
+                            type="number"
+                            value={isEditing.quantity}
+                            min={1}
+                            style={{ width: 55 }}
+                            onChange={e =>
+                              handleOrderInputChange(bread.id, i, "quantity", e.target.value)
+                            }
+                          />
+                        ) : (
+                          claim.quantity
+                        )}
+                      </td>
+                      <td>
+                        {isEditing ? (
+                          <input
+                            type="text"
+                            value={isEditing.name}
+                            style={{ width: 100 }}
+                            onChange={e =>
+                              handleOrderInputChange(bread.id, i, "name", e.target.value)
+                            }
+                          />
+                        ) : (
+                          claim.name
+                        )}
+                      </td>
+                      <td>
+                        {isEditing ? (
+                          <>
+                            <button
+                              onClick={() => saveOrderEdit(bread.id, i, claim)}
+                              style={{ marginRight: 6 }}
+                            >
+                              {t("Save")}
+                            </button>
+                            <button onClick={cancelOrderEdit}>{t("Cancel")}</button>
+                          </>
+                        ) : (
+                          <button onClick={() => startEditingOrder(bread.id, i, claim)}>
+                            {t("Edit")}
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
