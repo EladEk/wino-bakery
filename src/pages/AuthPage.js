@@ -21,6 +21,8 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const [pendingPhone, setPendingPhone] = useState(""); // save for registration
+
   const navigate = useNavigate();
   const { t } = useTranslation();
 
@@ -31,19 +33,30 @@ export default function AuthPage() {
         "recaptcha-container",
         {
           size: "invisible",
-          callback: () => {
-            console.log("reCAPTCHA resolved");
-          },
+          callback: () => {},
         }
       );
     }
   }, []);
 
+  const normalizePhone = (raw) => {
+    // Remove non-digits, trim, remove leading 0
+    let p = raw.replace(/\D/g, "");
+    if (p.startsWith("0")) p = p.slice(1);
+    return "+972" + p;
+  };
+
   const sendVerificationCode = async () => {
     setError("");
-    const phoneNumber = phoneRef.current.value.trim();
-    if (!phoneNumber) {
+    const phoneRaw = phoneRef.current.value.trim();
+    const phoneNumber = normalizePhone(phoneRaw);
+
+    if (!phoneRaw) {
       setError(t("phoneRequired") || "Please enter a phone number");
+      return;
+    }
+    if (!isLogin && !nameRef.current.value.trim()) {
+      setError(t("nameRequired") || "Please enter your name");
       return;
     }
     setLoading(true);
@@ -56,6 +69,7 @@ export default function AuthPage() {
         appVerifier
       );
       setVerificationId(confirmationResult.verificationId);
+      setPendingPhone(phoneNumber); // Save for use in registration
     } catch (err) {
       setError(err.message);
       if (window.recaptchaVerifier) {
@@ -83,15 +97,17 @@ export default function AuthPage() {
       const userCredential = await signInWithCredential(auth, credential);
       const user = userCredential.user;
 
+      // Only create Firestore user doc on registration
       if (!isLogin) {
         await setDoc(doc(db, "users", user.uid), {
-          phone: user.phoneNumber,
+          phone: pendingPhone || user.phoneNumber,
           name: nameRef.current.value,
           isAdmin: false,
           isBlocked: false,
           createdAt: serverTimestamp(),
         });
       }
+      // After registration or login, go directly to homepage
       navigate("/");
     } catch (err) {
       setError(err.message);
@@ -120,12 +136,33 @@ export default function AuthPage() {
               style={{ marginBottom: 8 }}
             />
           )}
-          <input
-            ref={phoneRef}
-            type="tel"
-            placeholder="+972 50 123 1111"
-            required
-          />
+          <div style={{ display: "flex", alignItems: "center", marginBottom: 8 }}>
+            <span style={{
+              padding: "8px 10px",
+              background: "#eee",
+              borderRadius: "4px 0 0 4px",
+              border: "1px solid #ccc",
+              borderRight: "none"
+            }}>+972</span>
+            <input
+              ref={phoneRef}
+              type="tel"
+              placeholder="50 123 1111"
+              required
+              style={{
+                flex: 1,
+                borderRadius: "0 4px 4px 0",
+                border: "1px solid #ccc",
+                borderLeft: "none",
+                padding: "8px"
+              }}
+              pattern="[0-9]{9,10}"
+              maxLength={10}
+              minLength={8}
+              inputMode="numeric"
+              autoComplete="tel"
+            />
+          </div>
           <div id="recaptcha-container"></div>
           <button type="submit" disabled={loading}>
             {loading ? t("loading") : t("sendCode")}

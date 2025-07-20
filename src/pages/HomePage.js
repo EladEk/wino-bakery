@@ -38,7 +38,9 @@ export default function HomePage() {
       claimedBy: [
         ...(data.claimedBy || []),
         {
-          name: userData.name || userData.phone || userData.email || "Unknown",
+          name:
+            (userData && (userData.name || userData.phone || userData.email)) ||
+            "Unknown",
           quantity: qty,
           userId: currentUser.uid,
           timestamp: new Date()
