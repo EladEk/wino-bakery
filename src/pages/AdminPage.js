@@ -27,8 +27,9 @@ export default function AdminPage() {
   const [editBreadDescription, setEditBreadDescription] = useState("");
   const [editBreadPrice, setEditBreadPrice] = useState("");
 
-  // Edit-order state
-  const [editingOrder, setEditingOrder] = useState({}); // { [breadId_idx]: { quantity, name } }
+  // Edit-order state: key = `${breadId}_${index}`
+  // value = { quantity: number, name: string }
+  const [editingOrder, setEditingOrder] = useState({});
 
   const { t } = useTranslation();
 
@@ -154,7 +155,7 @@ export default function AdminPage() {
       return;
     }
 
-    // Check available stock considering other orders
+    // Validate quantity against availability and other claims
     const otherClaimsTotal = (bread.claimedBy || []).reduce((sum, c, i) => {
       if (i !== idx) return sum + (c.quantity || 0);
       return sum;
