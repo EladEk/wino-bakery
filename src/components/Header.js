@@ -18,19 +18,16 @@ export default function Header() {
 
   return (
     <header className="app-header">
-      {/* Left side: logout only for admins */}
       <div className="left-buttons">
         {isAdmin && <button onClick={logout}>{t("logout")}</button>}
       </div>
 
-      {/* Centered logo */}
       <div className="app-logo" onClick={() => navigate("/")}>
         <img src={logo} alt="Logo" height="60" />
       </div>
 
-      {/* Right side: Admin Panel always if at home, Back Home if at admin, plus logout if non-admin */}
       <div className="right-buttons">
-        {atHome && (
+        {atHome && isAdmin && (
           <button onClick={() => navigate("/admin")}>{t("adminPanel")}</button>
         )}
         {atAdmin && (
