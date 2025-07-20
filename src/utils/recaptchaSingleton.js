@@ -3,14 +3,16 @@ import { RecaptchaVerifier } from "firebase/auth";
 
 /**
  * Singleton wrapper for Firebase *v2 Invisible* reCAPTCHA.
- * No App Check / Enterprise → completely free.
+ * (Free – no App Check or billing.)
+ *
+ * getRecaptcha(auth, containerId)  → returns a ready-rendered verifier
+ * clearRecaptcha()                 → destroys the verifier
  */
 
 let verifier = null;
-const DEFAULT_ID = "recaptcha-container";
 
-/* Create (or reuse) an invisible v2 widget and render it */
-export async function getRecaptcha(auth, containerId = DEFAULT_ID) {
+/* Create (or reuse) a reCAPTCHA widget and render it */
+export async function getRecaptcha(auth, containerId) {
   if (verifier) return verifier;
 
   verifier = new RecaptchaVerifier(auth, containerId, {
@@ -19,22 +21,17 @@ export async function getRecaptcha(auth, containerId = DEFAULT_ID) {
   });
 
   try {
-    await verifier.render();   // initialise iframe & token
+    await verifier.render();          // initialise iframe & token
   } catch (e) {
     console.error("reCAPTCHA render failed (singleton):", e);
     verifier = null;
-    throw e;
+    throw e;                          // let the caller handle it
   }
-
   return verifier;
 }
 
-/* Destroy widget and clean DOM so a fresh one can mount */
+/* Destroy widget + token so the next call starts fresh */
 export function clearRecaptcha() {
   if (verifier?.clear) verifier.clear();
   verifier = null;
-
-  /* ⭐️ remove old iframe markup so re-render won’t crash */
-  const host = document.getElementById(DEFAULT_ID);
-  if (host) host.innerHTML = "";
 }

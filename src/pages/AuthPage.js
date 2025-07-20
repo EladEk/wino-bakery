@@ -1,3 +1,4 @@
+// src/pages/AuthPage.js
 import React, { useState, useRef, useEffect } from "react";
 import { auth, db } from "../firebase";
 import {
@@ -33,25 +34,46 @@ export default function AuthPage() {
   const [recaptchaReady, setRecaptchaReady] = useState(false);
   const [cooldown, setCooldown] = useState(0);
 
-  const { currentUser } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const verifierRef = useRef(null);
+  const hostDivRef = useRef(null);              // <- current hidden div
 
-  /* Disable SMS check locally */
+  /* Disable SMS check on localhost (test numbers only) */
   useEffect(() => {
     if (["localhost", "127.0.0.1"].includes(window.location.hostname)) {
       auth.settings.appVerificationDisabledForTesting = true;
     }
   }, []);
 
-  /* Build / rebuild v2 Invisible reCAPTCHA */
+  /* ---------- build / rebuild reCAPTCHA ---------- */
   const buildFreshRecaptcha = async () => {
     clearRecaptcha();
     setRecaptchaReady(false);
 
+    /* Remove previous hidden div if it exists */
+    if (hostDivRef.current?.parentNode) {
+      hostDivRef.current.parentNode.removeChild(hostDivRef.current);
+    }
+
+    /* Create a brand-new hidden div with a unique id */
+    const uniqueId = `recaptcha-container-${Date.now()}`;
+    const host = document.createElement("div");
+    host.id = uniqueId;
+    Object.assign(host.style, {
+      position: "absolute",
+      top: "-10000px",
+      left: "-10000px",
+      width: "1px",
+      height: "1px",
+      overflow: "hidden",
+    });
+    document.body.appendChild(host);
+    hostDivRef.current = host;
+
+    /* Render widget in that unique element */
     try {
-      const v = await getRecaptcha(auth, "recaptcha-container"); // 🟢 await!
+      const v = await getRecaptcha(auth, uniqueId);
       verifierRef.current = v;
       setRecaptchaReady(true);
     } catch (e) {
@@ -100,6 +122,7 @@ export default function AuthPage() {
     try {
       await buildFreshRecaptcha();
 
+      /* If logging in, ensure the number is registered */
       if (isLogin) {
         const snap = await getDocs(
           query(collection(db, "users"), where("phone", "==", phone))
@@ -149,6 +172,7 @@ export default function AuthPage() {
       const cred = PhoneAuthProvider.credential(verificationId, code);
       const userCred = await signInWithCredential(auth, cred);
 
+      /* On first-time register, create Firestore user doc */
       if (!isLogin) {
         await setDoc(doc(db, "users", userCred.user.uid), {
           phone: normalizePhone(phoneRef.current.value),
@@ -170,19 +194,6 @@ export default function AuthPage() {
   /* ---------- UI ---------- */
   return (
     <div className="auth-container">
-      {/* off-screen CAPTCHA */}
-      <div
-        id="recaptcha-container"
-        style={{
-          position: "absolute",
-          top: "-10000px",
-          left: "-10000px",
-          width: "1px",
-          height: "1px",
-          overflow: "hidden",
-        }}
-      />
-
       {!recaptchaReady ? (
         <BreadLoader />
       ) : (
