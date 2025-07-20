@@ -5,24 +5,21 @@ import bg3 from "../img/3.jpg";
 import "./BackgroundSlider.css";
 
 const images = [bg1, bg2, bg3];
-const FADE_DURATION = 1000;    // ms (fade in or fade out)
-const VISIBLE_DURATION = 10000; // ms (how long image is fully visible)
+const FADE_DURATION = 1000;    // ms
+const VISIBLE_DURATION = 10000; // ms
 
 export default function BackgroundSlider() {
   const [current, setCurrent] = useState(0);
   const [opacity, setOpacity] = useState(0);
 
   useEffect(() => {
-    let fadeInTimeout, visibleTimeout, fadeOutTimeout, nextTimeout;
+    let fadeInTimeout, visibleTimeout, nextTimeout;
 
-    // Step 1: Fade in
     setOpacity(0);
-    fadeInTimeout = setTimeout(() => setOpacity(1), 10); // small delay to trigger transition
+    fadeInTimeout = setTimeout(() => setOpacity(1), 10);
 
-    // Step 2: Wait, then fade out
     visibleTimeout = setTimeout(() => setOpacity(0), FADE_DURATION + VISIBLE_DURATION);
 
-    // Step 3: After fade out, move to next image and repeat
     nextTimeout = setTimeout(() => {
       setCurrent((c) => (c + 1) % images.length);
     }, FADE_DURATION * 2 + VISIBLE_DURATION);
@@ -35,13 +32,15 @@ export default function BackgroundSlider() {
   }, [current]);
 
   return (
-    <div
-      className="background-slider"
-      style={{
-        backgroundImage: `url(${images[current]})`,
-        opacity,
-        transition: `opacity ${FADE_DURATION}ms linear`,
-      }}
-    />
+    <div className="background-fade-container">
+      <div
+        className="background-slider"
+        style={{
+          backgroundImage: `url(${images[current]})`,
+          opacity,
+          transition: `opacity ${FADE_DURATION}ms linear`,
+        }}
+      />
+    </div>
   );
 }

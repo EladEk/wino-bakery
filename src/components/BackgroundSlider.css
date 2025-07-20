@@ -1,5 +1,16 @@
-.background-slider {
+.background-fade-container {
   position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000;           /* <--- SOLID BLACK BASE! */
+  z-index: -2;                /* just below the background image */
+  pointer-events: none;
+}
+
+.background-slider {
+  position: absolute;
   top: 0;
   left: 0;
   width: 100vw;
@@ -7,7 +18,7 @@
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  background-color: #fafafa;
   pointer-events: none;
   z-index: -1;
+  opacity: 1;
 }
