@@ -1,4 +1,3 @@
-// src/pages/AuthPage.js
 import React, { useState, useRef, useEffect } from "react";
 import { auth, db } from "../firebase";
 import {
@@ -23,7 +22,6 @@ import BreadLoader from "../components/BreadLoader";
 import "./AuthPage.css";
 
 export default function AuthPage() {
-  // ---------- state ----------
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const phoneRef = useRef();
@@ -39,24 +37,20 @@ export default function AuthPage() {
   const verifierRef = useRef(null);
   const hostDivRef = useRef(null);
 
-  // Disable SMS check on localhost
   useEffect(() => {
     if (["localhost", "127.0.0.1"].includes(window.location.hostname)) {
       auth.settings.appVerificationDisabledForTesting = true;
     }
   }, []);
 
-  // ---------- build / rebuild reCAPTCHA ----------
   const buildFreshRecaptcha = async () => {
     clearRecaptcha();
     setRecaptchaReady(false);
 
-    // remove previous hidden div
     if (hostDivRef.current?.parentNode) {
       hostDivRef.current.parentNode.removeChild(hostDivRef.current);
     }
 
-    // create a new hidden div with unique id
     const uniqueId = `recaptcha-container-${Date.now()}`;
     const host = document.createElement("div");
     host.id = uniqueId;
@@ -82,20 +76,17 @@ export default function AuthPage() {
     }
   };
 
-  // first mount
   useEffect(() => {
     buildFreshRecaptcha();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // cooldown timer
   useEffect(() => {
     if (!cooldown) return;
     const id = setInterval(() => setCooldown((c) => c - 1), 1000);
     return () => clearInterval(id);
   }, [cooldown]);
 
-  // helpers
   const normalizePhone = (raw) => {
     let p = raw.replace(/\D/g, "");
     if (p.startsWith("0")) p = p.slice(1);
@@ -106,7 +97,6 @@ export default function AuthPage() {
     setLoading(false);
   };
 
-  // ---------- Step 1: send SMS ----------
   const sendVerificationCode = async () => {
     setError("");
     const raw = phoneRef.current.value.trim();
@@ -120,7 +110,6 @@ export default function AuthPage() {
     try {
       await buildFreshRecaptcha();
 
-      // login mode: ensure number exists
       if (isLogin) {
         const snap = await getDocs(
           query(collection(db, "users"), where("phone", "==", phone))
@@ -159,7 +148,6 @@ export default function AuthPage() {
     }
   };
 
-  // ---------- Step 2: verify code ----------
   const verifyCodeAndSignIn = async () => {
     setError("");
     if (!code.trim())
@@ -170,17 +158,16 @@ export default function AuthPage() {
       const cred = PhoneAuthProvider.credential(verificationId, code);
       const userCred = await signInWithCredential(auth, cred);
 
-      // Register flow: merge profile fields
       if (!isLogin) {
         try {
           await setDoc(
             doc(db, "users", userCred.user.uid),
             {
               phone: normalizePhone(phoneRef.current.value),
-              name,                 // ⬅️ this is the only new info
+              name, // <-- Only set name here!
               createdAt: serverTimestamp(),
             },
-            { merge: true } // preserve existing flags / admin edits
+            { merge: true }
           );
         } catch (e) {
           console.error("Failed to save profile:", e);
@@ -198,7 +185,6 @@ export default function AuthPage() {
     }
   };
 
-  // ---------- UI ----------
   return (
     <div className="auth-container">
       {!recaptchaReady ? (
@@ -273,7 +259,6 @@ export default function AuthPage() {
               </button>
             </form>
           ) : (
-            /* -------- Code form -------- */
             <form
               className="auth-form"
               onSubmit={(e) => {
