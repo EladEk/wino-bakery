@@ -1,5 +1,5 @@
 // src/pages/AuthPage.js
-import React, { useRef, useState, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { auth, db } from "../firebase";
 import {
   RecaptchaVerifier,
@@ -12,35 +12,41 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 export default function AuthPage() {
+  const [name, setName] = useState("");
   const phoneRef = useRef();
-  const nameRef = useRef();
   const codeRef = useRef();
 
   const [isLogin, setIsLogin] = useState(true);
   const [verificationId, setVerificationId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  const [pendingPhone, setPendingPhone] = useState(""); // save for registration
+  const [pendingPhone, setPendingPhone] = useState("");
 
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  useEffect(() => {
-    if (!window.recaptchaVerifier) {
-      window.recaptchaVerifier = new RecaptchaVerifier(
-        auth,
-        "recaptcha-container",
-        {
-          size: "invisible",
-          callback: () => {},
-        }
-      );
+  const cleanupRecaptcha = () => {
+    if (window.recaptchaVerifier) {
+      try {
+        window.recaptchaVerifier.clear();
+      } catch {}
+      window.recaptchaVerifier = null;
     }
-  }, []);
+  };
+
+  const setupRecaptcha = () => {
+    cleanupRecaptcha();
+    window.recaptchaVerifier = new RecaptchaVerifier(
+      auth,
+      "recaptcha-container",
+      {
+        size: "invisible",
+        callback: () => {},
+      }
+    );
+  };
 
   const normalizePhone = (raw) => {
-    // Remove non-digits, trim, remove leading 0
     let p = raw.replace(/\D/g, "");
     if (p.startsWith("0")) p = p.slice(1);
     return "+972" + p;
@@ -55,13 +61,14 @@ export default function AuthPage() {
       setError(t("phoneRequired") || "Please enter a phone number");
       return;
     }
-    if (!isLogin && !nameRef.current.value.trim()) {
+    if (!isLogin && !name.trim()) {
       setError(t("nameRequired") || "Please enter your name");
       return;
     }
     setLoading(true);
 
     try {
+      setupRecaptcha();
       const appVerifier = window.recaptchaVerifier;
       const confirmationResult = await signInWithPhoneNumber(
         auth,
@@ -69,15 +76,10 @@ export default function AuthPage() {
         appVerifier
       );
       setVerificationId(confirmationResult.verificationId);
-      setPendingPhone(phoneNumber); // Save for use in registration
+      setPendingPhone(phoneNumber);
     } catch (err) {
       setError(err.message);
-      if (window.recaptchaVerifier) {
-        try {
-          window.recaptchaVerifier.clear();
-          window.recaptchaVerifier = null;
-        } catch {}
-      }
+      cleanupRecaptcha();
     } finally {
       setLoading(false);
     }
@@ -97,24 +99,26 @@ export default function AuthPage() {
       const userCredential = await signInWithCredential(auth, credential);
       const user = userCredential.user;
 
-      // Only create Firestore user doc on registration
       if (!isLogin) {
         await setDoc(doc(db, "users", user.uid), {
           phone: pendingPhone || user.phoneNumber,
-          name: nameRef.current.value,
+          name: name,
           isAdmin: false,
           isBlocked: false,
           createdAt: serverTimestamp(),
         });
       }
-      // After registration or login, go directly to homepage
-      navigate("/");
+      cleanupRecaptcha();
+      setTimeout(() => navigate("/"), 10);
     } catch (err) {
       setError(err.message);
+      cleanupRecaptcha();
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => () => cleanupRecaptcha(), []);
 
   return (
     <div style={{ maxWidth: 400, margin: "50px auto" }}>
@@ -129,7 +133,8 @@ export default function AuthPage() {
         >
           {!isLogin && (
             <input
-              ref={nameRef}
+              value={name}
+              onChange={e => setName(e.target.value)}
               type="text"
               placeholder={t("name")}
               required
@@ -137,13 +142,6 @@ export default function AuthPage() {
             />
           )}
           <div style={{ display: "flex", alignItems: "center", marginBottom: 8 }}>
-            <span style={{
-              padding: "8px 10px",
-              background: "#eee",
-              borderRadius: "4px 0 0 4px",
-              border: "1px solid #ccc",
-              borderRight: "none"
-            }}>+972</span>
             <input
               ref={phoneRef}
               type="tel"
@@ -195,6 +193,7 @@ export default function AuthPage() {
           setIsLogin(!isLogin);
           setVerificationId(null);
           setError("");
+          cleanupRecaptcha();
         }}
       >
         {isLogin ? t("needAccount") : t("alreadyAccount")}
