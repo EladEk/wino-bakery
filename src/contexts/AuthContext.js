@@ -1,4 +1,3 @@
-// src/contexts/AuthContext.js
 import React, { useState, useEffect, useContext, createContext } from "react";
 import { auth, db } from "../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
@@ -16,7 +15,6 @@ export function AuthProvider({ children }) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  /* Keep Firebase ↔ React state in sync */
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
@@ -27,14 +25,13 @@ export function AuthProvider({ children }) {
           const userDocRef = doc(db, "users", user.uid);
           let snap = await getDoc(userDocRef);
 
-          /* First login ever → create a minimal profile */
+          // FIX: use merge:true to avoid overwriting fields like 'name'
           if (!snap.exists()) {
             await setDoc(userDocRef, {
               phone: user.phoneNumber,
-              name: "",
               createdAt: serverTimestamp(),
-            });
-            snap = await getDoc(userDocRef); // re-read to get the data
+            }, { merge: true }); // <-- THIS LINE IS THE FIX!
+            snap = await getDoc(userDocRef);
           }
 
           setUserData(snap.data());
