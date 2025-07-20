@@ -1,3 +1,5 @@
+// src/pages/AuthPage.js – full file
+
 import React, { useState, useRef, useEffect } from "react";
 import { auth, db } from "../firebase";
 import {
@@ -20,10 +22,14 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../contexts/AuthContext";
 import "./AuthPage.css";
 
-// --- Recaptcha singleton to avoid double‑mount duplicates in React.StrictMode ---
+/* -----------------------------------------------------------
+   Singleton: invisible reCAPTCHA Enterprise verifier
+   (avoids double‑mount in React‑18 StrictMode)
+----------------------------------------------------------- */
 let recaptchaVerifierSingleton = null;
 
 export default function AuthPage() {
+  /* ----------------- state ----------------- */
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const phoneRef = useRef();
@@ -34,6 +40,7 @@ export default function AuthPage() {
   const [pendingPhone, setPendingPhone] = useState("");
   const [pendingLogin, setPendingLogin] = useState(false);
   const [recaptchaReady, setRecaptchaReady] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
 
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -41,76 +48,90 @@ export default function AuthPage() {
 
   const recaptchaVerifierRef = useRef(null);
 
-  // Disable app verification for testing if on localhost (test numbers only!)
+  /* Disable verification in local dev (Firebase test numbers only!) */
   useEffect(() => {
     if (
       window.location.hostname === "localhost" ||
       window.location.hostname === "127.0.0.1"
     ) {
-      // @ts-ignore – firebase exposes this only in dev
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore – dev‑only flag
       auth.settings.appVerificationDisabledForTesting = true;
     }
   }, []);
 
-  // Initialise (only once!) the invisible reCAPTCHA verifier
+  /* Initialise Enterprise reCAPTCHA once */
   useEffect(() => {
     let mounted = true;
-
     if (!recaptchaVerifierSingleton) {
       try {
         recaptchaVerifierSingleton = new RecaptchaVerifier(
-          auth,
+          auth, // <-- first arg
           "recaptcha-container",
-          { size: "invisible" }
+          {
+            size: "invisible",
+            type: "enterprise", // reuse App Check token
+          }
         );
         recaptchaVerifierSingleton.render().then(() => {
           if (mounted) setRecaptchaReady(true);
         });
       } catch (e) {
-        setError("Failed to initialise reCAPTCHA: " + e.message);
         console.error(e);
+        setError("reCAPTCHA init failed: " + e.message);
       }
     } else {
-      // already ready – ensure state reflects that
       setRecaptchaReady(true);
     }
-
     recaptchaVerifierRef.current = recaptchaVerifierSingleton;
-
     return () => {
       mounted = false;
-      /* we intentionally **do not** clear the singleton so that
-         React.StrictMode double‑mount in dev doesn’t recreate it */
     };
   }, []);
 
+  /* Cool‑down timer for Send‑Code button */
+  useEffect(() => {
+    if (cooldown === 0) return;
+    const id = setInterval(() => setCooldown((c) => c - 1), 1000);
+    return () => clearInterval(id);
+  }, [cooldown]);
+
+  /* ----------------- helpers ----------------- */
   const normalizePhone = (raw) => {
     let p = raw.replace(/\D/g, "");
-    if (p.startsWith("0")) p = p.slice(1); // strip leading zero
+    if (p.startsWith("0")) p = p.slice(1);
     return "+972" + p;
   };
 
+  const withError = (msg) => {
+    setError(msg);
+    setLoading(false);
+  };
+
+  /* ----------------- Step 1: send SMS ----------------- */
   const sendVerificationCode = async () => {
     setError("");
     const raw = phoneRef.current.value.trim();
     const phone = normalizePhone(raw);
-    if (!raw) return setError(t("phoneRequired") ?? "Enter phone number");
+    if (!raw) return withError(t("phoneRequired") ?? "Enter phone number");
     if (!isLogin && !name.trim())
-      return setError(t("nameRequired") ?? "Enter your name");
+      return withError(t("nameRequired") ?? "Enter your name");
+
+    /* prevent hammering */
+    if (cooldown > 0) return;
 
     setLoading(true);
     try {
-      // --- extra guard: if we’re logging in ensure phone exists in users collection ---
+      /* Login mode → ensure number exists in Firestore */
       if (isLogin) {
-        const q = query(collection(db, "users"), where("phone", "==", phone));
-        const snap = await getDocs(q);
+        const snap = await getDocs(
+          query(collection(db, "users"), where("phone", "==", phone))
+        );
         if (snap.empty) {
-          setLoading(false);
-          setError(
+          return withError(
             t("notRegistered") ??
-              "This number isn’t registered – try the Register tab instead."
+              "Number isn’t registered – choose Register instead."
           );
-          return; // don’t send SMS
         }
       }
 
@@ -119,26 +140,33 @@ export default function AuthPage() {
       const result = await signInWithPhoneNumber(auth, phone, appVerifier);
       setVerificationId(result.verificationId);
       setPendingPhone(phone);
+      setCooldown(60); // 60 s throttle
     } catch (err) {
-      setError(err.message);
-      console.error("sendVerificationCode error:", err);
+      if (err.code === "auth/too-many-requests") {
+        return withError(
+          t("tooManyRequests") ??
+            "Too many attempts – wait a minute and try again."
+        );
+      }
+      return withError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
+  /* ----------------- Step 2: verify code ----------------- */
   const verifyCodeAndSignIn = async () => {
     setError("");
     if (!code.trim())
-      return setError(t("codeRequired") ?? "Enter verification code");
+      return withError(t("codeRequired") ?? "Enter verification code");
 
     setLoading(true);
     try {
-      const credential = PhoneAuthProvider.credential(verificationId, code);
-      const userCred = await signInWithCredential(auth, credential);
+      const cred = PhoneAuthProvider.credential(verificationId, code);
+      const userCred = await signInWithCredential(auth, cred);
 
+      /* Register flow → create Firestore user document */
       if (!isLogin) {
-        // first‑time registration – create Firestore user doc
         await setDoc(doc(db, "users", userCred.user.uid), {
           phone: pendingPhone,
           name,
@@ -149,14 +177,13 @@ export default function AuthPage() {
       }
       setPendingLogin(true);
     } catch (err) {
-      setError(err.message);
-      console.error("verifyCodeAndSignIn error:", err);
+      return withError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // once AuthContext sees the logged‑in user, send them home
+  /* Redirect home once AuthContext updates */
   useEffect(() => {
     if (pendingLogin && currentUser) {
       setPendingLogin(false);
@@ -164,15 +191,10 @@ export default function AuthPage() {
     }
   }, [pendingLogin, currentUser, navigate]);
 
-  // helper to detect the specific not‑registered error so we can style its background
-  const isNotRegisteredError =
-    error && error ===
-      (t("notRegistered") ??
-        "This number isn’t registered – try the Register tab instead.");
-
+  /* ----------------- UI ----------------- */
   return (
     <div className="auth-container">
-      {/* always render the hidden reCAPTCHA container – the SDK injects the iframe here */}
+      {/* reCAPTCHA div kept off‑screen */}
       <div
         id="recaptcha-container"
         style={{
@@ -186,11 +208,14 @@ export default function AuthPage() {
       />
 
       {pendingLogin || !recaptchaReady ? (
-        <div className="auth-loader">{t("loading") ?? "Loading..."}</div>
+        <div className="auth-loader">{t("loading") ?? "Loading…"}</div>
       ) : (
         <div>
-          <h2 className="auth-title">{isLogin ? t("login") : t("register")}</h2>
+          <h2 className="auth-title">
+            {isLogin ? t("login") : t("register")}
+          </h2>
 
+          {/* --------------- Phone form --------------- */}
           {!verificationId ? (
             <form
               className="auth-form"
@@ -199,6 +224,7 @@ export default function AuthPage() {
                 sendVerificationCode();
               }}
             >
+              {/* Name only when registering */}
               {!isLogin && (
                 <input
                   value={name}
@@ -226,8 +252,16 @@ export default function AuthPage() {
                 autoComplete="tel"
               />
 
-              <button type="submit" disabled={loading} className="auth-btn">
-                {loading ? t("loading") : t("sendCode")}
+              <button
+                type="submit"
+                disabled={loading || cooldown > 0}
+                className="auth-btn"
+              >
+                {loading
+                  ? t("loading")
+                  : cooldown > 0
+                  ? `${t("sendCode") ?? "Send code"} (${cooldown})`
+                  : t("sendCode")}
               </button>
 
               <button
@@ -244,6 +278,7 @@ export default function AuthPage() {
               </button>
             </form>
           ) : (
+            /* --------------- Code form --------------- */
             <form
               className="auth-form"
               onSubmit={(e) => {
@@ -263,14 +298,20 @@ export default function AuthPage() {
                 required
                 className="auth-input"
               />
-              <button type="submit" disabled={loading} className="auth-btn">
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="auth-btn"
+              >
                 {loading ? t("loading") : t("verifyCode")}
               </button>
+
               <button
                 type="button"
                 className="auth-btn-secondary"
                 onClick={() => {
-                  setVerificationId(null); // back to phone entry
+                  setVerificationId(null);
                   setCode("");
                   setError("");
                 }}
@@ -280,10 +321,15 @@ export default function AuthPage() {
             </form>
           )}
 
+          {/* Error box – white background only for notRegistered */}
           {error && (
             <div
               className="auth-error"
-              style={isNotRegisteredError ? { background: "#fff" } : {}}
+              style={
+                error.includes("not registered")
+                  ? { background: "#fff" }
+                  : undefined
+              }
             >
               {error}
             </div>
