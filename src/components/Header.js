@@ -13,13 +13,15 @@ export default function Header() {
 
   const atHome = location.pathname === "/";
   const atAdmin = location.pathname === "/admin";
+  const atLogin = location.pathname === "/login"; // <--- Add this line!
 
   const isAdmin = userData?.isAdmin;
 
   return (
     <header className="app-header">
       <div className="left-buttons">
-        {isAdmin && <button onClick={logout}>{t("logout")}</button>}
+        {/* Hide logout on login page */}
+        {!atLogin && isAdmin && <button onClick={logout}>{t("logout")}</button>}
       </div>
 
       <div className="app-logo" onClick={() => navigate("/")}>
@@ -33,7 +35,10 @@ export default function Header() {
         {atAdmin && (
           <button onClick={() => navigate("/")}>{t("backHome")}</button>
         )}
-        {!isAdmin && <button onClick={logout}>{t("logout")}</button>}
+        {/* Hide logout on login page */}
+        {!atLogin && !isAdmin && (
+          <button onClick={logout}>{t("logout")}</button>
+        )}
       </div>
     </header>
   );
