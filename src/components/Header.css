@@ -1,34 +1,36 @@
 .app-header {
   position: relative;
-  display: flex;
-  justify-content: center; /* centers logo */
-  align-items: center;
   height: 70px;
-  background: #fff; /* or your theme */
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* centers logo container */
   z-index: 100;
 }
 
+/* Center logo absolutely centered */
 .app-logo {
   position: absolute;
-  top: 50%;
   left: 50%;
+  top: 50%;
   transform: translate(-50%, -50%);
   cursor: pointer;
 }
 
-.header-buttons {
-  margin-left: auto; /* align right by default */
+/* Left buttons container aligned left */
+.left-buttons {
+  position: absolute;
+  left: 16px;
   display: flex;
   gap: 12px;
-  position: relative;
-  right: 0;
-  z-index: 101;
+  align-items: center;
 }
 
-.header-buttons.admin-buttons {
+/* Right buttons container aligned right */
+.right-buttons {
   position: absolute;
-  left: 16px; /* shift left for admins */
-  right: auto;
-  margin-left: 0;
-  z-index: 101;
+  right: 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
 }
