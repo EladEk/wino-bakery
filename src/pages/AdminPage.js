@@ -1,4 +1,3 @@
-// src/pages/AdminPage.js
 import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
 import {
@@ -197,8 +196,9 @@ export default function AdminPage() {
         <table className="cream-table">
           <thead>
             <tr>
+              <th>{t("Phone")}</th>
+              <th>{t("Name")}</th>
               <th>{t("Email")}</th>
-              <th>{t("phone")}</th>
               <th>{t("Admin")}</th>
               <th>{t("Blocked")}</th>
               <th>{t("Actions")}</th>
@@ -207,8 +207,9 @@ export default function AdminPage() {
           <tbody>
             {users.map((u) => (
               <tr key={u.id}>
-                <td>{u.email}</td>
                 <td>{u.phone || "-"}</td>
+                <td>{u.name || "-"}</td>
+                <td>{u.email || "-"}</td>
                 <td>{u.isAdmin ? t("Yes") : t("No")}</td>
                 <td>{u.isBlocked ? t("Yes") : t("No")}</td>
                 <td>

@@ -1,8 +1,9 @@
+// src/contexts/AuthContext.js
 import React, { useState, useEffect, useContext, createContext } from "react";
 import { auth, db } from "../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import BreadLoader from "../components/BreadLoader"; // <- Use your animated loader
+import BreadLoader from "../components/BreadLoader";
 
 const AuthContext = createContext();
 
@@ -12,7 +13,7 @@ export function useAuth() {
 
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);   // Firebase user object
-  const [userData, setUserData] = useState(null);         // Custom Firestore user document
+  const [userData, setUserData] = useState(null);         // Firestore user data
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -38,9 +39,9 @@ export function AuthProvider({ children }) {
 
   const value = {
     currentUser,
-    userData,    // includes isAdmin, isBlocked, etc.
+    userData,
     logout,
-    loading
+    loading,
   };
 
   return (
