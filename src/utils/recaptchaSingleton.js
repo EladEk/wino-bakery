@@ -12,7 +12,6 @@ export async function getRecaptcha(container, setCaptchaSolved) {
       size: "compact",
       callback: (token) => {
         setCaptchaSolved && setCaptchaSolved(true);
-        console.log("[recaptchaVerifier] Captcha solved! Token:", token);
       },
       "expired-callback": () => {
         setCaptchaSolved && setCaptchaSolved(false);

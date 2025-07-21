@@ -6,10 +6,6 @@ import {
 } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-// import {
-//   initializeAppCheck,
-//   ReCaptchaEnterpriseProvider,
-// } from "firebase/app-check";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBAde-r0Rrh_D1oYTfGU8XvL_APfMSZHrE",
@@ -26,14 +22,6 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-// --- CHANGE: Add a promise for auth persistence initialization
-export const authReady = setPersistence(auth, browserLocalPersistence)
-  .then(() => {
-    console.log("[firebase.js] Auth persistence set");
-    return auth;
-  });
-
-console.log("[firebase.js] Exporting app:", app);
-console.log("[firebase.js] Exporting auth:", auth);
+export const authReady = setPersistence(auth, browserLocalPersistence).then(() => auth);
 
 export { app, auth, db, storage };

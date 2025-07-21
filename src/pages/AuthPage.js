@@ -28,12 +28,10 @@ export default function AuthPage() {
   const navigate = useNavigate();
   const { t }   = useTranslation();
 
-  // --- CHANGE: Wait for authReady before setting appVerificationDisabledForTesting
   useEffect(() => {
     if (["localhost", "127.0.0.1"].includes(window.location.hostname)) {
       authReady.then(() => {
         auth.settings.appVerificationDisabledForTesting = true;
-        console.log("[AuthPage.js] Set appVerificationDisabledForTesting: true");
       });
     }
   }, []);
@@ -44,14 +42,11 @@ export default function AuthPage() {
     setCaptchaSolved(false);
     try {
       if (!verificationId) {
-        console.log("[AuthPage.js] Building reCAPTCHA...");
         verifier.current = await getRecaptcha(recaptchaDiv.current, setCaptchaSolved);
         setRecReady(true);
-        console.log("[AuthPage.js] reCAPTCHA ready!");
       }
     } catch (e) {
       setError("reCAPTCHA failed – refresh and try again.");
-      console.error("[AuthPage.js] reCAPTCHA init failed:", e);
     }
   };
   useEffect(() => { buildRecaptcha(); }, [verificationId]);
@@ -73,7 +68,6 @@ export default function AuthPage() {
     setError("");
     const raw   = phoneRef.current.value.trim();
     const phone = normalizePhone(raw);
-    console.log("[AuthPage.js] Sending SMS to:", phone);
     if (!raw) return withError("Enter phone number");
     if (!verifier.current) return withError("reCAPTCHA not ready");
     if (!captchaSolved) return withError("Please complete the security check.");
@@ -87,11 +81,8 @@ export default function AuthPage() {
       clearRecaptcha();
       setRecReady(false);
       setCaptchaSolved(false);
-
-      console.log("[AuthPage.js] SMS sent! Verification ID:", result.verificationId);
     } catch (e) { 
       withError(e.message); 
-      console.error("[AuthPage.js] Error sending SMS:", e);
     }
     finally    { setLoading(false); }
   };
@@ -105,10 +96,8 @@ export default function AuthPage() {
       const cred = PhoneAuthProvider.credential(verificationId, code.trim());
       await signInWithCredential(auth, cred);
       navigate("/");
-      console.log("[AuthPage.js] Code verified! User signed in.");
     } catch (e) { 
       withError(e.message); 
-      console.error("[AuthPage.js] Error verifying code:", e);
     }
     finally    { setLoading(false); }
   };
@@ -120,7 +109,6 @@ export default function AuthPage() {
     setCaptchaSolved(false);
     setRecReady(false);
     await buildRecaptcha();
-    console.log("[AuthPage.js] User switched to phone entry step");
   };
 
   return (
