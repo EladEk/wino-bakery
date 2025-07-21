@@ -42,18 +42,21 @@ export default function AuthPage() {
     clearRecaptcha();
     setRecReady(false);
     setCaptchaSolved(false);
-    try {
-      if (!verificationId) {
-        console.log("[AuthPage.js] Building reCAPTCHA...");
+
+    if (!verificationId) {
+      console.log("[AuthPage.js] Building reCAPTCHA...");
+      try {
+        await authReady; // ✅ Wait for persistence
         verifier.current = await getRecaptcha(recaptchaDiv.current, setCaptchaSolved);
         setRecReady(true);
         console.log("[AuthPage.js] reCAPTCHA ready!");
+      } catch (e) {
+        setError("reCAPTCHA failed – refresh and try again.");
+        console.error("[AuthPage.js] reCAPTCHA init failed:", e);
       }
-    } catch (e) {
-      setError("reCAPTCHA failed – refresh and try again.");
-      console.error("[AuthPage.js] reCAPTCHA init failed:", e);
     }
   };
+
   useEffect(() => { buildRecaptcha(); }, [verificationId]);
 
   useEffect(() => {
