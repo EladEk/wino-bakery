@@ -16,18 +16,23 @@ export async function getRecaptcha(auth, containerId) {
   if (verifier) return verifier;
 
   verifier = new RecaptchaVerifier(auth, containerId, {
-    size: "invisible",
-    type: "enterprise",
-    callback: () => {},
+    size: "normal",
+    callback: () => {
+      // Called when the reCAPTCHA is solved
+    },
+    'expired-callback': () => {
+      console.warn("reCAPTCHA expired – please solve it again.");
+    },
   });
 
   try {
-    await verifier.render();          // initialise iframe & token
+    await verifier.render(); // initialise iframe & token
   } catch (e) {
     console.error("reCAPTCHA render failed (singleton):", e);
     verifier = null;
-    throw e;                          // let the caller handle it
+    throw e; // let the caller handle it
   }
+
   return verifier;
 }
 
