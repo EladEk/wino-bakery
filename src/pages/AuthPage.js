@@ -1,14 +1,11 @@
+// src/pages/AuthPage.js
 import React, { useState, useRef, useEffect } from "react";
-import { auth, db } from "../firebase";
+import { auth } from "../firebase";
 import {
   signInWithPhoneNumber,
   PhoneAuthProvider,
   signInWithCredential,
 } from "firebase/auth";
-import {
-  setDoc, doc, serverTimestamp,
-  query, collection, where, getDocs,
-} from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getRecaptcha, clearRecaptcha } from "../utils/recaptchaSingleton";
@@ -16,44 +13,40 @@ import BreadLoader from "../components/BreadLoader";
 import "./AuthPage.css";
 
 export default function AuthPage() {
-  /* state */
-  const [name, setName]         = useState("");
+  /* ---------------- state ---------------- */
   const [code, setCode]         = useState("");
-  const [isLogin, setIsLogin]   = useState(true);
+  const phoneRef                = useRef();
   const [verificationId, setVerificationId] = useState(null);
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState("");
   const [recReady, setRecReady] = useState(false);
   const [cooldown, setCooldown] = useState(0);
 
-  const phoneRef   = useRef();
-  const verifier   = useRef(null);
-  const hostDivRef = useRef(null);
-
   const navigate = useNavigate();
-  const { t }    = useTranslation();
+  const verifier = useRef(null);
+  const hostDiv  = useRef(null);
 
-  /* ---------------- helpers ---------------- */
-  const normalizePhone = raw => {
-    let p = raw.replace(/\D/g, "");
-    if (p.startsWith("0")) p = p.slice(1);
-    return "+972" + p;
-  };
-  const withError = msg => { setError(msg); setLoading(false); };
+  /* local-dev bypass */
+  useEffect(() => {
+    if (["localhost","127.0.0.1"].includes(window.location.hostname)) {
+      auth.settings.appVerificationDisabledForTesting = true;
+    }
+  }, []);
 
-  /* ---------------- reCAPTCHA ---------------- */
+  /* ------------ reCAPTCHA ------------ */
   const buildRecaptcha = async () => {
     clearRecaptcha();
     setRecReady(false);
-    if (hostDivRef.current?.parentNode)
-      hostDivRef.current.parentNode.removeChild(hostDivRef.current);
 
-    const id = `recaptcha-${Date.now()}`;
+    if (hostDiv.current?.parentNode)
+      hostDiv.current.parentNode.removeChild(hostDiv.current);
+
+    const id  = `recaptcha-${Date.now()}`;
     const div = document.createElement("div");
     div.id = id;
-    Object.assign(div.style, { position:"absolute", top:"-9999px", left:"-9999px" });
+    Object.assign(div.style,{ position:"absolute", top:"-9999px", left:"-9999px" });
     document.body.appendChild(div);
-    hostDivRef.current = div;
+    hostDiv.current = div;
 
     try {
       verifier.current = await getRecaptcha(auth, id);
@@ -63,101 +56,86 @@ export default function AuthPage() {
       setError("reCAPTCHA failed – refresh and try again.");
     }
   };
-  useEffect(() => { buildRecaptcha(); }, []);
-
-  /* ---------------- SMS step ---------------- */
-  const sendVerificationCode = async () => {
-    setError("");
-    const raw = phoneRef.current.value.trim();
-    const phone = normalizePhone(raw);
-    if (!raw)         return withError(t("phoneRequired"));
-    if (!isLogin && !name.trim()) return withError(t("nameRequired"));
-    if (cooldown)     return;
-
-    setLoading(true);
-    try {
-      await buildRecaptcha();
-      if (isLogin) {
-        const q = query(collection(db,"users"), where("phone","==",phone));
-        const s = await getDocs(q);
-        if (s.empty)
-          return withError(t("notRegistered") ?? "Number not registered.");
-      }
-      const res = await signInWithPhoneNumber(auth, phone, verifier.current);
-      setVerificationId(res.verificationId);
-      setCooldown(60);
-    } catch (e) {
-      return withError(e.message);
-    } finally { setLoading(false); }
-  };
-
-  /* ---------------- Verify step ---------------- */
-  const verifyCodeAndSignIn = async () => {
-    if (!code.trim()) return withError(t("codeRequired"));
-    setLoading(true);
-    try {
-      const cred = PhoneAuthProvider.credential(verificationId, code);
-      const { user } = await signInWithCredential(auth, cred);
-
-      /* REGISTER path only */
-      if (!isLogin) {
-        console.log("⏩  about to write user doc:", name);
-        await setDoc(
-          doc(db,"users",user.uid),
-          { phone: normalizePhone(phoneRef.current.value), name,
-            createdAt: serverTimestamp() },
-          { merge:true }
-        );
-        console.log("✅  user doc written");
-      }
-      navigate("/");
-    } catch(e){ withError(e.message); }
-    finally   { setLoading(false); }
-  };
+  useEffect(()=>{ buildRecaptcha(); },[]);
 
   /* cooldown timer */
-  useEffect(() => {
+  useEffect(()=>{
     if (!cooldown) return;
     const id = setInterval(()=>setCooldown(c=>c-1),1000);
     return ()=>clearInterval(id);
   },[cooldown]);
 
+  const normalizePhone = raw => {
+    let p = raw.replace(/\D/g,"");
+    if (p.startsWith("0")) p = p.slice(1);
+    return "+972"+p;
+  };
+  const withError = msg => { setError(msg); setLoading(false); };
+
+  /* ---------- Step 1: send SMS ---------- */
+  const sendVerificationCode = async () => {
+    setError("");
+    const raw   = phoneRef.current.value.trim();
+    const phone = normalizePhone(raw);
+    if (!raw) return withError("Enter phone number");
+    if (cooldown) return;
+
+    setLoading(true);
+    try {
+      await buildRecaptcha();
+      const res = await signInWithPhoneNumber(auth, phone, verifier.current);
+      setVerificationId(res.verificationId);
+      setCooldown(60);
+    } catch (e) { withError(e.message); }
+    finally    { setLoading(false); }
+  };
+
+  /* ---------- Step 2: verify code ---------- */
+  const verifyCodeAndSignIn = async () => {
+    setError("");
+    if (!code.trim()) return withError("Enter verification code");
+    setLoading(true);
+    try {
+      const cred = PhoneAuthProvider.credential(verificationId, code);
+      await signInWithCredential(auth, cred);
+      /* NamePrompt will show after AuthContext loads */
+      navigate("/");
+    } catch (e) { withError(e.message); }
+    finally    { setLoading(false); }
+  };
+
   /* ---------------- UI ---------------- */
   return (
     <div className="auth-container">
-      {!recReady ? <BreadLoader/> : (
+      {!recReady ? (
+        <BreadLoader />
+      ) : (
         <div>
-          <h2 className="auth-title">{isLogin?t("login"):t("register")}</h2>
+          <h2 className="auth-title">התחברות / הרשמה</h2>
 
+          {/* -------- Phone form -------- */}
           {!verificationId ? (
             <form className="auth-form" onSubmit={e=>{e.preventDefault();sendVerificationCode();}}>
-              {!isLogin && (
-                <input value={name} onChange={e=>setName(e.target.value)}
-                       className="auth-input" placeholder={t("name")} required/>
-              )}
-              <label htmlFor="ph" className="auth-label">{t("phone")}</label>
-              <input id="ph" ref={phoneRef} className="auth-input"
-                     placeholder="50 123 4567" pattern="[0-9]{9,10}" required/>
+              <label htmlFor="ph" className="auth-label">טלפון</label>
+              <input  id="ph" ref={phoneRef} className="auth-input"
+                      placeholder="50 123 4567" pattern="[0-9]{9,10}" required/>
               <button className="auth-btn" disabled={loading||cooldown}>
                 {loading ? <BreadLoader/> :
-                 cooldown ? `${t("sendCode")} (${cooldown})` : t("sendCode")}
-              </button>
-              <button type="button" className="auth-btn-secondary"
-                      onClick={()=>{setIsLogin(!isLogin);setError("");setName("");setCode("");}}>
-                {isLogin ? t("needAccount") : t("alreadyAccount")}
+                 cooldown ? `שלח קוד (${cooldown})` : "שלח קוד"}
               </button>
             </form>
           ) : (
+            /* -------- Code form -------- */
             <form className="auth-form" onSubmit={e=>{e.preventDefault();verifyCodeAndSignIn();}}>
-              <label htmlFor="c" className="auth-label">{t("verificationCode")}</label>
-              <input id="c" value={code} onChange={e=>setCode(e.target.value)}
-                     className="auth-input" placeholder={t("verificationCode")} required/>
+              <label htmlFor="code" className="auth-label">קוד אימות</label>
+              <input id="code" value={code} onChange={e=>setCode(e.target.value)}
+                     className="auth-input" placeholder="SMS code" required/>
               <button className="auth-btn" disabled={loading}>
-                {loading ? <BreadLoader/> : t("verifyCode")}
+                {loading ? <BreadLoader/> : "אמת והיכנס"}
               </button>
               <button type="button" className="auth-btn-secondary"
-                      onClick={async()=>{setVerificationId(null);setCode("");setError("");await buildRecaptcha();}}>
-                {t("changePhone")}
+                      onClick={async()=>{ setVerificationId(null); setCode(""); setError(""); await buildRecaptcha(); }}>
+                שינוי מספר
               </button>
             </form>
           )}
