@@ -1,4 +1,3 @@
-// src/pages/AuthPage.js
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -29,39 +28,37 @@ export default function AuthPage() {
   const navigate = useNavigate();
   const { t }   = useTranslation();
 
-  // Dev bypass
   useEffect(() => {
     if (["localhost", "127.0.0.1"].includes(window.location.hostname)) {
       auth.settings.appVerificationDisabledForTesting = true;
+      console.log("[AuthPage.js] Set appVerificationDisabledForTesting: true");
     }
   }, []);
 
-  // reCAPTCHA setup
   const buildRecaptcha = async () => {
     clearRecaptcha();
     setRecReady(false);
     setCaptchaSolved(false);
     try {
-      // Only build if we're on phone entry step (i.e. no verificationId)
       if (!verificationId) {
+        console.log("[AuthPage.js] Building reCAPTCHA...");
         verifier.current = await getRecaptcha(recaptchaDiv.current, setCaptchaSolved);
         setRecReady(true);
+        console.log("[AuthPage.js] reCAPTCHA ready!");
       }
     } catch (e) {
       setError("reCAPTCHA failed – refresh and try again.");
-      console.error("reCAPTCHA init failed:", e);
+      console.error("[AuthPage.js] reCAPTCHA init failed:", e);
     }
   };
   useEffect(() => { buildRecaptcha(); }, [verificationId]);
 
-  // cooldown timer
   useEffect(() => {
     if (cooldown === 0) return;
     const id = setInterval(() => setCooldown((c) => c - 1), 1000);
     return () => clearInterval(id);
   }, [cooldown]);
 
-  // helpers
   const normalizePhone = (raw) => {
     let p = raw.replace(/\D/g, "");
     if (p.startsWith("0")) p = p.slice(1);
@@ -69,11 +66,11 @@ export default function AuthPage() {
   };
   const withError = (msg) => { setError(msg); setLoading(false); };
 
-  // Step 1: send SMS
   const sendVerificationCode = async () => {
     setError("");
     const raw   = phoneRef.current.value.trim();
     const phone = normalizePhone(raw);
+    console.log("[AuthPage.js] Sending SMS to:", phone);
     if (!raw) return withError("Enter phone number");
     if (!verifier.current) return withError("reCAPTCHA not ready");
     if (!captchaSolved) return withError("Please complete the security check.");
@@ -84,15 +81,18 @@ export default function AuthPage() {
       setVerificationId(result.verificationId);
       setCooldown(60);
 
-      // Hide and clear reCAPTCHA after SMS sent
       clearRecaptcha();
       setRecReady(false);
       setCaptchaSolved(false);
-    } catch (e) { withError(e.message); }
+
+      console.log("[AuthPage.js] SMS sent! Verification ID:", result.verificationId);
+    } catch (e) { 
+      withError(e.message); 
+      console.error("[AuthPage.js] Error sending SMS:", e);
+    }
     finally    { setLoading(false); }
   };
 
-  // Step 2: verify code
   const verifyCodeAndSignIn = async () => {
     setError("");
     if (!code.trim()) return withError("Enter verification code");
@@ -102,11 +102,14 @@ export default function AuthPage() {
       const cred = PhoneAuthProvider.credential(verificationId, code.trim());
       await signInWithCredential(auth, cred);
       navigate("/");
-    } catch (e) { withError(e.message); }
+      console.log("[AuthPage.js] Code verified! User signed in.");
+    } catch (e) { 
+      withError(e.message); 
+      console.error("[AuthPage.js] Error verifying code:", e);
+    }
     finally    { setLoading(false); }
   };
 
-  // Reset state when user wants to enter a new phone
   const handleChangeNumber = async () => {
     setVerificationId(null);
     setCode("");
@@ -114,13 +117,13 @@ export default function AuthPage() {
     setCaptchaSolved(false);
     setRecReady(false);
     await buildRecaptcha();
+    console.log("[AuthPage.js] User switched to phone entry step");
   };
 
   return (
     <div className="auth-container">
       <h2 className="auth-title">{t("login")}</h2>
 
-      {/* --- Phone form --- */}
       {!verificationId ? (
         <form
           className="auth-form"
@@ -145,7 +148,6 @@ export default function AuthPage() {
           <div style={{marginTop: 12, marginBottom: 6, color: "#888", fontSize: "0.95em"}}>
             יש להשלים את בדיקת האבטחה (reCAPTCHA) לפני שליחת קוד
           </div>
-          {/* reCAPTCHA widget ONLY shown in this step */}
           {!verificationId && (
             <div
               id="recaptcha-container"
@@ -155,7 +157,6 @@ export default function AuthPage() {
           )}
         </form>
       ) : (
-        // --- Code form ---
         <form
           className="auth-form"
           onSubmit={(e) => { e.preventDefault(); verifyCodeAndSignIn(); }}
