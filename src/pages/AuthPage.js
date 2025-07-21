@@ -42,14 +42,17 @@ export default function AuthPage() {
     setRecReady(false);
     setCaptchaSolved(false);
     try {
-      verifier.current = await getRecaptcha(recaptchaDiv.current, setCaptchaSolved);
-      setRecReady(true);
+      // Only build if we're on phone entry step (i.e. no verificationId)
+      if (!verificationId) {
+        verifier.current = await getRecaptcha(recaptchaDiv.current, setCaptchaSolved);
+        setRecReady(true);
+      }
     } catch (e) {
       setError("reCAPTCHA failed – refresh and try again.");
       console.error("reCAPTCHA init failed:", e);
     }
   };
-  useEffect(() => { buildRecaptcha(); }, []);
+  useEffect(() => { buildRecaptcha(); }, [verificationId]);
 
   // cooldown timer
   useEffect(() => {
@@ -80,6 +83,11 @@ export default function AuthPage() {
       const result = await signInWithPhoneNumber(auth, phone, verifier.current);
       setVerificationId(result.verificationId);
       setCooldown(60);
+
+      // Hide and clear reCAPTCHA after SMS sent
+      clearRecaptcha();
+      setRecReady(false);
+      setCaptchaSolved(false);
     } catch (e) { withError(e.message); }
     finally    { setLoading(false); }
   };
@@ -98,83 +106,83 @@ export default function AuthPage() {
     finally    { setLoading(false); }
   };
 
+  // Reset state when user wants to enter a new phone
+  const handleChangeNumber = async () => {
+    setVerificationId(null);
+    setCode("");
+    setError("");
+    setCaptchaSolved(false);
+    setRecReady(false);
+    await buildRecaptcha();
+  };
+
   return (
     <div className="auth-container">
-      {/* reCAPTCHA widget always present in the DOM */}
-      <div
-        id="recaptcha-container"
-        ref={recaptchaDiv}
-        className="recaptcha-container"
-      />
+      <h2 className="auth-title">{t("login")}</h2>
 
-      {!recReady ? (
-        <BreadLoader />
-      ) : (
-        <div>
-          <h2 className="auth-title">{t("login")}</h2>
-
-          {/* --- Phone form --- */}
-          {!verificationId ? (
-            <form
-              className="auth-form"
-              onSubmit={(e) => { e.preventDefault(); sendVerificationCode(); }}
-            >
-              <label htmlFor="ph" className="auth-label">טלפון</label>
-              <input
-                id="ph"
-                ref={phoneRef}
-                className="auth-input"
-                placeholder="50 123 4567"
-                pattern="[0-9]{9,10}"
-                required
-              />
-              <button
-                className="auth-btn"
-                disabled={loading || cooldown || !captchaSolved}
-              >
-                {loading ? <BreadLoader /> :
-                 cooldown ? `שלח קוד (${cooldown})` : "שלח קוד"}
-              </button>
-              <div style={{marginTop: 12, marginBottom: 6, color: "#888", fontSize: "0.95em"}}>
-                יש להשלים את בדיקת האבטחה (reCAPTCHA) לפני שליחת קוד
-              </div>
-            </form>
-          ) : (
-            // --- Code form ---
-            <form
-              className="auth-form"
-              onSubmit={(e) => { e.preventDefault(); verifyCodeAndSignIn(); }}
-            >
-              <label htmlFor="code" className="auth-label">קוד אימות</label>
-              <input
-                id="code"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                className="auth-input"
-                placeholder="SMS code"
-                required
-              />
-              <button className="auth-btn" disabled={loading}>
-                {loading ? <BreadLoader /> : "אמת והיכנס"}
-              </button>
-              <button
-                type="button"
-                className="auth-btn-secondary"
-                onClick={async () => {
-                  setVerificationId(null);
-                  setCode("");
-                  setError("");
-                  await buildRecaptcha();
-                }}
-              >
-                שינוי מספר
-              </button>
-            </form>
+      {/* --- Phone form --- */}
+      {!verificationId ? (
+        <form
+          className="auth-form"
+          onSubmit={(e) => { e.preventDefault(); sendVerificationCode(); }}
+        >
+          <label htmlFor="ph" className="auth-label">טלפון</label>
+          <input
+            id="ph"
+            ref={phoneRef}
+            className="auth-input"
+            placeholder="50 123 4567"
+            pattern="[0-9]{9,10}"
+            required
+          />
+          <button
+            className="auth-btn"
+            disabled={loading || cooldown || !captchaSolved}
+          >
+            {loading ? <BreadLoader /> :
+             cooldown ? `שלח קוד (${cooldown})` : "שלח קוד"}
+          </button>
+          <div style={{marginTop: 12, marginBottom: 6, color: "#888", fontSize: "0.95em"}}>
+            יש להשלים את בדיקת האבטחה (reCAPTCHA) לפני שליחת קוד
+          </div>
+          {/* reCAPTCHA widget ONLY shown in this step */}
+          {!verificationId && (
+            <div
+              id="recaptcha-container"
+              ref={recaptchaDiv}
+              className="recaptcha-container"
+            />
           )}
-
-          {error && <div className="auth-error">{error}</div>}
-        </div>
+        </form>
+      ) : (
+        // --- Code form ---
+        <form
+          className="auth-form"
+          onSubmit={(e) => { e.preventDefault(); verifyCodeAndSignIn(); }}
+        >
+          <label htmlFor="code" className="auth-label">קוד אימות</label>
+          <input
+            id="code"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            className="auth-input"
+            placeholder="SMS code"
+            required
+          />
+          <button className="auth-btn" disabled={loading}>
+            {loading ? <BreadLoader /> : "אמת והיכנס"}
+          </button>
+          <button
+            type="button"
+            className="auth-btn-secondary"
+            onClick={handleChangeNumber}
+          >
+            שינוי מספר
+          </button>
+        </form>
       )}
+
+      {error && <div className="auth-error">{error}</div>}
     </div>
   );
 }

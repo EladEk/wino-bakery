@@ -5,8 +5,7 @@ import { auth } from "../firebase";
 let verifier = null;
 
 /**
- * Singleton wrapper for Firebase v2 reCAPTCHA (visible “normal” widget).
- *
+ * Creates (or re-uses) a visible v2 reCAPTCHA widget and returns the verifier.
  * @param {HTMLElement} container - DOM node for the widget
  * @param {Function} setCaptchaSolved - callback to set solved state in React
  */
@@ -18,11 +17,10 @@ export async function getRecaptcha(container, setCaptchaSolved) {
     {
       size: "normal",
       callback: (token) => {
-        setCaptchaSolved(true);       // called when the reCAPTCHA is solved
+        setCaptchaSolved(true);
       },
       "expired-callback": () => {
-        setCaptchaSolved(false);      // called when token expires
-        console.warn("reCAPTCHA expired – clearing verifier");
+        setCaptchaSolved(false);
         clearRecaptcha();
       },
     },
@@ -32,7 +30,7 @@ export async function getRecaptcha(container, setCaptchaSolved) {
   return verifier;
 }
 
-/* Destroy widget + token so the next call starts fresh */
+/** Destroys the widget so the next call starts fresh. */
 export function clearRecaptcha() {
   if (verifier?.clear) verifier.clear();
   verifier = null;
