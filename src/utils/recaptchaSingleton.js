@@ -1,30 +1,39 @@
 import { RecaptchaVerifier } from "firebase/auth";
-import { auth } from "../firebase";
 
+// Should be declared at module scope to preserve across calls
 let verifier = null;
 
-export async function getRecaptcha(container, setCaptchaSolved) {
+// Always: container (DOM node or string), options, auth (as 3rd arg)
+export async function getRecaptcha(auth, container, setCaptchaSolved) {
   if (verifier) return verifier;
 
-  verifier = new RecaptchaVerifier(
-    auth, container,
-    {
-      size: "compact",
-      callback: (token) => {
-        setCaptchaSolved && setCaptchaSolved(true);
-      },
-      "expired-callback": () => {
-        setCaptchaSolved && setCaptchaSolved(false);
-        clearRecaptcha();
-      },
-    },
-  );
+  // Defensive: Ensure DOM element exists
+  const targetContainer =
+    typeof container === 'string'
+      ? document.getElementById(container)
+      : container;
 
-  await verifier.render();
-  return verifier;
-}
+  if (!auth || !auth.app) return null;
+  if (!targetContainer) return null;
 
-export function clearRecaptcha() {
-  if (verifier?.clear) verifier.clear();
-  verifier = null;
+  try {
+    verifier = new RecaptchaVerifier(
+      targetContainer,                 // 1st: container
+      {
+        size: "compact",               // "normal" or "compact"—never "invisible" for SMS/phone
+        callback: () => setCaptchaSolved && setCaptchaSolved(true),
+        "expired-callback": () => {
+          setCaptchaSolved && setCaptchaSolved(false);
+          if (verifier?.clear) verifier.clear();
+          verifier = null;
+        }
+      },
+      auth                             // 3rd: Auth instance!
+    );
+    await verifier.render();
+    return verifier;
+  } catch (error) {
+    verifier = null;
+    return null;
+  }
 }
