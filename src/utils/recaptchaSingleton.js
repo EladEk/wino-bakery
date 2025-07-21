@@ -14,7 +14,7 @@ export async function getRecaptcha(container, setCaptchaSolved) {
   if (verifier) return verifier;
 
   verifier = new RecaptchaVerifier(
-    container,
+    auth, container,
     {
       size: "normal",
       callback: (token) => {
@@ -26,7 +26,6 @@ export async function getRecaptcha(container, setCaptchaSolved) {
         clearRecaptcha();
       },
     },
-    auth
   );
 
   await verifier.render();  // initialise iframe & token
