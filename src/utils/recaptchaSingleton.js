@@ -1,15 +1,12 @@
 import { RecaptchaVerifier } from "firebase/auth";
 
-// Should be declared at module scope to preserve across calls
 let verifier = null;
 
-// Always: container (DOM node or string), options, auth (as 3rd arg)
 export async function getRecaptcha(auth, container, setCaptchaSolved) {
   if (verifier) return verifier;
 
-  // Defensive: Ensure DOM element exists
   const targetContainer =
-    typeof container === 'string'
+    typeof container === "string"
       ? document.getElementById(container)
       : container;
 
@@ -18,17 +15,16 @@ export async function getRecaptcha(auth, container, setCaptchaSolved) {
 
   try {
     verifier = new RecaptchaVerifier(
-      targetContainer,                 // 1st: container
+      targetContainer,
       {
-        size: "compact",               // "normal" or "compact"—never "invisible" for SMS/phone
+        size: "compact", // or "normal"
         callback: () => setCaptchaSolved && setCaptchaSolved(true),
         "expired-callback": () => {
           setCaptchaSolved && setCaptchaSolved(false);
-          if (verifier?.clear) verifier.clear();
-          verifier = null;
-        }
+          clearRecaptcha();
+        },
       },
-      auth                             // 3rd: Auth instance!
+      auth
     );
     await verifier.render();
     return verifier;
@@ -36,4 +32,9 @@ export async function getRecaptcha(auth, container, setCaptchaSolved) {
     verifier = null;
     return null;
   }
+}
+
+export function clearRecaptcha() {
+  if (verifier?.clear) verifier.clear();
+  verifier = null;
 }
