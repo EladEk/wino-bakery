@@ -8,33 +8,30 @@ import {
 } from "firebase/auth";
 
 import { auth, authReady } from "../firebase";
-import {
-  getRecaptcha,
-  clearRecaptcha,
-} from "../utils/recaptchaSingleton";
+import { getRecaptcha, clearRecaptcha } from "../utils/recaptchaSingleton";
 import BreadLoader from "../components/BreadLoader";
 import "./AuthPage.css";
 
 export default function AuthPage() {
-  const phoneRef     = useRef();
+  const phoneRef = useRef();
   const recaptchaDiv = useRef(null);
-  const verifier     = useRef(null);
+  const verifier = useRef(null);
 
-  const [code, setCode]               = useState("");
+  const [code, setCode] = useState("");
   const [verificationId, setVerificationId] = useState(null);
-  const [recReady, setRecReady]       = useState(false);
-  const [loading, setLoading]         = useState(false);
-  const [error, setError]             = useState("");
-  const [cooldown, setCooldown]       = useState(0);
+  const [recReady, setRecReady] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [cooldown, setCooldown] = useState(0);
   const [captchaSolved, setCaptchaSolved] = useState(false);
 
-  const navigate  = useNavigate();
-  const { t }     = useTranslation();
+  const navigate = useNavigate();
+  const { t } = useTranslation();
 
   /* Disable app-check on localhost for easier testing */
   useEffect(() => {
     (async () => {
-      if (["localhost", "127.0.0.1"].includes(location.hostname)) {
+      if (["localhost", "127.0.0.1"].includes(window.location.hostname)) {
         await authReady;
         auth.settings.appVerificationDisabledForTesting = true;
       }
@@ -59,7 +56,7 @@ export default function AuthPage() {
     }
   };
 
-  /* Build on first mount and every time we return to “enter phone” step */
+  /* Build on first mount and whenever we return to the phone‑entry step */
   useEffect(() => {
     if (!verificationId) buildRecaptcha();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -68,7 +65,7 @@ export default function AuthPage() {
   /* SMS resend cooldown */
   useEffect(() => {
     if (!cooldown) return;
-    const id = setInterval(() => setCooldown((c) => c - 1), 1_000);
+    const id = setInterval(() => setCooldown((c) => c - 1), 1000);
     return () => clearInterval(id);
   }, [cooldown]);
 
@@ -83,23 +80,19 @@ export default function AuthPage() {
     setLoading(false);
   };
 
-  /* === Step 1: Send SMS === */
+  /* === Step 1: Send SMS === */
   const sendVerificationCode = async () => {
     setError("");
-    const raw   = phoneRef.current.value.trim();
+    const raw = phoneRef.current.value.trim();
     const phone = normalizePhone(raw);
 
-    if (!raw)              return withError("Enter phone number");
-    if (!recReady)         return withError("reCAPTCHA not ready");
-    if (!captchaSolved)    return withError("Please complete the security check.");
+    if (!raw) return withError("Enter phone number");
+    if (!recReady) return withError("reCAPTCHA not ready");
+    if (!captchaSolved) return withError("Please complete the security check.");
 
     setLoading(true);
     try {
-      const result = await signInWithPhoneNumber(
-        auth,
-        phone,
-        verifier.current
-      );
+      const result = await signInWithPhoneNumber(auth, phone, verifier.current);
       setVerificationId(result.verificationId);
       setCooldown(60);
     } catch (e) {
@@ -109,7 +102,7 @@ export default function AuthPage() {
     }
   };
 
-  /* === Step 2: Verify code & sign in === */
+  /* === Step 2: Verify code & sign in === */
   const verifyCodeAndSignIn = async () => {
     setError("");
     if (!code.trim()) return withError("Enter verification code");
@@ -160,9 +153,7 @@ export default function AuthPage() {
 
           <button
             className="auth-btn"
-            disabled={
-              loading || cooldown || !captchaSolved || !recReady
-            }
+            disabled={loading || cooldown || !captchaSolved || !recReady}
           >
             {loading ? (
               <BreadLoader />
