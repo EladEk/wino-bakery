@@ -7,7 +7,7 @@ import {
   signInWithCredential,
 } from "firebase/auth";
 
-import { auth } from "../firebase";
+import { auth, authReady } from "../firebase";
 import { getRecaptcha, clearRecaptcha } from "../utils/recaptchaSingleton";
 import BreadLoader from "../components/BreadLoader";
 import "./AuthPage.css";
@@ -28,10 +28,13 @@ export default function AuthPage() {
   const navigate = useNavigate();
   const { t }   = useTranslation();
 
+  // --- CHANGE: Wait for authReady before setting appVerificationDisabledForTesting
   useEffect(() => {
     if (["localhost", "127.0.0.1"].includes(window.location.hostname)) {
-      auth.settings.appVerificationDisabledForTesting = true;
-      console.log("[AuthPage.js] Set appVerificationDisabledForTesting: true");
+      authReady.then(() => {
+        auth.settings.appVerificationDisabledForTesting = true;
+        console.log("[AuthPage.js] Set appVerificationDisabledForTesting: true");
+      });
     }
   }, []);
 

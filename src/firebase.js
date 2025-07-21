@@ -6,10 +6,10 @@ import {
 } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
-import {
-  initializeAppCheck,
-  ReCaptchaEnterpriseProvider,
-} from "firebase/app-check";
+// import {
+//   initializeAppCheck,
+//   ReCaptchaEnterpriseProvider,
+// } from "firebase/app-check";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBAde-r0Rrh_D1oYTfGU8XvL_APfMSZHrE",
@@ -22,21 +22,17 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
-
 const auth = getAuth(app);
-setPersistence(auth, browserLocalPersistence);
-
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-// initializeAppCheck(app, {
-//   provider: new ReCaptchaEnterpriseProvider(
-//     "6Le-W4krAAAAALA7GzYA7IZg8yUDvLmxreAGlcNc"
-//   ),
-//   isTokenAutoRefreshEnabled: true,
-// });
+// --- CHANGE: Add a promise for auth persistence initialization
+export const authReady = setPersistence(auth, browserLocalPersistence)
+  .then(() => {
+    console.log("[firebase.js] Auth persistence set");
+    return auth;
+  });
 
-// 🔵 Logger
 console.log("[firebase.js] Exporting app:", app);
 console.log("[firebase.js] Exporting auth:", auth);
 
