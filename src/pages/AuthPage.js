@@ -24,11 +24,11 @@ export default function AuthPage() {
 
   const navigate = useNavigate();
   const verifier = useRef(null);
-  const hostDiv  = useRef(null);
+  const { t }    = useTranslation();
 
   /* local-dev bypass */
   useEffect(() => {
-    if (["localhost","127.0.0.1"].includes(window.location.hostname)) {
+    if (["localhost", "127.0.0.1"].includes(window.location.hostname)) {
       auth.settings.appVerificationDisabledForTesting = true;
     }
   }, []);
@@ -38,16 +38,7 @@ export default function AuthPage() {
     clearRecaptcha();
     setRecReady(false);
 
-    if (hostDiv.current?.parentNode)
-      hostDiv.current.parentNode.removeChild(hostDiv.current);
-
-    const id  = `recaptcha-${Date.now()}`;
-    const div = document.createElement("div");
-    div.id = id;
-    Object.assign(div.style,{ position:"absolute", top:"-9999px", left:"-9999px" });
-    document.body.appendChild(div);
-    hostDiv.current = div;
-
+    const id = "recaptcha-container";          // visible widget placeholder
     try {
       verifier.current = await getRecaptcha(auth, id);
       setRecReady(true);
@@ -56,21 +47,21 @@ export default function AuthPage() {
       setError("reCAPTCHA failed – refresh and try again.");
     }
   };
-  useEffect(()=>{ buildRecaptcha(); },[]);
+  useEffect(() => { buildRecaptcha(); }, []);
 
-  /* cooldown timer */
-  useEffect(()=>{
-    if (!cooldown) return;
-    const id = setInterval(()=>setCooldown(c=>c-1),1000);
-    return ()=>clearInterval(id);
-  },[cooldown]);
+  /* -------- cooldown timer -------- */
+  useEffect(() => {
+    if (cooldown === 0) return;
+    const id = setInterval(() => setCooldown((c) => c - 1), 1000);
+    return () => clearInterval(id);
+  }, [cooldown]);
 
-  const normalizePhone = raw => {
-    let p = raw.replace(/\D/g,"");
+  const normalizePhone = (raw) => {
+    let p = raw.replace(/\D/g, "");
     if (p.startsWith("0")) p = p.slice(1);
-    return "+972"+p;
+    return "+972" + p;
   };
-  const withError = msg => { setError(msg); setLoading(false); };
+  const withError = (msg) => { setError(msg); setLoading(false); };
 
   /* ---------- Step 1: send SMS ---------- */
   const sendVerificationCode = async () => {
@@ -78,13 +69,12 @@ export default function AuthPage() {
     const raw   = phoneRef.current.value.trim();
     const phone = normalizePhone(raw);
     if (!raw) return withError("Enter phone number");
-    if (cooldown) return;
+    if (!verifier.current) return withError("reCAPTCHA not ready");
 
     setLoading(true);
     try {
-      await buildRecaptcha();
-      const res = await signInWithPhoneNumber(auth, phone, verifier.current);
-      setVerificationId(res.verificationId);
+      const result = await signInWithPhoneNumber(auth, phone, verifier.current);
+      setVerificationId(result.verificationId);
       setCooldown(60);
     } catch (e) { withError(e.message); }
     finally    { setLoading(false); }
@@ -94,9 +84,10 @@ export default function AuthPage() {
   const verifyCodeAndSignIn = async () => {
     setError("");
     if (!code.trim()) return withError("Enter verification code");
+
     setLoading(true);
     try {
-      const cred = PhoneAuthProvider.credential(verificationId, code);
+      const cred = PhoneAuthProvider.credential(verificationId, code.trim());
       await signInWithCredential(auth, cred);
       /* NamePrompt will show after AuthContext loads */
       navigate("/");
@@ -111,30 +102,59 @@ export default function AuthPage() {
         <BreadLoader />
       ) : (
         <div>
-          <h2 className="auth-title">כניסה</h2>
+          <h2 className="auth-title">{t("login")}</h2>
 
           {/* -------- Phone form -------- */}
           {!verificationId ? (
-            <form className="auth-form" onSubmit={e=>{e.preventDefault();sendVerificationCode();}}>
+            <form
+              className="auth-form"
+              onSubmit={(e) => { e.preventDefault(); sendVerificationCode(); }}
+            >
               <label htmlFor="ph" className="auth-label">טלפון</label>
-              <input  id="ph" ref={phoneRef} className="auth-input"
-                      placeholder="50 123 4567" pattern="[0-9]{9,10}" required/>
-              <button className="auth-btn" disabled={loading||cooldown}>
-                {loading ? <BreadLoader/> :
+              <input
+                id="ph"
+                ref={phoneRef}
+                className="auth-input"
+                placeholder="50 123 4567"
+                pattern="[0-9]{9,10}"
+                required
+              />
+              <button className="auth-btn" disabled={loading || cooldown}>
+                {loading ? <BreadLoader /> :
                  cooldown ? `שלח קוד (${cooldown})` : "שלח קוד"}
               </button>
+
+              {/* Visible reCAPTCHA widget */}
+              <div id="recaptcha-container" className="recaptcha-container" />
             </form>
           ) : (
             /* -------- Code form -------- */
-            <form className="auth-form" onSubmit={e=>{e.preventDefault();verifyCodeAndSignIn();}}>
+            <form
+              className="auth-form"
+              onSubmit={(e) => { e.preventDefault(); verifyCodeAndSignIn(); }}
+            >
               <label htmlFor="code" className="auth-label">קוד אימות</label>
-              <input id="code" value={code} onChange={e=>setCode(e.target.value)}
-                     className="auth-input" placeholder="SMS code" required/>
+              <input
+                id="code"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                className="auth-input"
+                placeholder="SMS code"
+                required
+              />
               <button className="auth-btn" disabled={loading}>
-                {loading ? <BreadLoader/> : "אמת והיכנס"}
+                {loading ? <BreadLoader /> : "אמת והיכנס"}
               </button>
-              <button type="button" className="auth-btn-secondary"
-                      onClick={async()=>{ setVerificationId(null); setCode(""); setError(""); await buildRecaptcha(); }}>
+              <button
+                type="button"
+                className="auth-btn-secondary"
+                onClick={async () => {
+                  setVerificationId(null);
+                  setCode("");
+                  setError("");
+                  await buildRecaptcha();
+                }}
+              >
                 שינוי מספר
               </button>
             </form>
