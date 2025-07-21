@@ -29,12 +29,12 @@ setPersistence(auth, browserLocalPersistence);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-initializeAppCheck(app, {
-  provider: new ReCaptchaEnterpriseProvider(
-    "6Le-W4krAAAAALA7GzYA7IZg8yUDvLmxreAGlcNc"
-  ),
-  isTokenAutoRefreshEnabled: true,
-});
+// initializeAppCheck(app, {
+//   provider: new ReCaptchaEnterpriseProvider(
+//     "6Le-W4krAAAAALA7GzYA7IZg8yUDvLmxreAGlcNc"
+//   ),
+//   isTokenAutoRefreshEnabled: true,
+// });
 
 // 🔵 Logger
 console.log("[firebase.js] Exporting app:", app);
