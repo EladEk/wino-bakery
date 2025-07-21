@@ -1,46 +1,47 @@
 // src/pages/AuthPage.js
 import React, { useState, useRef, useEffect } from "react";
-import { auth } from "../firebase";
+import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   signInWithPhoneNumber,
   PhoneAuthProvider,
   signInWithCredential,
 } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
+
+import { auth } from "../firebase";
 import { getRecaptcha, clearRecaptcha } from "../utils/recaptchaSingleton";
 import BreadLoader from "../components/BreadLoader";
 import "./AuthPage.css";
 
 export default function AuthPage() {
-  /* ---------------- state ---------------- */
-  const [code, setCode]         = useState("");
+  /* ---------- refs & state ---------- */
   const phoneRef                = useRef();
+  const recaptchaDiv            = useRef(null);   // container for widget
+  const verifier                = useRef(null);
+
+  const [code, setCode]         = useState("");
   const [verificationId, setVerificationId] = useState(null);
+  const [recReady, setRecReady] = useState(false);
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState("");
-  const [recReady, setRecReady] = useState(false);
   const [cooldown, setCooldown] = useState(0);
 
   const navigate = useNavigate();
-  const verifier = useRef(null);
-  const { t }    = useTranslation();
+  const { t }   = useTranslation();
 
-  /* local-dev bypass */
+  /* ---------- dev bypass ---------- */
   useEffect(() => {
     if (["localhost", "127.0.0.1"].includes(window.location.hostname)) {
       auth.settings.appVerificationDisabledForTesting = true;
     }
   }, []);
 
-  /* ------------ reCAPTCHA ------------ */
+  /* ---------- reCAPTCHA ---------- */
   const buildRecaptcha = async () => {
     clearRecaptcha();
     setRecReady(false);
-
-    const id = "recaptcha-container";          // visible widget placeholder
     try {
-      verifier.current = await getRecaptcha(auth, id);
+      verifier.current = await getRecaptcha(recaptchaDiv.current);
       setRecReady(true);
     } catch (e) {
       console.error("reCAPTCHA init failed:", e);
@@ -49,13 +50,14 @@ export default function AuthPage() {
   };
   useEffect(() => { buildRecaptcha(); }, []);
 
-  /* -------- cooldown timer -------- */
+  /* ---------- cooldown timer ---------- */
   useEffect(() => {
     if (cooldown === 0) return;
     const id = setInterval(() => setCooldown((c) => c - 1), 1000);
     return () => clearInterval(id);
   }, [cooldown]);
 
+  /* ---------- helpers ---------- */
   const normalizePhone = (raw) => {
     let p = raw.replace(/\D/g, "");
     if (p.startsWith("0")) p = p.slice(1);
@@ -89,17 +91,20 @@ export default function AuthPage() {
     try {
       const cred = PhoneAuthProvider.credential(verificationId, code.trim());
       await signInWithCredential(auth, cred);
-      /* NamePrompt will show after AuthContext loads */
-      navigate("/");
+      navigate("/");                     // NamePrompt pops on landing
     } catch (e) { withError(e.message); }
     finally    { setLoading(false); }
   };
 
-  /* ---------------- UI ---------------- */
+  /* ---------- UI ---------- */
   return (
     <div className="auth-container">
-      {/* 👇  Always present so RecaptchaVerifier can find it immediately  */}
-      <div id="recaptcha-container" className="recaptcha-container" />
+      {/* — visible widget placeholder (always in DOM) — */}
+      <div
+        id="recaptcha-container"
+        ref={recaptchaDiv}
+        className="recaptcha-container"
+      />
 
       {!recReady ? (
         <BreadLoader />
@@ -107,14 +112,11 @@ export default function AuthPage() {
         <div>
           <h2 className="auth-title">{t("login")}</h2>
 
-          {/* ---------- Phone form ---------- */}
+          {/* —— Phone form —— */}
           {!verificationId ? (
             <form
               className="auth-form"
-              onSubmit={(e) => {
-                e.preventDefault();
-                sendVerificationCode();
-              }}
+              onSubmit={(e) => { e.preventDefault(); sendVerificationCode(); }}
             >
               <label htmlFor="ph" className="auth-label">טלפון</label>
               <input
@@ -127,17 +129,14 @@ export default function AuthPage() {
               />
               <button className="auth-btn" disabled={loading || cooldown}>
                 {loading ? <BreadLoader /> :
-                cooldown ? `שלח קוד (${cooldown})` : "שלח קוד"}
+                 cooldown ? `שלח קוד (${cooldown})` : "שלח קוד"}
               </button>
             </form>
           ) : (
-            /* ---------- Code form ---------- */
+            /* —— Code form —— */
             <form
               className="auth-form"
-              onSubmit={(e) => {
-                e.preventDefault();
-                verifyCodeAndSignIn();
-              }}
+              onSubmit={(e) => { e.preventDefault(); verifyCodeAndSignIn(); }}
             >
               <label htmlFor="code" className="auth-label">קוד אימות</label>
               <input
@@ -171,5 +170,4 @@ export default function AuthPage() {
       )}
     </div>
   );
-
 }
