@@ -9,7 +9,7 @@ export async function getRecaptcha(container, setCaptchaSolved) {
   verifier = new RecaptchaVerifier(
     auth, container,
     {
-      size: "normal",
+      size: "compact",
       callback: (token) => {
         setCaptchaSolved && setCaptchaSolved(true);
         console.log("[recaptchaVerifier] Captcha solved! Token:", token);
