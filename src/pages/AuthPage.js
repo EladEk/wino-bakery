@@ -111,7 +111,7 @@ export default function AuthPage() {
         <BreadLoader />
       ) : (
         <div>
-          <h2 className="auth-title">התחברות / הרשמה</h2>
+          <h2 className="auth-title">כניסה</h2>
 
           {/* -------- Phone form -------- */}
           {!verificationId ? (

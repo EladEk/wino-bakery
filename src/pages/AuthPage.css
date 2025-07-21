@@ -11,9 +11,11 @@
   width: fit-content;
   background: #fffbe6;
   border-radius: 10px;
+  display: flex;
+  align-items: center;
   font-weight: bold;
   padding: 10px 32px;
-  font-size: 26px;
+  font-size: 40px;
   letter-spacing: 1px;
 }
 
@@ -30,13 +32,13 @@
   border: 1px solid #ccc;
   margin-bottom: 16px;
   text-align: center;
-  font-size: 16px;
+  font-size: 20px;
 }
 
 .auth-label {
   margin-bottom: 4px;
   font-weight: bold;
-  font-size: 16px;
+  font-size: 26px;
   align-self: center;
   background: #fffbe6;
   border-radius: 8px;
