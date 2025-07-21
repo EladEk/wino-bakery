@@ -98,17 +98,23 @@ export default function AuthPage() {
   /* ---------------- UI ---------------- */
   return (
     <div className="auth-container">
+      {/* 👇  Always present so RecaptchaVerifier can find it immediately  */}
+      <div id="recaptcha-container" className="recaptcha-container" />
+
       {!recReady ? (
         <BreadLoader />
       ) : (
         <div>
           <h2 className="auth-title">{t("login")}</h2>
 
-          {/* -------- Phone form -------- */}
+          {/* ---------- Phone form ---------- */}
           {!verificationId ? (
             <form
               className="auth-form"
-              onSubmit={(e) => { e.preventDefault(); sendVerificationCode(); }}
+              onSubmit={(e) => {
+                e.preventDefault();
+                sendVerificationCode();
+              }}
             >
               <label htmlFor="ph" className="auth-label">טלפון</label>
               <input
@@ -121,17 +127,17 @@ export default function AuthPage() {
               />
               <button className="auth-btn" disabled={loading || cooldown}>
                 {loading ? <BreadLoader /> :
-                 cooldown ? `שלח קוד (${cooldown})` : "שלח קוד"}
+                cooldown ? `שלח קוד (${cooldown})` : "שלח קוד"}
               </button>
-
-              {/* Visible reCAPTCHA widget */}
-              <div id="recaptcha-container" className="recaptcha-container" />
             </form>
           ) : (
-            /* -------- Code form -------- */
+            /* ---------- Code form ---------- */
             <form
               className="auth-form"
-              onSubmit={(e) => { e.preventDefault(); verifyCodeAndSignIn(); }}
+              onSubmit={(e) => {
+                e.preventDefault();
+                verifyCodeAndSignIn();
+              }}
             >
               <label htmlFor="code" className="auth-label">קוד אימות</label>
               <input
@@ -165,4 +171,5 @@ export default function AuthPage() {
       )}
     </div>
   );
+
 }

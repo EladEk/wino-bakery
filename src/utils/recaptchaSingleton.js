@@ -23,7 +23,7 @@ export async function getRecaptcha(auth, containerId) {
       console.warn("reCAPTCHA expired – clearing verifier");
       clearRecaptcha();
     },
-  });
+  }, auth);
 
   try {
     await verifier.render();          // initialise iframe & token
