@@ -2,7 +2,14 @@ import { RecaptchaVerifier } from "firebase/auth";
 
 let verifier = null;
 
+/**
+ * Build (or return an existing) reCAPTCHA v2 verifier.
+ * @param {import("firebase/auth").Auth}  auth            – Firebase auth instance
+ * @param {HTMLElement|string}           container       – DOM node or element id
+ * @param {(ok:boolean)=>void}           setCaptchaSolved– State setter from React
+ */
 export async function getRecaptcha(auth, container, setCaptchaSolved) {
+  // Return the same verifier if it’s still valid
   if (verifier) return verifier;
 
   const targetContainer =
@@ -10,17 +17,16 @@ export async function getRecaptcha(auth, container, setCaptchaSolved) {
       ? document.getElementById(container)
       : container;
 
-  if (!auth || !auth.app) return null;
-  if (!targetContainer) return null;
+  if (!auth || !auth.app || !targetContainer) return null;
 
   try {
     verifier = new RecaptchaVerifier(
       targetContainer,
       {
-        size: "compact", // or "normal"
-        callback: () => setCaptchaSolved && setCaptchaSolved(true),
+        size: "compact",
+        callback: () => setCaptchaSolved?.(true),
         "expired-callback": () => {
-          setCaptchaSolved && setCaptchaSolved(false);
+          setCaptchaSolved?.(false);
           clearRecaptcha();
         },
       },
@@ -35,6 +41,10 @@ export async function getRecaptcha(auth, container, setCaptchaSolved) {
 }
 
 export function clearRecaptcha() {
-  if (verifier?.clear) verifier.clear();
+  try {
+    verifier?.clear();        // resets widget & frees DOM node
+  } catch (_) {
+    /* ignore */
+  }
   verifier = null;
 }
