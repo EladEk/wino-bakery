@@ -1,4 +1,6 @@
-{
+{  
+  "bitNumber": "מספר ביט",
+  "bitNumberPlaceholder": "הכנס מספר ביט (רק ספרות)",
   "breadsList": "רשימת לחמים",
   "alreadyAccount": "כבר יש לך חשבון?",
   "bread": "לחם",
