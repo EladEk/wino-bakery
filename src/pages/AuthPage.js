@@ -71,10 +71,9 @@ export default function AuthPage() {
           <br/>
           <br/>
           <br/>
-          // <h2>{t("login")}</h2>
-          <button onClick={handleGoogleLogin} disabled={loading}>
+          <h2 onClick={handleGoogleLogin} disabled={loading}>
             {loading ? <BreadLoader /> : t("loginWithGoogle")}
-          </button>
+          </h2>
           {error && <div className="auth-error">{error}</div>}
         </form>
       </div>
