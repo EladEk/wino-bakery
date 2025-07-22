@@ -35,7 +35,7 @@
   "Name": "שם",
   "name": "שם",
   "nameRequired": "יש להזין שם",
-  "phone": "טלפון:",
+  "phone": "טלפון",
   "phoneRequired": "יש להזין מספר טלפון",
   "codeRequired": "יש להזין קוד אימות",
   "backHome": "חזרה לדף הבית",
@@ -60,11 +60,13 @@
   "userTotalCost": "סה\"כ עלות",
   "updateOrder": "עדכן הזמנה",
   "adminPanel": "פאנל ניהול",
+  "ManageUsers": "ניהול משתמשים",
   "ordered": "הוזמן",
   "verificationCode": "קוד אימות",
   "verifyCode": "אשר",
   "changePhone": "החלף מספר",
   "paid": "שולם",
+  "backToAdmin" : "חזרה לפאנל ניהול",
   "sendCode" : "שלח קוד",
   "loginWithGoogle" : "התחבר עם גוגל",
   "accountBlocked" : "החשבון שלך חסום. אנא פנה לטל.",
@@ -78,6 +80,8 @@
   "pickupAddressInput": "הזן כתובת איסוף",
   "address": "כתובת",
   "installApp": "התקנת האפליקציה",
-  "breadList": "רשימת לחמים"
-
+  "breadList": "רשימת לחמים",
+  "thanksForOrder": "תודה על ההזמנה!",
+  "updatedOrder" : "הזמנה עודכנה!",
+  "cancelledOrder": "הזמנה בוטלה!"
 }

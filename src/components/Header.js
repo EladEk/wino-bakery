@@ -47,6 +47,7 @@ export default function Header() {
   const atHome = location.pathname === "/";
   const atAdmin = location.pathname === "/admin";
   const atLogin = location.pathname === "/login";
+  const atUsers = location.pathname === "/users";
   const isAdmin = userData?.isAdmin;
 
   return (
@@ -71,6 +72,9 @@ export default function Header() {
         )}
         {atAdmin && (
           <button onClick={() => navigate("/")}>{t("backHome")}</button>
+        )}
+        {atUsers && isAdmin && (
+          <button onClick={() => navigate("/admin")}>{t("backToAdmin") || "Back to Admin"}</button>
         )}
         {/* Hide logout on login page */}
         {!atLogin && !isAdmin && (

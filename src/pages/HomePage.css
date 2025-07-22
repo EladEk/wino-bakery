@@ -33,3 +33,51 @@
 .table-responsive {
   overflow-x: auto;
 }
+
+.thanks-popup {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #222;
+  color: #fff;
+  padding: 18px 32px;
+  border-radius: 18px;
+  font-size: 1.5em;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.16);
+  z-index: 1000;
+  opacity: 0.97;
+  transition: opacity 0.3s;
+}
+
+.updated-popup {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #222;
+  color: #fff;
+  padding: 18px 32px;
+  border-radius: 18px;
+  font-size: 1.5em;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.16);
+  z-index: 1000;
+  opacity: 0.97;
+  transition: opacity 0.3s;
+}
+
+.cancelled-popup {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #222;
+  color: #fff;
+  padding: 18px 32px;
+  border-radius: 18px;
+  font-size: 1.5em;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.16);
+  z-index: 1000;
+  opacity: 0.97;
+  transition: opacity 0.3s;
+}

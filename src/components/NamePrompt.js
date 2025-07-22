@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import "./NamePrompt.css";
 
 export default function NamePrompt() {
-  const { currentUser, setNeedsProfile } = useAuth();
+  const { currentUser, setNeedsProfile, setUserData } = useAuth();
   const { t, i18n } = useTranslation();
 
   const [name, setName] = useState("");
@@ -16,12 +16,17 @@ export default function NamePrompt() {
   const save = async () => {
     if (!name.trim() || !phone.trim()) return;
     setSaving(true);
+    const trimmedName = name.trim();
+    const trimmedPhone = phone.trim();
+
     await setDoc(
       doc(db, "users", currentUser.uid),
-      { name: name.trim(), phone: phone.trim() },
+      { name: trimmedName, phone: trimmedPhone },
       { merge: true }
     );
-    setNeedsProfile(false);       // close modal
+
+    setUserData(prev => ({ ...prev, name: trimmedName, phone: trimmedPhone }));
+    setNeedsProfile(false); // close modal
   };
 
   return (

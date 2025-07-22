@@ -18,7 +18,6 @@ const HOUR_OPTIONS = Array.from({ length: 15 }, (_, i) =>
 ); // 07:00 to 21:00
 
 export default function AdminPage() {
-  const [users, setUsers] = useState([]);
   const [breads, setBreads] = useState([]);
   const [breadName, setBreadName] = useState("");
   const [breadPieces, setBreadPieces] = useState(1);
@@ -34,12 +33,9 @@ export default function AdminPage() {
   const [startHour, setStartHour] = useState("");
   const [endHour, setEndHour] = useState("");
   const [address, setAddress] = useState("");
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   useEffect(() => {
-    const usersUnsub = onSnapshot(collection(db, "users"), (snapshot) => {
-      setUsers(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
-    });
     const breadsUnsub = onSnapshot(collection(db, "breads"), (snapshot) => {
       setBreads(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
@@ -53,13 +49,9 @@ export default function AdminPage() {
         setAddress(data.address || "");
       }
     });
-    return () => {
-      usersUnsub();
-      breadsUnsub();
-    };
+    return () => breadsUnsub();
   }, []);
 
-  // Delivery info save
   const saveSaleDate = async () => {
     const saleDateRef = doc(db, "config", "saleDate");
     await setDoc(saleDateRef, {
@@ -71,7 +63,6 @@ export default function AdminPage() {
     alert(t("saleDate") + " " + t("updated"));
   };
 
-  // Bread CRUD
   const handleAddBread = async (e) => {
     e.preventDefault();
     if (!breadName || breadPieces < 1 || breadPrice === "") return;
@@ -95,6 +86,7 @@ export default function AdminPage() {
     setEditBreadDescription(bread.description || "");
     setEditBreadPrice(bread.price ?? "");
   };
+
   const cancelEditingBread = () => {
     setEditingBreadId(null);
     setEditBreadName("");
@@ -102,6 +94,7 @@ export default function AdminPage() {
     setEditBreadDescription("");
     setEditBreadPrice("");
   };
+
   const saveEditingBread = async (breadId) => {
     await updateDoc(doc(db, "breads", breadId), {
       name: editBreadName,
@@ -111,23 +104,11 @@ export default function AdminPage() {
     });
     cancelEditingBread();
   };
+
   const deleteBread = async (breadId) => {
     await deleteDoc(doc(db, "breads", breadId));
   };
 
-  // User management
-  const toggleAdmin = async (user) => {
-    await updateDoc(doc(db, "users", user.id), {
-      isAdmin: !user.isAdmin,
-    });
-  };
-  const toggleBlockUser = async (user) => {
-    await updateDoc(doc(db, "users", user.id), {
-      isBlocked: !user.isBlocked,
-    });
-  };
-
-  // Order (claimedBy) management
   const toggleSupplied = async (breadId, idx) => {
     const bread = breads.find((b) => b.id === breadId);
     const updated = (bread.claimedBy || []).map((c, i) =>
@@ -151,11 +132,13 @@ export default function AdminPage() {
   const startEditingOrder = (breadId, idx, claim) => {
     setEditingOrder({ [`${breadId}_${idx}`]: { quantity: claim.quantity } });
   };
+
   const saveOrderEdit = async (breadId, idx, claim) => {
     const bread = breads.find((b) => b.id === breadId);
     const key = `${breadId}_${idx}`;
     const newVal = editingOrder[key];
     const newQty = Number(newVal.quantity);
+
     if (!newQty || newQty < 1) {
       alert(t("invalidQuantity"));
       return;
@@ -173,19 +156,20 @@ export default function AdminPage() {
     }
 
     const diff = newQty - claim.quantity;
-
     const updated = (bread.claimedBy || []).map((c, i) =>
-      i === idx
-        ? { ...c, quantity: newQty }
-        : c
+      i === idx ? { ...c, quantity: newQty } : c
     );
+
     await updateDoc(doc(db, "breads", breadId), {
       claimedBy: updated,
       availablePieces: bread.availablePieces - diff,
     });
     setEditingOrder({});
   };
-  const cancelOrderEdit = () => setEditingOrder({});
+
+  const cancelOrderEdit = () => {
+    setEditingOrder({});
+  };
 
   const handleOrderInputChange = (breadId, idx, field, value) => {
     if (field !== "quantity") return;
@@ -219,6 +203,9 @@ export default function AdminPage() {
   return (
     <div className="admin-container">
       <h2>{t("Admin Dashboard")}</h2>
+      <button onClick={() => window.location.href = "/users"}>
+        {t("ManageUsers")}
+      </button>
 
       <div className="delivery-settings">
         <div className="delivery-fields">
@@ -276,43 +263,8 @@ export default function AdminPage() {
           {t("Save")}
         </button>
       </div>
-      
-      <h3>{t("Users")}</h3>
-      <div className="table-responsive">
-        <table className="cream-table">
-          <thead>
-            <tr>
-              <th>{t("Phone")}</th>
-              <th>{t("Name")}</th>
-              <th>{t("Email")}</th>
-              <th>{t("Admin")}</th>
-              <th>{t("Blocked")}</th>
-              <th>{t("Actions")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((u) => (
-              <tr key={u.id}>
-                <td>{u.phone || "-"}</td>
-                <td>{u.name || "-"}</td>
-                <td>{u.email || "-"}</td>
-                <td>{u.isAdmin ? t("Yes") : t("No")}</td>
-                <td>{u.isBlocked ? t("Yes") : t("No")}</td>
-                <td>
-                  <button onClick={() => toggleAdmin(u)}>
-                    {u.isAdmin ? t("Remove Admin") : t("Make Admin")}
-                  </button>
-                  <button onClick={() => toggleBlockUser(u)} style={{ marginLeft: 6 }}>
-                    {u.isBlocked ? t("Unblock") : t("Block")}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
 
-       <h3 className="add-bread">{t("Add Bread")}</h3>
+      <h3 className="add-bread">{t("Add Bread")}</h3>
       <form
         onSubmit={handleAddBread}
         className="bread-form"
@@ -362,7 +314,6 @@ export default function AdminPage() {
         <button type="submit" className="add-bread-btn">
           {t("Add Bread")}
         </button>
-        
       </form>
       <h3 className="bread-list">{t("breadList")}</h3>
       {breads.map((bread) => (
@@ -455,14 +406,13 @@ export default function AdminPage() {
             <table className="cream-table">
               <thead>
                 <tr>
+                  <th>{t("name")}</th>
+                  <th>{t("phone")}</th>
                   <th>{t("supplied")}</th>
-                  <th>{t("paid") || "Paid"}</th>
+                  <th>{t("paid")}</th>
                   <th>{t("cost")}</th>
-                  <th>{t("price")}</th>
                   <th>{t("orderedAt")}</th>
                   <th>{t("quantity")}</th>
-                   <th>{t("phone")}</th>
-                  <th>{t("name")}</th>
                   <th>{t("Actions")}</th>
                 </tr>
               </thead>
@@ -473,6 +423,16 @@ export default function AdminPage() {
 
                   return (
                     <tr key={i}>
+                      <td>
+                        <span style={{ paddingLeft: 6, display: "inline-block", width: 120 }}>
+                          {claim.name}
+                        </span>
+                      </td>
+                      <td>
+                        <span style={{ paddingLeft: 6, display: "inline-block", width: 120 }}>
+                          {claim.phone}
+                        </span>
+                      </td>
                       <td style={{ textAlign: "center" }}>
                         <input
                           type="checkbox"
@@ -488,7 +448,6 @@ export default function AdminPage() {
                         />
                       </td>
                       <td>{((claim.quantity || 0) * bread.price).toFixed(2)}</td>
-                      <td>{bread.price?.toFixed(2)}</td>
                       <td>
                         {claim.timestamp?.seconds
                           ? new Date(claim.timestamp.seconds * 1000).toLocaleString()
@@ -508,16 +467,6 @@ export default function AdminPage() {
                         ) : (
                           claim.quantity
                         )}
-                      </td>
-                      <td>
-                        <span style={{ paddingLeft: 6, display: "inline-block", width: 120 }}>
-                          {claim.phone}
-                        </span>
-                      </td>
-                      <td>
-                        <span style={{ paddingLeft: 6, display: "inline-block", width: 120 }}>
-                          {claim.name}
-                        </span>
                       </td>
                       <td>
                         {isEditing ? (

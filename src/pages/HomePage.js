@@ -10,13 +10,15 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const { userData, currentUser } = useAuth();
   const { t, i18n } = useTranslation();
-
   const [orderQuantities, setOrderQuantities] = useState({});
   const [editQuantities, setEditQuantities] = useState({});
   const [saleDate, setSaleDate] = useState("");
   const [startHour, setStartHour] = useState("");
   const [endHour, setEndHour] = useState("");
   const [address, setAddress] = useState("");
+  const [showThanks, setShowThanks] = useState(false);
+  const [showUpdated, setShowUpdated] = useState(false);
+  const [showCancelled, setShowCancelled] = useState(false);
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "breads"), snap => {
@@ -37,6 +39,22 @@ export default function HomePage() {
   }, []);
 
   const handleClaim = async breadId => {
+    let name = userData?.name;
+    let phone = userData?.phone;
+
+    if (!name || !phone) {
+      const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        name = data.name;
+        phone = data.phone;
+      }
+    }
+
+    if (!name || !phone) {
+      return alert(t("pleaseCompleteProfile", "Please enter your name and phone first."));
+    }
+
     const ref = doc(db, "breads", breadId);
     const snap = await getDoc(ref);
     if (!snap.exists()) return;
@@ -52,17 +70,17 @@ export default function HomePage() {
       claimedBy: [
         ...(data.claimedBy || []),
         {
-          phone: userData?.phone || "",
-          name:
-            (userData && (userData.name || userData.phone || userData.email)) ||
-            "Unknown",
+          phone,
+          name,
           quantity: qty,
           userId: currentUser.uid,
           timestamp: new Date()
         }
-      ],
+      ]
     });
     setOrderQuantities(q => ({ ...q, [breadId]: 1 }));
+    setShowThanks(true);
+    setTimeout(() => setShowThanks(false), 3000);
   };
 
   const handleUnclaim = async breadId => {
@@ -78,6 +96,8 @@ export default function HomePage() {
       claimedBy: (data.claimedBy || []).filter(c => c.userId !== currentUser.uid),
     });
     setEditQuantities(q => ({ ...q, [breadId]: undefined }));
+    setShowCancelled(true);
+    setTimeout(() => setShowCancelled(false), 3000);
   };
 
   const handleEditOrder = async (bread, newQty) => {
@@ -102,6 +122,8 @@ export default function HomePage() {
       ),
     });
     setEditQuantities(q => ({ ...q, [bread.id]: newQty }));
+    setShowUpdated(true);
+    setTimeout(() => setShowUpdated(false), 3000);
   };
 
   const userTotalCost = breads.reduce((sum, bread) => {
@@ -113,6 +135,21 @@ export default function HomePage() {
 
   return (
     <div className="page-container">
+      {showThanks && (
+        <div className="thanks-popup">
+          {t("thanksForOrder", "Thanks!")}
+        </div>
+      )}
+      {showUpdated && (
+        <div className="updated-popup">
+          {t("updatedOrder", "updated!")}
+        </div>
+      )}
+      {showCancelled && (
+        <div className="cancelled-popup">
+          {t("cancelledOrder", "Cancelled!")}
+        </div>
+      )}
       <h2>{t("breadsList")}</h2>
       {(saleDate || address) && (
         <div className={`delivery-details ${dir === "rtl" ? "rtl" : ""}`}>

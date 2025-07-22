@@ -22,7 +22,6 @@ export function AuthProvider({ children }) {
         const ref  = doc(db, "users", user.uid);
         let   snap = await getDoc(ref);
 
-        /* first ever sign-in → create shell doc (no name yet) */
         if (!snap.exists()) {
           await setDoc(
             ref,
@@ -39,6 +38,7 @@ export function AuthProvider({ children }) {
         setUserData(null);
         setNeedsProfile(false);
       }
+
       setLoading(false);
     });
 
@@ -49,7 +49,15 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ currentUser, userData, needsProfile, setNeedsProfile, logout, loading }}
+      value={{
+        currentUser,
+        userData,
+        setUserData, 
+        needsProfile,
+        setNeedsProfile,
+        logout,
+        loading
+      }}
     >
       {loading ? <BreadLoader /> : children}
     </AuthContext.Provider>
