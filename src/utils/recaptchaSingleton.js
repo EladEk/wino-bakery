@@ -23,7 +23,7 @@ export async function getRecaptcha(auth, container, setCaptchaSolved) {
     verifier = new RecaptchaVerifier(
       targetContainer,
       {
-        size: "compact",
+        size: "normal",
         callback: () => setCaptchaSolved?.(true),
         "expired-callback": () => {
           setCaptchaSolved?.(false);
