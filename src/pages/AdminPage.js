@@ -63,7 +63,7 @@ export default function AdminPage() {
       address,
       bitNumber,
     });
-    alert(t("saleDate") + " " + t("updated"));
+    alert(t("updated"));
   };
 
   const handleAddBread = async (e) => {
