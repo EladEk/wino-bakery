@@ -67,6 +67,10 @@ export default function AuthPage() {
     <>
       <div className="auth-container">
         <form className="auth-form" onSubmit={e => e.preventDefault()}>
+          <br/>
+          <br/>
+          <br/>
+          <br/>
           <h2>{t("login")}</h2>
           <button onClick={handleGoogleLogin} disabled={loading}>
             {loading ? <BreadLoader /> : t("loginWithGoogle")}
