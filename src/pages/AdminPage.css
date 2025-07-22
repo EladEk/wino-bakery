@@ -63,16 +63,33 @@
 
 .bread-form {
   margin: 32px 0;
-  margin-top: 15px;
   background: #f7f7ee;
   padding: 24px;
   border-radius: 10px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 24px;
   align-items: center;
 }
 
+@media (max-width: 700px) {
+  .bread-form {
+    grid-template-columns: 1fr;
+    padding: 12px;
+  }
+}
+
+
+.bread-form button {
+  grid-column: span 2;
+  justify-self: start; /* or center or end as you prefer */
+}
+@media (max-width: 700px) {
+  .bread-form button {
+    grid-column: auto;
+    justify-self: stretch;
+  }
+}
 .bread-input {
   margin-right: 10px;
   min-width: 85px;

@@ -311,12 +311,12 @@ export default function AdminPage() {
           </tbody>
         </table>
       </div>
+
        <h3 className="add-bread">{t("Add Bread")}</h3>
       <form
         onSubmit={handleAddBread}
         className="bread-form"
       >
-        <div>
         <label>
           {t("Name")}:{" "}
           <input
@@ -338,8 +338,6 @@ export default function AdminPage() {
             className="bread-input"
           />
         </label>
-        </div>
-        <div>
         <label>
           {t("description")}:{" "}
           <input
@@ -361,7 +359,6 @@ export default function AdminPage() {
             className="bread-input"
           />
         </label>
-        </div>
         <button type="submit" className="add-bread-btn">
           {t("Add Bread")}
         </button>
@@ -464,6 +461,7 @@ export default function AdminPage() {
                   <th>{t("price")}</th>
                   <th>{t("orderedAt")}</th>
                   <th>{t("quantity")}</th>
+                   <th>{t("phone")}</th>
                   <th>{t("name")}</th>
                   <th>{t("Actions")}</th>
                 </tr>
@@ -510,6 +508,11 @@ export default function AdminPage() {
                         ) : (
                           claim.quantity
                         )}
+                      </td>
+                      <td>
+                        <span style={{ paddingLeft: 6, display: "inline-block", width: 120 }}>
+                          {claim.phone}
+                        </span>
                       </td>
                       <td>
                         <span style={{ paddingLeft: 6, display: "inline-block", width: 120 }}>
