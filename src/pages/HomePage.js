@@ -213,10 +213,28 @@ export default function HomePage() {
                                   Number(q[bread.id] ?? claim.quantity) + 1
                                 )
                               }))} disabled={(editQuantities[bread.id] ?? claim.quantity) >= bread.availablePieces + claim.quantity}>+</button>
-                            <button onClick={() =>
-                              handleEditOrder(bread, editQuantities[bread.id] ?? claim.quantity)} disabled={(editQuantities[bread.id] ?? claim.quantity) === claim.quantity} style={{ marginLeft: 8 }}>{t("updateOrder")}</button>
-                            <button onClick={() => handleUnclaim(bread.id)} className="cancel-btn">{t("cancelOrder")}</button>
-                          </div>
+                            <button
+                                onClick={() =>
+                                handleEditOrder(
+                                bread,
+                                editQuantities[bread.id] ?? claim.quantity
+                                )
+                              }
+                              disabled={
+                                (editQuantities[bread.id] ?? claim.quantity) ===
+                                claim.quantity
+                              }
+                              style={{ marginLeft: 8 }}
+                               className={
+                               (editQuantities[bread.id] ?? claim.quantity) !== claim.quantity
+                               ? "update-flash"
+                               : ""
+                              }
+                              >
+                              {t("updateOrder")}
+                             </button>
+                         
+                            </div>
                         ) : (
                           <div className="order-quantity-row">
                             <button className="qty-btn" onClick={() =>
