@@ -7,48 +7,71 @@ import {
   doc,
   updateDoc,
   deleteDoc,
+  getDoc,
+  setDoc
 } from "firebase/firestore";
 import { useTranslation } from "react-i18next";
+import "./AdminPage.css";
+
+const HOUR_OPTIONS = Array.from({ length: 15 }, (_, i) =>
+  String(i + 7).padStart(2, '0') + ':00'
+); // 07:00 to 21:00
 
 export default function AdminPage() {
   const [users, setUsers] = useState([]);
   const [breads, setBreads] = useState([]);
-
-  // New-bread form state
   const [breadName, setBreadName] = useState("");
   const [breadPieces, setBreadPieces] = useState(1);
   const [breadDescription, setBreadDescription] = useState("");
   const [breadPrice, setBreadPrice] = useState("");
-
-  // Edit-bread state
   const [editingBreadId, setEditingBreadId] = useState(null);
   const [editBreadName, setEditBreadName] = useState("");
   const [editBreadPieces, setEditBreadPieces] = useState(1);
   const [editBreadDescription, setEditBreadDescription] = useState("");
   const [editBreadPrice, setEditBreadPrice] = useState("");
-
-  // Edit-order state: key = `${breadId}_${index}`
-  // value = { quantity: number }
   const [editingOrder, setEditingOrder] = useState({});
-
-  const { t } = useTranslation();
+  const [saleDate, setSaleDate] = useState("");
+  const [startHour, setStartHour] = useState("");
+  const [endHour, setEndHour] = useState("");
+  const [address, setAddress] = useState("");
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     const usersUnsub = onSnapshot(collection(db, "users"), (snapshot) => {
       setUsers(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
-
     const breadsUnsub = onSnapshot(collection(db, "breads"), (snapshot) => {
       setBreads(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
-
-    // Cleanup listeners on unmount
+    const saleDateRef = doc(db, "config", "saleDate");
+    getDoc(saleDateRef).then(docSnap => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setSaleDate(data.value || "");
+        setStartHour(data.startHour || "");
+        setEndHour(data.endHour || "");
+        setAddress(data.address || "");
+      }
+    });
     return () => {
       usersUnsub();
       breadsUnsub();
     };
   }, []);
 
+  // Delivery info save
+  const saveSaleDate = async () => {
+    const saleDateRef = doc(db, "config", "saleDate");
+    await setDoc(saleDateRef, {
+      value: saleDate,
+      startHour,
+      endHour,
+      address,
+    });
+    alert(t("saleDate") + " " + t("updated"));
+  };
+
+  // Bread CRUD
   const handleAddBread = async (e) => {
     e.preventDefault();
     if (!breadName || breadPieces < 1 || breadPrice === "") return;
@@ -92,6 +115,7 @@ export default function AdminPage() {
     await deleteDoc(doc(db, "breads", breadId));
   };
 
+  // User management
   const toggleAdmin = async (user) => {
     await updateDoc(doc(db, "users", user.id), {
       isAdmin: !user.isAdmin,
@@ -103,6 +127,7 @@ export default function AdminPage() {
     });
   };
 
+  // Order (claimedBy) management
   const toggleSupplied = async (breadId, idx) => {
     const bread = breads.find((b) => b.id === breadId);
     const updated = (bread.claimedBy || []).map((c, i) =>
@@ -192,61 +217,66 @@ export default function AdminPage() {
   );
 
   return (
-    <div style={{ maxWidth: 1000, margin: "30px auto", fontFamily: "inherit" }}>
+    <div className="admin-container">
       <h2>{t("Admin Dashboard")}</h2>
 
-      <form
-        onSubmit={handleAddBread}
-        style={{ margin: "32px 0", background: "#f7f7ee", padding: 24, borderRadius: 10 }}
-      >
-        <h3>{t("Add Bread")}</h3>
-        <label>
-          {t("Name")}:{" "}
-          <input
-            type="text"
-            value={breadName}
-            onChange={(e) => setBreadName(e.target.value)}
-            required
-            style={{ marginRight: 10 }}
-          />
-        </label>
-        <label>
-          {t("Pieces")}:{" "}
-          <input
-            type="number"
-            value={breadPieces}
-            min={1}
-            onChange={(e) => setBreadPieces(e.target.value)}
-            required
-            style={{ width: 60, marginRight: 10 }}
-          />
-        </label>
-        <label>
-          {t("description")}:{" "}
-          <input
-            type="text"
-            value={breadDescription}
-            onChange={(e) => setBreadDescription(e.target.value)}
-            style={{ width: 140, marginRight: 10 }}
-          />
-        </label>
-        <label>
-          {t("price")}:{" "}
-          <input
-            type="number"
-            value={breadPrice}
-            min={0}
-            step="0.01"
-            onChange={(e) => setBreadPrice(e.target.value)}
-            required
-            style={{ width: 80, marginRight: 10 }}
-          />
-        </label>
-        <button type="submit" style={{ marginLeft: 18, padding: "4px 16px" }}>
-          {t("Add Bread")}
+      <div className="delivery-settings">
+        <div className="delivery-fields">
+          <label>
+            {t("saleDate")}:{" "}
+            <input
+              type="date"
+              value={saleDate}
+              onChange={e => setSaleDate(e.target.value)}
+              className="date-input"
+            />
+          </label>
+          <label>
+            {t("between")}:{" "}
+            <select
+              value={startHour}
+              onChange={e => setStartHour(e.target.value)}
+              className="hour-select"
+            >
+              <option value="">{t("startHour")}</option>
+              {HOUR_OPTIONS.map(h => (
+                <option key={h} value={h}>{h}</option>
+              ))}
+            </select>
+            -
+            <select
+              value={endHour}
+              onChange={e => setEndHour(e.target.value)}
+              className="hour-select"
+            >
+              <option value="">{t("endHour")}</option>
+              {HOUR_OPTIONS.map(h => (
+                <option key={h} value={h}>{h}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <div className="address-field">
+          <label>
+            {t("address")}:{" "}
+            <input
+              type="text"
+              value={address}
+              onChange={e => setAddress(e.target.value)}
+              className="address-input"
+              placeholder={t("pickupAddressInput")}
+            />
+          </label>
+        </div>
+        <button
+          onClick={saveSaleDate}
+          disabled={!saleDate || !startHour || !endHour}
+          className="save-btn"
+        >
+          {t("Save")}
         </button>
-      </form>
-
+      </div>
+      
       <h3>{t("Users")}</h3>
       <div className="table-responsive">
         <table className="cream-table">
@@ -281,7 +311,63 @@ export default function AdminPage() {
           </tbody>
         </table>
       </div>
-
+       <h3 className="add-bread">{t("Add Bread")}</h3>
+      <form
+        onSubmit={handleAddBread}
+        className="bread-form"
+      >
+        <div>
+        <label>
+          {t("Name")}:{" "}
+          <input
+            type="text"
+            value={breadName}
+            onChange={(e) => setBreadName(e.target.value)}
+            required
+            className="bread-input"
+          />
+        </label>
+        <label>
+          {t("Pieces")}:{" "}
+          <input
+            type="number"
+            value={breadPieces}
+            min={1}
+            onChange={(e) => setBreadPieces(e.target.value)}
+            required
+            className="bread-input"
+          />
+        </label>
+        </div>
+        <div>
+        <label>
+          {t("description")}:{" "}
+          <input
+            type="text"
+            value={breadDescription}
+            onChange={(e) => setBreadDescription(e.target.value)}
+            className="bread-input"
+          />
+        </label>
+        <label>
+          {t("price")}:{" "}
+          <input
+            type="number"
+            value={breadPrice}
+            min={0}
+            step="0.01"
+            onChange={(e) => setBreadPrice(e.target.value)}
+            required
+            className="bread-input"
+          />
+        </label>
+        </div>
+        <button type="submit" className="add-bread-btn">
+          {t("Add Bread")}
+        </button>
+        
+      </form>
+      <h3 className="bread-list">{t("breadList")}</h3>
       {breads.map((bread) => (
         <div key={bread.id} className="bread-section">
           <div className="table-responsive">
@@ -304,7 +390,7 @@ export default function AdminPage() {
                           type="text"
                           value={editBreadName}
                           onChange={(e) => setEditBreadName(e.target.value)}
-                          style={{ width: 120 }}
+                          className="bread-input"
                         />
                       </td>
                       <td>
@@ -312,7 +398,7 @@ export default function AdminPage() {
                           type="text"
                           value={editBreadDescription}
                           onChange={(e) => setEditBreadDescription(e.target.value)}
-                          style={{ width: 120 }}
+                          className="bread-input"
                         />
                       </td>
                       <td>
@@ -321,7 +407,7 @@ export default function AdminPage() {
                           value={editBreadPieces}
                           min={0}
                           onChange={(e) => setEditBreadPieces(e.target.value)}
-                          style={{ width: 60 }}
+                          className="bread-input"
                         />
                       </td>
                       <td>
@@ -331,30 +417,34 @@ export default function AdminPage() {
                           min={0}
                           step="0.01"
                           onChange={(e) => setEditBreadPrice(e.target.value)}
-                          style={{ width: 80 }}
+                          className="bread-input"
                         />
                       </td>
                       <td>
                         <button
                           onClick={() => saveEditingBread(bread.id)}
-                          style={{ marginRight: 6 }}
+                          className="edit-bread-btn"
                         >
                           {t("Save")}
                         </button>
-                        <button onClick={cancelEditingBread}>{t("Cancel")}</button>
+                        <button onClick={cancelEditingBread} className="edit-bread-btn">
+                          {t("Cancel")}
+                        </button>
                       </td>
                     </>
                   ) : (
                     <>
-                      <td>{bread.name}</td>
+                      <td className="bread-name">{bread.name}</td>
                       <td>{bread.description}</td>
                       <td>{bread.availablePieces}</td>
                       <td>{bread.price?.toFixed(2)}</td>
                       <td>
-                        <button onClick={() => startEditingBread(bread)} style={{ marginRight: 6 }}>
+                        <button onClick={() => startEditingBread(bread)} className="edit-bread-btn">
                           {t("Edit")}
                         </button>
-                        <button onClick={() => deleteBread(bread.id)}>{t("Delete")}</button>
+                        <button onClick={() => deleteBread(bread.id)} className="edit-bread-btn">
+                          {t("Delete")}
+                        </button>
                       </td>
                     </>
                   )}
@@ -412,7 +502,7 @@ export default function AdminPage() {
                             type="number"
                             value={isEditing.quantity}
                             min={1}
-                            style={{ width: 55 }}
+                            className="bread-input"
                             onChange={e =>
                               handleOrderInputChange(bread.id, i, "quantity", e.target.value)
                             }
@@ -431,15 +521,16 @@ export default function AdminPage() {
                           <>
                             <button
                               onClick={() => saveOrderEdit(bread.id, i, claim)}
-                              style={{ marginRight: 6 }}
+                              className="edit-bread-btn"
                             >
                               {t("Save")}
                             </button>
-                            <button onClick={cancelOrderEdit} style={{ marginRight: 6 }}>
+                            <button onClick={cancelOrderEdit} className="edit-bread-btn">
                               {t("Cancel")}
                             </button>
                             <button
                               onClick={() => deleteOrder(bread.id, i)}
+                              className="edit-bread-btn"
                               style={{ color: "red" }}
                             >
                               {t("Delete")}
@@ -447,11 +538,12 @@ export default function AdminPage() {
                           </>
                         ) : (
                           <>
-                            <button onClick={() => startEditingOrder(bread.id, i, claim)} style={{ marginRight: 6 }}>
+                            <button onClick={() => startEditingOrder(bread.id, i, claim)} className="edit-bread-btn">
                               {t("Edit")}
                             </button>
                             <button
                               onClick={() => deleteOrder(bread.id, i)}
+                              className="edit-bread-btn"
                               style={{ color: "red" }}
                             >
                               {t("Delete")}

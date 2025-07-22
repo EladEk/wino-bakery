@@ -67,5 +67,16 @@
   "paid": "שולם",
   "sendCode" : "שלח קוד",
   "loginWithGoogle" : "התחבר עם גוגל",
-  "accountBlocked" : "החשבון שלך חסום. אנא פנה לטל."
+  "accountBlocked" : "החשבון שלך חסום. אנא פנה לטל.",
+  "saleDate": "תאריך מכירה",
+  "between": "בין השעות",
+  "saleDate": "תאריך אספקה",
+  "updated": "עודכן",
+  "startHour": "שעת התחלה",
+  "endHour": "שעת סיום",
+  "pickupAddress": "כתובת איסוף",
+  "pickupAddressInput": "הזן כתובת איסוף",
+  "address": "כתובת",
+  "breadList": "רשימת לחמים"
+
 }

@@ -1,23 +1,37 @@
-// src/pages/HomePage.js
 import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
 import { collection, onSnapshot, doc, updateDoc, getDoc } from "firebase/firestore";
 import { useAuth } from "../contexts/AuthContext";
 import { useTranslation } from "react-i18next";
+import "./HomePage.css";
 
 export default function HomePage() {
   const [breads, setBreads] = useState([]);
   const [loading, setLoading] = useState(true);
   const { userData, currentUser } = useAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const [orderQuantities, setOrderQuantities] = useState({});
   const [editQuantities, setEditQuantities] = useState({});
+  const [saleDate, setSaleDate] = useState("");
+  const [startHour, setStartHour] = useState("");
+  const [endHour, setEndHour] = useState("");
+  const [address, setAddress] = useState("");
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "breads"), snap => {
       setBreads(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       setLoading(false);
+    });
+    const saleDateRef = doc(db, "config", "saleDate");
+    getDoc(saleDateRef).then(docSnap => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setSaleDate(data.value || "");
+        setStartHour(data.startHour || "");
+        setEndHour(data.endHour || "");
+        setAddress(data.address || "");
+      }
     });
     return unsub;
   }, []);
@@ -94,9 +108,29 @@ export default function HomePage() {
     return claim && bread.price != null ? sum + claim.quantity * bread.price : sum;
   }, 0);
 
+  const dir = document.dir || i18n.dir();
+
   return (
     <div className="page-container">
       <h2>{t("breadsList")}</h2>
+      {(saleDate || address) && (
+        <div className={`delivery-details ${dir === "rtl" ? "rtl" : ""}`}>
+          {saleDate && (
+            <>
+              {t("saleDate")}: {saleDate}
+              {(startHour && endHour) && (
+                <> {t("between")} {startHour}-{endHour}</>
+              )}
+            </>
+          )}
+          {address && (
+            <>
+              <br />
+              {t("pickupAddress")}: {address}
+            </>
+          )}
+        </div>
+      )}
 
       {loading ? (
         <div>{t("loading")}</div>
@@ -134,7 +168,7 @@ export default function HomePage() {
                               onChange={e =>
                                 setEditQuantities(q => ({ ...q, [bread.id]: e.target.value }))
                               }
-                              style={{ width: 50, margin: "0 8px" }}
+                              className="order-input"
                             />
                             <button
                               onClick={() =>
@@ -144,7 +178,7 @@ export default function HomePage() {
                             >
                               {t("updateOrder")}
                             </button>
-                            <button onClick={() => handleUnclaim(bread.id)} style={{ marginLeft: 6 }}>
+                            <button onClick={() => handleUnclaim(bread.id)} className="cancel-btn">
                               {t("cancelOrder")}
                             </button>
                           </>
@@ -158,7 +192,7 @@ export default function HomePage() {
                               onChange={e =>
                                 setOrderQuantities(q => ({ ...q, [bread.id]: e.target.value }))
                               }
-                              style={{ width: 50, marginRight: 8 }}
+                              className="order-input"
                             />
                             <button onClick={() => handleClaim(bread.id)} disabled={bread.availablePieces < 1}>
                               {t("order")}
@@ -173,7 +207,7 @@ export default function HomePage() {
             </table>
           </div>
 
-          <div className="total-revenue user-total-cost" style={{ fontSize: "1.2em" }}>
+          <div className="total-revenue user-total-cost">
             {t("userTotalCost")}: {userTotalCost.toFixed(2)}
           </div>
         </>

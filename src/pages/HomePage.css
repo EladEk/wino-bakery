@@ -1,0 +1,35 @@
+/* Delivery date, hours, address details next to breadsList */
+.delivery-details {
+  display: inline-block;
+  font-weight: 400;
+  font-size: 0.8em;
+  margin-left: 24px;
+  margin-right: 0;
+  color: #555;
+  line-height: 1.5;
+}
+.delivery-details.rtl {
+  margin-left: 0;
+  margin-right: 24px;
+}
+
+/* Table input for quantity/order */
+.order-input {
+  width: 50px;
+  margin: 0 8px;
+}
+
+/* Cancel order button (optional for emphasis) */
+.cancel-btn {
+  margin-left: 6px;
+}
+
+/* User total cost display */
+.user-total-cost {
+  font-size: 1.2em;
+}
+
+/* Responsive table (if you use it elsewhere) */
+.table-responsive {
+  overflow-x: auto;
+}
