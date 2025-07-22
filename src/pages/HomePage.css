@@ -204,3 +204,20 @@
   50% { background-color: #ffe680; }
   100% { background-color: #ffcc00; }
 }
+.bit-pay-btn {
+  background: #00c3ff;
+  color: #fff;
+  border: none;
+  font-weight: bold;
+  font-size: 1.1em;
+  padding: 10px 26px;
+  border-radius: 12px;
+  cursor: pointer;
+  margin-top: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  transition: background 0.18s;
+}
+.bit-pay-btn:hover {
+  background: #007cff;
+}
+
