@@ -1,8 +1,15 @@
 /* src/App.css */
 
 /* ========== Base Styles ========== */
+@font-face {
+  font-family: 'GveretLevin';
+src: url('./assets/fonts/font.ttf') format('truetype'); 
+  font-weight: normal;
+  font-style: normal;
+}
+
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'GveretLevin', sans-serif;
   margin: 0;
   padding: 0;
   background: #fafafa;
