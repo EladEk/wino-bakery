@@ -1,12 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
-import {
-  collection,
-  onSnapshot,
-  doc,
-  updateDoc,
-  getDoc
-} from "firebase/firestore";
+import { collection, onSnapshot, doc, updateDoc, getDoc } from "firebase/firestore";
 import { useAuth } from "../contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import "./HomePage.css";
@@ -147,27 +141,27 @@ export default function HomePage() {
 
       {(saleDate || address) && (
         <div className={`delivery-details-wrapper ${dir === "rtl" ? "rtl" : ""}`}>
-  {saleDate && (
-    <div className="delivery-card">
-      <span className="icon">📅</span>
-      <span>
-        {t("saleDate")}: {saleDate}
-        {startHour && endHour && (
-          <> {t("between")} {startHour} - {endHour}</>
-        )}
-      </span>
-    </div>
-  )}
-  {address && (
-    <div
-      className="delivery-card clickable"
-      onClick={() => window.open(`https://waze.com/ul?q=${encodeURIComponent(address)}`, "_blank")}
-    >
-      <span className="icon">📍</span>
-      <span>{t("pickupAddress")}: {address}</span>
-    </div>
-  )}
-</div>
+          {saleDate && (
+            <div className="delivery-card">
+              <span className="icon">📅</span>
+              <span>
+                {t("saleDate")}: {saleDate}
+                {startHour && endHour && <> {t("between")} {startHour} - {endHour}</>}
+              </span>
+            </div>
+          )}
+          {address && (
+            <div
+              className="delivery-card clickable"
+              onClick={() =>
+                window.open(`https://waze.com/ul?q=${encodeURIComponent(address)}`, "_blank")
+              }
+            >
+              <span className="icon">📍</span>
+              <span>{t("pickupAddress")}: {address}</span>
+            </div>
+          )}
+        </div>
       )}
 
       <h2 className="bread-heading">{t("breadsList")}</h2>
@@ -199,62 +193,110 @@ export default function HomePage() {
                       <td>
                         {claim ? (
                           <div className="order-quantity-row">
-                            <button className="qty-btn" onClick={() =>
-                              setEditQuantities(q => ({
-                                ...q,
-                                [bread.id]: Math.max(1, Number(q[bread.id] ?? claim.quantity) - 1)
-                              }))} disabled={(editQuantities[bread.id] ?? claim.quantity) <= 1}>–</button>
-                            <input type="number" readOnly value={editQuantities[bread.id] ?? claim.quantity} className="order-input" />
-                            <button className="qty-btn" onClick={() =>
-                              setEditQuantities(q => ({
-                                ...q,
-                                [bread.id]: Math.min(
-                                  bread.availablePieces + claim.quantity,
-                                  Number(q[bread.id] ?? claim.quantity) + 1
-                                )
-                              }))} disabled={(editQuantities[bread.id] ?? claim.quantity) >= bread.availablePieces + claim.quantity}>+</button>
                             <button
-                                onClick={() =>
+                              className="qty-btn"
+                              onClick={() =>
+                                setEditQuantities(q => ({
+                                  ...q,
+                                  [bread.id]: Math.max(1, Number(q[bread.id] ?? claim.quantity) - 1)
+                                }))
+                              }
+                              disabled={(editQuantities[bread.id] ?? claim.quantity) <= 1}
+                            >–</button>
+                            <input
+                              type="number"
+                              min={1}
+                              max={bread.availablePieces + claim.quantity}
+                              value={editQuantities[bread.id] ?? claim.quantity}
+                              readOnly
+                              className="order-input"
+                              style={{ textAlign: "center" }}
+                            />
+                            <button
+                              className="qty-btn"
+                              onClick={() =>
+                                setEditQuantities(q => ({
+                                  ...q,
+                                  [bread.id]: Math.min(
+                                    bread.availablePieces + claim.quantity,
+                                    Number(q[bread.id] ?? claim.quantity) + 1
+                                  )
+                                }))
+                              }
+                              disabled={
+                                (editQuantities[bread.id] ?? claim.quantity) >=
+                                bread.availablePieces + claim.quantity
+                              }
+                            >+</button>
+                            <button
+                              onClick={() =>
                                 handleEditOrder(
-                                bread,
-                                editQuantities[bread.id] ?? claim.quantity
+                                  bread,
+                                  editQuantities[bread.id] ?? claim.quantity
                                 )
                               }
                               disabled={
-                                (editQuantities[bread.id] ?? claim.quantity) ===
-                                claim.quantity
+                                (editQuantities[bread.id] ?? claim.quantity) === claim.quantity
                               }
                               style={{ marginLeft: 8 }}
-                               className={
-                               (editQuantities[bread.id] ?? claim.quantity) !== claim.quantity
-                               ? "update-flash"
-                               : ""
+                              className={
+                                (editQuantities[bread.id] ?? claim.quantity) !== claim.quantity
+                                  ? "update-flash"
+                                  : ""
                               }
-                              >
+                            >
                               {t("updateOrder")}
-                             </button>
-                             <button
-                              onClick={() => deleteOrder(bread.id, i)}
-                              className="edit-bread-btn"
-                              style={{ color: "red" }}
-                              >
-                              {t("Delete")}
-                            </button>
-                            </div>
+                            </button>
+                            <button
+                              onClick={() => handleUnclaim(bread.id)}
+                              className="cancel-btn"
+                            >
+                              {t("cancelOrder")}
+                            </button>
+                          </div>
                         ) : (
                           <div className="order-quantity-row">
-                            <button className="qty-btn" onClick={() =>
-                              setOrderQuantities(q => ({
-                                ...q,
-                                [bread.id]: Math.max(1, Number(q[bread.id] || 1) - 1)
-                              }))} disabled={(orderQuantities[bread.id] || 1) <= 1}>–</button>
-                            <input type="number" readOnly value={orderQuantities[bread.id] || 1} className="order-input" />
-                            <button className="qty-btn" onClick={() =>
-                              setOrderQuantities(q => ({
-                                ...q,
-                                [bread.id]: Math.min(bread.availablePieces, Number(q[bread.id] || 1) + 1)
-                              }))} disabled={(orderQuantities[bread.id] || 1) >= bread.availablePieces}>+</button>
-                            <button onClick={() => handleClaim(bread.id)} disabled={bread.availablePieces < 1} style={{ marginLeft: 8 }}>{t("order")}</button>
+                            <button
+                              className="qty-btn"
+                              onClick={() =>
+                                setOrderQuantities(q => ({
+                                  ...q,
+                                  [bread.id]: Math.max(1, Number(q[bread.id] || 1) - 1)
+                                }))
+                              }
+                              disabled={(orderQuantities[bread.id] || 1) <= 1}
+                            >–</button>
+                            <input
+                              type="number"
+                              min={1}
+                              max={bread.availablePieces}
+                              value={orderQuantities[bread.id] || 1}
+                              readOnly
+                              className="order-input"
+                              style={{ textAlign: "center" }}
+                            />
+                            <button
+                              className="qty-btn"
+                              onClick={() =>
+                                setOrderQuantities(q => ({
+                                  ...q,
+                                  [bread.id]: Math.min(
+                                    bread.availablePieces,
+                                    Number(q[bread.id] || 1) + 1
+                                  )
+                                }))
+                              }
+                              disabled={
+                                (orderQuantities[bread.id] || 1) >= bread.availablePieces
+                              }
+                            >+</button>
+                            <button
+                              onClick={() => handleClaim(bread.id)}
+                              disabled={bread.availablePieces < 1}
+                              style={{ marginLeft: 8 }}
+                            >
+                              {t("order")}
+                            </button>
                           </div>
                         )}
                       </td>
@@ -264,7 +306,6 @@ export default function HomePage() {
               </tbody>
             </table>
           </div>
-
           <div className="total-revenue user-total-cost">
             {t("userTotalCost")}: {userTotalCost.toFixed(2)}
           </div>
@@ -273,3 +314,4 @@ export default function HomePage() {
     </div>
   );
 }
+       
