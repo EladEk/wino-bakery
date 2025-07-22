@@ -194,3 +194,13 @@
 .rtl .home-table td {
   text-align: right;
 }
+
+.update-flash {
+  animation: flashButton 1s infinite;
+}
+
+@keyframes flashButton {
+  0% { background-color: #ffcc00; }
+  50% { background-color: #ffe680; }
+  100% { background-color: #ffcc00; }
+}
