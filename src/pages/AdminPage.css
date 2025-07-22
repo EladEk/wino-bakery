@@ -32,7 +32,6 @@
   margin-right: 0;
   color: red;
   line-height: 1.5;
-  /* חדש: */
   margin-top: 6px;
   vertical-align: top;
 }
@@ -41,6 +40,7 @@
   margin-left: 0;
   margin-right: 24px;
 }
+
 /* Address field on its own line below time/date */
 .address-field {
   margin-top: 4px;
@@ -79,17 +79,18 @@
   }
 }
 
-
 .bread-form button {
   grid-column: span 2;
-  justify-self: start; /* or center or end as you prefer */
+  justify-self: start;
 }
+
 @media (max-width: 700px) {
   .bread-form button {
     grid-column: auto;
     justify-self: stretch;
   }
 }
+
 .bread-input {
   margin-right: 10px;
   min-width: 85px;
@@ -132,4 +133,10 @@
   font-weight: bold;
   font-size: 1.1em;
   color: saddlebrown;
+}
+
+/* Align all table text to the right */
+.cream-table th,
+.cream-table td {
+  text-align: right;
 }
