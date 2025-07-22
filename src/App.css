@@ -19,6 +19,9 @@ input,
 button {
   padding: 8px;
   margin: 5px;
+  font-family: inherit;      /* inherit from parent (usually <body>) */
+  font-size: inherit;        /* optional – keeps size consistent too */
+  font-weight: inherit;
 }
 
 form {
