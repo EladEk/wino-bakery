@@ -140,7 +140,7 @@ export default function HomePage() {
   const dir = document.dir || i18n.dir();
 
   return (
-    <div className="page-container">
+    <div className={`page-container ${dir === "rtl" ? "rtl" : ""}`}>
       {showThanks && <div className="thanks-popup">{t("thanksForOrder", "Thanks!")}</div>}
       {showUpdated && <div className="updated-popup">{t("updatedOrder", "Updated!")}</div>}
       {showCancelled && <div className="cancelled-popup">{t("cancelledOrder", "Cancelled!")}</div>}
