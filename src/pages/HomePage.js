@@ -311,20 +311,11 @@ export default function HomePage() {
           <div className="total-revenue user-total-cost">
             {t("userTotalCost")}: {userTotalCost.toFixed(2)}
           </div>
-          {bitNumber && (
-            <button
-              className="bit-pay-btn"
-              style={{ margin: '10px auto', display: 'block' }}
-              onClick={() =>
-                window.open(
-                  `https://pay.bitpay.co.il/link/?phone=${bitNumber}&amount=${userTotalCost.toFixed(2)}`,
-                  "_blank"
-                )
-              }
-            >
-              🟦 שלם בביט ({userTotalCost.toFixed(2)})
-            </button>
-          )}
+            {bitNumber && (
+              <div className="transfer-number-info">
+                {t("transferNumberLabel")}: <b>{bitNumber}</b>
+              </div>
+            )}
         </>
       )}
     </div>
