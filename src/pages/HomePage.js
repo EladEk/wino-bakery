@@ -233,7 +233,13 @@ export default function HomePage() {
                               >
                               {t("updateOrder")}
                              </button>
-                         
+                             <button
+                              onClick={() => deleteOrder(bread.id, i)}
+                              className="edit-bread-btn"
+                              style={{ color: "red" }}
+                              >
+                              {t("Delete")}
+                            </button>
                             </div>
                         ) : (
                           <div className="order-quantity-row">
