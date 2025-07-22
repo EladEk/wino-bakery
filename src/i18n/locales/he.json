@@ -65,5 +65,6 @@
   "verifyCode": "אשר",
   "changePhone": "החלף מספר",
   "paid": "שולם",
-  "sendCode" : "שלח קוד"
+  "sendCode" : "שלח קוד",
+  "loginWithGoogle" : "התחבר עם גוגל"
 }

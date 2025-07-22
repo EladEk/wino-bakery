@@ -1,180 +1,57 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import {
-  signInWithPhoneNumber,
-  PhoneAuthProvider,
-  signInWithCredential,
-} from "firebase/auth";
-
-import { auth, authReady } from "../firebase";
-import { getRecaptcha, clearRecaptcha } from "../utils/recaptchaSingleton";
+import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import { auth, db } from "../firebase";
+import { useAuth } from "../contexts/AuthContext";
 import BreadLoader from "../components/BreadLoader";
 import "./AuthPage.css";
 
 export default function AuthPage() {
-  const phoneRef                = useRef();
-  const recaptchaDiv            = useRef(null);
-  const verifier                = useRef(null);
-
-  const [code, setCode]         = useState("");
-  const [verificationId, setVerificationId] = useState(null);
-  const [recReady, setRecReady] = useState(false);
-  const [loading, setLoading]   = useState(false);
-  const [error, setError]       = useState("");
-  const [cooldown, setCooldown] = useState(0);
-  const [captchaSolved, setCaptchaSolved] = useState(false);
-
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  const { t }   = useTranslation();
+  const { setNeedsProfile } = useAuth();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (["localhost", "127.0.0.1"].includes(window.location.hostname)) {
-      authReady.then(() => {
-        auth.settings.appVerificationDisabledForTesting = true;
-      });
-    }
-  }, []);
-
-  const buildRecaptcha = async () => {
-    clearRecaptcha();
-    setRecReady(false);
-    setCaptchaSolved(false);
+  const handleGoogleLogin = async () => {
+    setLoading(true);
     try {
-      if (!verificationId) {
-        verifier.current = await getRecaptcha(recaptchaDiv.current, setCaptchaSolved);
-        setRecReady(true);
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        await setDoc(userRef, {
+          email: user.email,
+          createdAt: new Date(),
+          isAdmin: false,
+          isBlocked: false,
+        });
+        setNeedsProfile(true); // Trigger NamePrompt
       }
-    } catch (e) {
-      setError("reCAPTCHA failed – refresh and try again.");
-    }
-  };
-  useEffect(() => { buildRecaptcha(); }, [verificationId]);
 
-  useEffect(() => {
-    if (cooldown === 0) return;
-    const id = setInterval(() => setCooldown((c) => c - 1), 1000);
-    return () => clearInterval(id);
-  }, [cooldown]);
-
-  const normalizePhone = (raw) => {
-    let p = raw.replace(/\D/g, "");
-    if (p.startsWith("0")) p = p.slice(1);
-    return "+972" + p;
-  };
-  const withError = (msg) => { setError(msg); setLoading(false); };
-
-  const sendVerificationCode = async () => {
-    setError("");
-    const raw   = phoneRef.current.value.trim();
-    const phone = normalizePhone(raw);
-    if (!raw) return withError("Enter phone number");
-    if (!verifier.current) return withError("reCAPTCHA not ready");
-    if (!captchaSolved) return withError("Please complete the security check.");
-
-    setLoading(true);
-    try {
-      const result = await signInWithPhoneNumber(auth, phone, verifier.current);
-      setVerificationId(result.verificationId);
-      setCooldown(60);
-
-      clearRecaptcha();
-      setRecReady(false);
-      setCaptchaSolved(false);
-    } catch (e) { 
-      withError(e.message); 
-    }
-    finally    { setLoading(false); }
-  };
-
-  const verifyCodeAndSignIn = async () => {
-    setError("");
-    if (!code.trim()) return withError("Enter verification code");
-
-    setLoading(true);
-    try {
-      const cred = PhoneAuthProvider.credential(verificationId, code.trim());
-      await signInWithCredential(auth, cred);
       navigate("/");
-    } catch (e) { 
-      withError(e.message); 
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-    finally    { setLoading(false); }
-  };
-
-  const handleChangeNumber = async () => {
-    setVerificationId(null);
-    setCode("");
-    setError("");
-    setCaptchaSolved(false);
-    setRecReady(false);
-    await buildRecaptcha();
   };
 
   return (
     <div className="auth-container">
-      <h2 className="auth-title">{t("login")}</h2>
-
-      {!verificationId ? (
-        <form
-          className="auth-form"
-          onSubmit={(e) => { e.preventDefault(); sendVerificationCode(); }}
-        >
-          <label htmlFor="ph" className="auth-label">טלפון</label>
-          <input
-            id="ph"
-            ref={phoneRef}
-            className="auth-input"
-            placeholder="50 123 4567"
-            pattern="[0-9]{9,10}"
-            required
-          />
-          <button
-            className="auth-btn"
-            disabled={loading || cooldown || !captchaSolved}
-          >
-            {loading ? <BreadLoader /> :
-             cooldown ? `שלח קוד (${cooldown})` : "שלח קוד"}
-          </button>
-          <div style={{marginTop: 12, marginBottom: 6, color: "#888", fontSize: "0.95em"}}>
-            יש להשלים את בדיקת האבטחה (reCAPTCHA) לפני שליחת קוד
-          </div>
-          {!verificationId && (
-            <div
-              id="recaptcha-container"
-              ref={recaptchaDiv}
-              className="recaptcha-container"
-            />
-          )}
-        </form>
-      ) : (
-        <form
-          className="auth-form"
-          onSubmit={(e) => { e.preventDefault(); verifyCodeAndSignIn(); }}
-        >
-          <label htmlFor="code" className="auth-label">קוד אימות</label>
-          <input
-            id="code"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            className="auth-input"
-            placeholder="SMS code"
-            required
-          />
-          <button className="auth-btn" disabled={loading}>
-            {loading ? <BreadLoader /> : "אמת והיכנס"}
-          </button>
-          <button
-            type="button"
-            className="auth-btn-secondary"
-            onClick={handleChangeNumber}
-          >
-            שינוי מספר
-          </button>
-        </form>
-      )}
-
-      {error && <div className="auth-error">{error}</div>}
+      <form className="auth-form" onSubmit={(e) => e.preventDefault()}>
+        <h2>{t("login")}</h2>
+        <button onClick={handleGoogleLogin} disabled={loading}>
+          {loading ? <BreadLoader /> : t("loginWithGoogle")}
+        </button>
+        {error && <div className="auth-error">{error}</div>}
+      </form>
     </div>
   );
 }
