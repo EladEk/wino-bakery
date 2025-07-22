@@ -448,11 +448,20 @@ export default function AdminPage() {
                           {claim.phone}
                         </span>
                       </td>
-                      <td>{((claim.quantity || 0) * bread.price).toFixed(2)}</td>
                       <td>
-                        {claim.timestamp?.seconds
-                          ? new Date(claim.timestamp.seconds * 1000).toLocaleString()
-                          : ""}
+                        {isEditing ? (
+                          <input
+                            type="number"
+                            value={isEditing.quantity}
+                            min={1}
+                            className="bread-input"
+                            onChange={e =>
+                              handleOrderInputChange(bread.id, i, "quantity", e.target.value)
+                            }
+                          />
+                        ) : (
+                          claim.quantity
+                        )}
                       </td>
                       <td style={{ textAlign: "center" }}>
                         <input
@@ -468,20 +477,11 @@ export default function AdminPage() {
                           onChange={() => togglePaid(bread.id, i)}
                         />
                       </td>
+                      <td>{((claim.quantity || 0) * bread.price).toFixed(2)}</td>
                       <td>
-                        {isEditing ? (
-                          <input
-                            type="number"
-                            value={isEditing.quantity}
-                            min={1}
-                            className="bread-input"
-                            onChange={e =>
-                              handleOrderInputChange(bread.id, i, "quantity", e.target.value)
-                            }
-                          />
-                        ) : (
-                          claim.quantity
-                        )}
+                        {claim.timestamp?.seconds
+                          ? new Date(claim.timestamp.seconds * 1000).toLocaleString()
+                          : ""}
                       </td>
                       <td>
                         {isEditing ? (
@@ -533,4 +533,3 @@ export default function AdminPage() {
     </div>
   );
 }
-            
