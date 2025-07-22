@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -11,10 +11,42 @@ export default function Header() {
   const location = useLocation();
   const { t } = useTranslation();
 
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showInstall, setShowInstall] = useState(false);
+
+  // Listen for install prompt event
+  useEffect(() => {
+    const handler = (e) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstall(true);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+
+    // If already installed, hide the button
+    window.addEventListener("appinstalled", () => {
+      setShowInstall(false);
+    });
+
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handler);
+      window.removeEventListener("appinstalled", () => setShowInstall(false));
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === "accepted") {
+      setShowInstall(false);
+      setDeferredPrompt(null);
+    }
+  };
+
   const atHome = location.pathname === "/";
   const atAdmin = location.pathname === "/admin";
-  const atLogin = location.pathname === "/login"; // <--- Add this line!
-
+  const atLogin = location.pathname === "/login";
   const isAdmin = userData?.isAdmin;
 
   return (
@@ -29,6 +61,11 @@ export default function Header() {
       </div>
 
       <div className="right-buttons">
+        {showInstall && (
+          <button onClick={handleInstallClick} className="install-btn">
+            📱 {t("installApp") || "Install App"}
+          </button>
+        )}
         {atHome && isAdmin && (
           <button onClick={() => navigate("/admin")}>{t("adminPanel")}</button>
         )}

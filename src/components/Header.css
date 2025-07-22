@@ -50,3 +50,22 @@ button {
 button:hover {
   background-color: #e0e0e0;
 }
+
+.install-btn {
+  background: #fcb900;
+  color: #222;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 18px;
+  font-weight: bold;
+  font-size: 1em;
+  cursor: pointer;
+  margin-right: 8px;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.install-btn:hover {
+  background: #ffdb74;
+}
