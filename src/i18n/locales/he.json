@@ -66,5 +66,6 @@
   "changePhone": "החלף מספר",
   "paid": "שולם",
   "sendCode" : "שלח קוד",
-  "loginWithGoogle" : "התחבר עם גוגל"
+  "loginWithGoogle" : "התחבר עם גוגל",
+  "accountBlocked" : "החשבון שלך חסום. אנא פנה לטל."
 }
