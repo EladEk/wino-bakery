@@ -423,11 +423,11 @@ export default function AdminPage() {
                 <tr>
                   <th>{t("name")}</th>
                   <th>{t("phone")}</th>
+                  <th>{t("quantity")}</th>
                   <th>{t("supplied")}</th>
                   <th>{t("paid")}</th>
                   <th>{t("cost")}</th>
                   <th>{t("orderedAt")}</th>
-                  <th>{t("quantity")}</th>
                   <th>{t("Actions")}</th>
                 </tr>
               </thead>
@@ -448,6 +448,12 @@ export default function AdminPage() {
                           {claim.phone}
                         </span>
                       </td>
+                      <td>{((claim.quantity || 0) * bread.price).toFixed(2)}</td>
+                      <td>
+                        {claim.timestamp?.seconds
+                          ? new Date(claim.timestamp.seconds * 1000).toLocaleString()
+                          : ""}
+                      </td>
                       <td style={{ textAlign: "center" }}>
                         <input
                           type="checkbox"
@@ -461,12 +467,6 @@ export default function AdminPage() {
                           checked={!!claim.paid}
                           onChange={() => togglePaid(bread.id, i)}
                         />
-                      </td>
-                      <td>{((claim.quantity || 0) * bread.price).toFixed(2)}</td>
-                      <td>
-                        {claim.timestamp?.seconds
-                          ? new Date(claim.timestamp.seconds * 1000).toLocaleString()
-                          : ""}
                       </td>
                       <td>
                         {isEditing ? (
