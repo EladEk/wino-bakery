@@ -33,6 +33,7 @@ export default function AdminPage() {
   const [startHour, setStartHour] = useState("");
   const [endHour, setEndHour] = useState("");
   const [address, setAddress] = useState("");
+  const [bitNumber, setBitNumber] = useState("");
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -47,6 +48,7 @@ export default function AdminPage() {
         setStartHour(data.startHour || "");
         setEndHour(data.endHour || "");
         setAddress(data.address || "");
+        setBitNumber(data.bitNumber || "");
       }
     });
     return () => breadsUnsub();
@@ -59,6 +61,7 @@ export default function AdminPage() {
       startHour,
       endHour,
       address,
+      bitNumber,
     });
     alert(t("saleDate") + " " + t("updated"));
   };
@@ -252,6 +255,18 @@ export default function AdminPage() {
               onChange={e => setAddress(e.target.value)}
               className="address-input"
               placeholder={t("pickupAddressInput")}
+            />
+          </label>
+        </div>
+        <div className="bit-field">
+          <label>
+            {t("bitNumber")}:{" "}
+            <input
+              type="text"
+              value={bitNumber}
+              onChange={e => setBitNumber(e.target.value)}
+              className="address-input"
+              placeholder={t("bitNumberPlaceholder")}
             />
           </label>
         </div>
@@ -518,3 +533,4 @@ export default function AdminPage() {
     </div>
   );
 }
+            
