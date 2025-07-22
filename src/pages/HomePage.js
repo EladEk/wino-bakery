@@ -16,6 +16,7 @@ export default function HomePage() {
   const [startHour, setStartHour] = useState("");
   const [endHour, setEndHour] = useState("");
   const [address, setAddress] = useState("");
+  const [bitNumber, setBitNumber] = useState("");
   const [showThanks, setShowThanks] = useState(false);
   const [showUpdated, setShowUpdated] = useState(false);
   const [showCancelled, setShowCancelled] = useState(false);
@@ -33,6 +34,7 @@ export default function HomePage() {
         setStartHour(data.startHour || "");
         setEndHour(data.endHour || "");
         setAddress(data.address || "");
+        setBitNumber(data.bitNumber || "");
       }
     });
     return unsub;
@@ -309,9 +311,22 @@ export default function HomePage() {
           <div className="total-revenue user-total-cost">
             {t("userTotalCost")}: {userTotalCost.toFixed(2)}
           </div>
+          {bitNumber && (
+            <button
+              className="bit-pay-btn"
+              style={{ margin: '10px auto', display: 'block' }}
+              onClick={() =>
+                window.open(
+                  `https://pay.bitpay.co.il/link/?phone=${bitNumber}&amount=${userTotalCost.toFixed(2)}`,
+                  "_blank"
+                )
+              }
+            >
+              🟦 שלם בביט ({userTotalCost.toFixed(2)})
+            </button>
+          )}
         </>
       )}
     </div>
   );
 }
-       
