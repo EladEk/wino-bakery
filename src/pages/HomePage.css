@@ -1,14 +1,18 @@
 .bread-heading {
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   font-size: 2em;
   margin: 24px auto 12px auto;
   color: #333;
   font-weight: bold;
   background-color: #fdf5e6;
-  display: inline-block;
   padding: 6px 16px;
   border-radius: 12px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  width: fit-content;
+  max-width: 90%;
+  text-align: center;
 }
 
 .delivery-details {
