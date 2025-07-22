@@ -146,23 +146,28 @@ export default function HomePage() {
       {showCancelled && <div className="cancelled-popup">{t("cancelledOrder", "Cancelled!")}</div>}
 
       {(saleDate || address) && (
-        <div className={`delivery-details ${dir === "rtl" ? "rtl" : ""}`}>
-          {saleDate && (
-            <div className="delivery-item">
-              <span className="icon">📅</span>
-              <span>
-                {t("saleDate")}: {saleDate}
-                {startHour && endHour && <> {t("between")} {startHour} - {endHour}</>}
-              </span>
-            </div>
-          )}
-          {address && (
-            <div className="delivery-item">
-              <span className="icon">📍</span>
-              <span>{t("pickupAddress")}: {address}</span>
-            </div>
-          )}
-        </div>
+        <div className={`delivery-details-wrapper ${dir === "rtl" ? "rtl" : ""}`}>
+  {saleDate && (
+    <div className="delivery-card">
+      <span className="icon">📅</span>
+      <span>
+        {t("saleDate")}: {saleDate}
+        {startHour && endHour && (
+          <> {t("between")} {startHour} - {endHour}</>
+        )}
+      </span>
+    </div>
+  )}
+  {address && (
+    <div
+      className="delivery-card clickable"
+      onClick={() => window.open(`https://waze.com/ul?q=${encodeURIComponent(address)}`, "_blank")}
+    >
+      <span className="icon">📍</span>
+      <span>{t("pickupAddress")}: {address}</span>
+    </div>
+  )}
+</div>
       )}
 
       <h2 className="bread-heading">{t("breadsList")}</h2>
