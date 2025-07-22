@@ -1,4 +1,3 @@
-// HomePage.js
 import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
 import {
@@ -146,8 +145,6 @@ export default function HomePage() {
       {showUpdated && <div className="updated-popup">{t("updatedOrder", "Updated!")}</div>}
       {showCancelled && <div className="cancelled-popup">{t("cancelledOrder", "Cancelled!")}</div>}
 
-      <h2 style={{ textAlign: "center", fontSize: "2em", marginBottom: "12px", color: "#333" }}>{t("breadsList")}</h2>
-
       {(saleDate || address) && (
         <div className={`delivery-details ${dir === "rtl" ? "rtl" : ""}`}>
           {saleDate && (
@@ -155,9 +152,7 @@ export default function HomePage() {
               <span className="icon">📅</span>
               <span>
                 {t("saleDate")}: {saleDate}
-                {startHour && endHour && (
-                  <> {t("between")} {startHour} - {endHour}</>
-                )}
+                {startHour && endHour && <> {t("between")} {startHour} - {endHour}</>}
               </span>
             </div>
           )}
@@ -169,6 +164,8 @@ export default function HomePage() {
           )}
         </div>
       )}
+
+      <h2 className="bread-heading">{t("breadsList")}</h2>
 
       {loading ? (
         <div>{t("loading")}</div>
@@ -197,84 +194,38 @@ export default function HomePage() {
                       <td>
                         {claim ? (
                           <div className="order-quantity-row">
-                            <button
-                              className="qty-btn"
-                              onClick={() =>
-                                setEditQuantities(q => ({
-                                  ...q,
-                                  [bread.id]: Math.max(1, Number(q[bread.id] ?? claim.quantity) - 1)
-                                }))
-                              }
-                              disabled={(editQuantities[bread.id] ?? claim.quantity) <= 1}
-                            >–</button>
-                            <input
-                              type="number"
-                              min={1}
-                              max={bread.availablePieces + claim.quantity}
-                              value={editQuantities[bread.id] ?? claim.quantity}
-                              readOnly
-                              className="order-input"
-                              style={{ textAlign: "center" }}
-                            />
-                            <button
-                              className="qty-btn"
-                              onClick={() =>
-                                setEditQuantities(q => ({
-                                  ...q,
-                                  [bread.id]: Math.min(
-                                    bread.availablePieces + claim.quantity,
-                                    Number(q[bread.id] ?? claim.quantity) + 1
-                                  )
-                                }))
-                              }
-                              disabled={(editQuantities[bread.id] ?? claim.quantity) >= bread.availablePieces + claim.quantity}
-                            >+</button>
-                            <button
-                              onClick={() => handleEditOrder(bread, editQuantities[bread.id] ?? claim.quantity)}
-                              disabled={(editQuantities[bread.id] ?? claim.quantity) === claim.quantity}
-                              style={{ marginLeft: 8 }}
-                            >{t("updateOrder")}</button>
-                            <button
-                              onClick={() => handleUnclaim(bread.id)}
-                              className="cancel-btn"
-                            >{t("cancelOrder")}</button>
+                            <button className="qty-btn" onClick={() =>
+                              setEditQuantities(q => ({
+                                ...q,
+                                [bread.id]: Math.max(1, Number(q[bread.id] ?? claim.quantity) - 1)
+                              }))} disabled={(editQuantities[bread.id] ?? claim.quantity) <= 1}>–</button>
+                            <input type="number" readOnly value={editQuantities[bread.id] ?? claim.quantity} className="order-input" />
+                            <button className="qty-btn" onClick={() =>
+                              setEditQuantities(q => ({
+                                ...q,
+                                [bread.id]: Math.min(
+                                  bread.availablePieces + claim.quantity,
+                                  Number(q[bread.id] ?? claim.quantity) + 1
+                                )
+                              }))} disabled={(editQuantities[bread.id] ?? claim.quantity) >= bread.availablePieces + claim.quantity}>+</button>
+                            <button onClick={() =>
+                              handleEditOrder(bread, editQuantities[bread.id] ?? claim.quantity)} disabled={(editQuantities[bread.id] ?? claim.quantity) === claim.quantity} style={{ marginLeft: 8 }}>{t("updateOrder")}</button>
+                            <button onClick={() => handleUnclaim(bread.id)} className="cancel-btn">{t("cancelOrder")}</button>
                           </div>
                         ) : (
                           <div className="order-quantity-row">
-                            <button
-                              className="qty-btn"
-                              onClick={() =>
-                                setOrderQuantities(q => ({
-                                  ...q,
-                                  [bread.id]: Math.max(1, Number(q[bread.id] || 1) - 1)
-                                }))
-                              }
-                              disabled={(orderQuantities[bread.id] || 1) <= 1}
-                            >–</button>
-                            <input
-                              type="number"
-                              min={1}
-                              max={bread.availablePieces}
-                              value={orderQuantities[bread.id] || 1}
-                              readOnly
-                              className="order-input"
-                              style={{ textAlign: "center" }}
-                            />
-                            <button
-                              className="qty-btn"
-                              onClick={() =>
-                                setOrderQuantities(q => ({
-                                  ...q,
-                                  [bread.id]: Math.min(bread.availablePieces, Number(q[bread.id] || 1) + 1)
-                                }))
-                              }
-                              disabled={(orderQuantities[bread.id] || 1) >= bread.availablePieces}
-                            >+</button>
-                            <button
-                              onClick={() => handleClaim(bread.id)}
-                              disabled={bread.availablePieces < 1}
-                              style={{ marginLeft: 8 }}
-                            >{t("order")}</button>
+                            <button className="qty-btn" onClick={() =>
+                              setOrderQuantities(q => ({
+                                ...q,
+                                [bread.id]: Math.max(1, Number(q[bread.id] || 1) - 1)
+                              }))} disabled={(orderQuantities[bread.id] || 1) <= 1}>–</button>
+                            <input type="number" readOnly value={orderQuantities[bread.id] || 1} className="order-input" />
+                            <button className="qty-btn" onClick={() =>
+                              setOrderQuantities(q => ({
+                                ...q,
+                                [bread.id]: Math.min(bread.availablePieces, Number(q[bread.id] || 1) + 1)
+                              }))} disabled={(orderQuantities[bread.id] || 1) >= bread.availablePieces}>+</button>
+                            <button onClick={() => handleClaim(bread.id)} disabled={bread.availablePieces < 1} style={{ marginLeft: 8 }}>{t("order")}</button>
                           </div>
                         )}
                       </td>
