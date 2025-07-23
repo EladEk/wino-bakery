@@ -88,5 +88,6 @@
   "updatedOrder" : "הזמנה עודכנה!",
   "cancelledOrder": "הזמנה בוטלה!",
   "show" : "הצג",
-  "EditBread": "ערוך לחם"
+  "EditBread": "ערוך לחם",
+  "areYouSure": "האם אתה בטוח?"
 }
