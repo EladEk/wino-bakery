@@ -86,5 +86,6 @@
   "breadList": "רשימת לחמים",
   "thanksForOrder": "תודה על ההזמנה!",
   "updatedOrder" : "הזמנה עודכנה!",
-  "cancelledOrder": "הזמנה בוטלה!"
+  "cancelledOrder": "הזמנה בוטלה!",
+  "show" : "הצג"
 }

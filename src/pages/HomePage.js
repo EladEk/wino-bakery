@@ -24,7 +24,8 @@ export default function HomePage() {
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "breads"), snap => {
-      const breadsArr = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const breadsArr = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+        .filter(bread => bread.show !== false); // Only show if show==true or undefined
       setBreads(breadsArr);
       const claims = {};
       breadsArr.forEach(bread => {
@@ -175,16 +176,16 @@ export default function HomePage() {
   const dir = document.dir || i18n.dir();
 
   function getHebrewDay(dateString) {
-  const daysHebrew = [
-    "יום ראשון",   // Sunday
-    "יום שני",     // Monday
-    "יום שלישי",   // Tuesday
-    "יום רביעי",   // Wednesday
-    "יום חמישי",   // Thursday
-    "יום שישי",    // Friday
-    "שבת"          // Saturday
-  ];
-  if (!dateString) return "";
+    const daysHebrew = [
+      "יום ראשון",   // Sunday
+      "יום שני",     // Monday
+      "יום שלישי",   // Tuesday
+      "יום רביעי",   // Wednesday
+      "יום חמישי",   // Thursday
+      "יום שישי",    // Friday
+      "שבת"          // Saturday
+    ];
+    if (!dateString) return "";
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return "";
     return daysHebrew[date.getDay()];
