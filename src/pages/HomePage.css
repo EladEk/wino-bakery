@@ -1,4 +1,4 @@
-.bread-heading {
+just.bread-heading {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -249,4 +249,22 @@
   padding: 10px 0;
   border-radius: 10px;
   direction: ltr;
+}
+
+/* Home (breads) table: tighten “זמין” column, widen description */
+
+/* 2nd column = description */
+.home-table th:nth-child(2),
+.home-table td:nth-child(2) {
+  width: 40%;          /* give it breathing room */
+  white-space: normal; /* allow wrapping */
+  line-height: 1.4;
+}
+
+/* 3rd column = available */
+.home-table th:nth-child(3),
+.home-table td:nth-child(3) {
+  width: 65px;         /* fixed, tweak as you like */
+  max-width: 80px;
+  text-align: center;
 }
