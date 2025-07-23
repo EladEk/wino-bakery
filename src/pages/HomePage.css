@@ -236,5 +236,10 @@
     margin-bottom: 0;
   }
 }
-
+.cream-table td:first-child {
+  padding-right: 12px;
+}
+.cream-table th:first-child {
+  padding-right: 12px;
+}
 
