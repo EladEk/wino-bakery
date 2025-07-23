@@ -177,8 +177,8 @@ export default function HomePage() {
               <thead>
                 <tr>
                   <th>{t("bread")}</th>
-                  <th>{t("description")}</th>
-                  <th>{t("available")}</th>
+                  <th className="description">{t("description")}</th>
+                  <th className="available">{t("available")}</th>
                   <th>{t("price")}</th>
                   <th>{t("action")}</th>
                 </tr>
@@ -189,8 +189,8 @@ export default function HomePage() {
                   return (
                     <tr key={bread.id}>
                       <td>{bread.name}</td>
-                      <td>{bread.description}</td>
-                      <td>{bread.availablePieces}</td>
+                      <td className="description">{bread.description}</td>
+                      <td className="available">{bread.availablePieces}</td>
                       <td>{bread.price?.toFixed(2) || ""}</td>
                       <td>
                         {claim ? (
