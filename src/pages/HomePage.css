@@ -195,6 +195,27 @@
   text-align: right;
 }
 
+/* --- Column widths for the breads table --- */
+.home-table th.available,
+.home-table td.available {
+  /* narrow column – tweak as needed */
+  width: 60px;          /* fixed width on mobile */
+  max-width: 70px;
+  text-align: center;   /* keeps the number centered */
+}
+
+/* widen the description column */
+.home-table th.description,
+.home-table td.description {
+  width: 40%;           /* takes more horizontal room */
+}
+
+/* optional: let long descriptions wrap nicely */
+.home-table td.description {
+  white-space: normal;  /* allow multi-line text */
+  line-height: 1.4;
+}
+
 .update-flash {
   animation: flashButton 1s infinite;
 }
