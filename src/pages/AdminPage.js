@@ -11,11 +11,13 @@ import {
   setDoc
 } from "firebase/firestore";
 import { useTranslation } from "react-i18next";
+import BreadEditModal from "../components/BreadEditModal";
+import BreadList from "../components/BreadList";
 import "./AdminPage.css";
 
 const HOUR_OPTIONS = Array.from({ length: 15 }, (_, i) =>
   String(i + 7).padStart(2, '0') + ':00'
-); // 07:00 to 21:00
+);
 
 export default function AdminPage() {
   const [breads, setBreads] = useState([]);
@@ -24,12 +26,6 @@ export default function AdminPage() {
   const [breadDescription, setBreadDescription] = useState("");
   const [breadPrice, setBreadPrice] = useState("");
   const [breadShow, setBreadShow] = useState(true);
-  const [editingBreadId, setEditingBreadId] = useState(null);
-  const [editBreadName, setEditBreadName] = useState("");
-  const [editBreadPieces, setEditBreadPieces] = useState(1);
-  const [editBreadDescription, setEditBreadDescription] = useState("");
-  const [editBreadPrice, setEditBreadPrice] = useState("");
-  const [editBreadShow, setEditBreadShow] = useState(true);
   const [editingOrder, setEditingOrder] = useState({});
   const [saleDate, setSaleDate] = useState("");
   const [startHour, setStartHour] = useState("");
@@ -37,6 +33,10 @@ export default function AdminPage() {
   const [address, setAddress] = useState("");
   const [bitNumber, setBitNumber] = useState("");
   const { t, i18n } = useTranslation();
+
+  // Modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalBread, setModalBread] = useState(null);
 
   useEffect(() => {
     const breadsUnsub = onSnapshot(collection(db, "breads"), (snapshot) => {
@@ -86,33 +86,32 @@ export default function AdminPage() {
     setBreadShow(true);
   };
 
-  const startEditingBread = (bread) => {
-    setEditingBreadId(bread.id);
-    setEditBreadName(bread.name);
-    setEditBreadPieces(bread.availablePieces);
-    setEditBreadDescription(bread.description || "");
-    setEditBreadPrice(bread.price ?? "");
-    setEditBreadShow(bread.show !== undefined ? bread.show : true);
+  // Bread edit modal handlers
+  const openEditModal = (bread) => {
+    setModalBread(bread);
+    setModalOpen(true);
+  };
+  const closeEditModal = () => {
+    setModalOpen(false);
+    setModalBread(null);
   };
 
-  const cancelEditingBread = () => {
-    setEditingBreadId(null);
-    setEditBreadName("");
-    setEditBreadPieces(1);
-    setEditBreadDescription("");
-    setEditBreadPrice("");
-    setEditBreadShow(true);
-  };
-
-  const saveEditingBread = async (breadId) => {
-    await updateDoc(doc(db, "breads", breadId), {
-      name: editBreadName,
-      availablePieces: Number(editBreadPieces),
-      description: editBreadDescription,
-      price: Number(editBreadPrice),
-      show: editBreadShow,
+  const handleModalSave = async (updatedBread) => {
+    await updateDoc(doc(db, "breads", updatedBread.id), {
+      name: updatedBread.name,
+      availablePieces: Number(updatedBread.availablePieces),
+      description: updatedBread.description,
+      price: Number(updatedBread.price),
+      show: !!updatedBread.show,
     });
-    cancelEditingBread();
+    closeEditModal();
+  };
+
+  const handleModalDelete = async (breadToDelete) => {
+    if (window.confirm(t("areYouSure"))) {
+      await deleteDoc(doc(db, "breads", breadToDelete.id));
+      closeEditModal();
+    }
   };
 
   const handleToggleShow = async (breadId, currentShow) => {
@@ -121,30 +120,7 @@ export default function AdminPage() {
     });
   };
 
-  const deleteBread = async (breadId) => {
-    await deleteDoc(doc(db, "breads", breadId));
-  };
-
-  const toggleSupplied = async (breadId, idx) => {
-    const bread = breads.find((b) => b.id === breadId);
-    const updated = (bread.claimedBy || []).map((c, i) =>
-      i === idx ? { ...c, supplied: !c.supplied } : c
-    );
-    await updateDoc(doc(db, "breads", breadId), {
-      claimedBy: updated,
-    });
-  };
-
-  const togglePaid = async (breadId, idx) => {
-    const bread = breads.find((b) => b.id === breadId);
-    const updated = (bread.claimedBy || []).map((c, i) =>
-      i === idx ? { ...c, paid: !c.paid } : c
-    );
-    await updateDoc(doc(db, "breads", breadId), {
-      claimedBy: updated,
-    });
-  };
-
+  // Orders logic (same as before)
   const startEditingOrder = (breadId, idx, claim) => {
     setEditingOrder({ [`${breadId}_${idx}`]: { quantity: claim.quantity } });
   };
@@ -206,6 +182,26 @@ export default function AdminPage() {
     });
   };
 
+  const toggleSupplied = async (breadId, idx) => {
+    const bread = breads.find((b) => b.id === breadId);
+    const updated = (bread.claimedBy || []).map((c, i) =>
+      i === idx ? { ...c, supplied: !c.supplied } : c
+    );
+    await updateDoc(doc(db, "breads", breadId), {
+      claimedBy: updated,
+    });
+  };
+
+  const togglePaid = async (breadId, idx) => {
+    const bread = breads.find((b) => b.id === breadId);
+    const updated = (bread.claimedBy || []).map((c, i) =>
+      i === idx ? { ...c, paid: !c.paid } : c
+    );
+    await updateDoc(doc(db, "breads", breadId), {
+      claimedBy: updated,
+    });
+  };
+
   const totalRevenue = breads.reduce(
     (sum, bread) =>
       sum +
@@ -218,17 +214,23 @@ export default function AdminPage() {
 
   // RTL/LTR
   const dir = i18n.dir();
-  const alignEnd = dir === "rtl" ? "flex-start" : "flex-end";
   const labelMargin = dir === "rtl" ? { marginLeft: 8 } : { marginRight: 8 };
 
   return (
     <div className="admin-container">
+      <BreadEditModal
+        open={modalOpen}
+        bread={modalBread}
+        t={t}
+        onSave={handleModalSave}
+        onDelete={handleModalDelete}
+        onCancel={closeEditModal}
+      />
       <br/>
       <h2>{t("Admin Dashboard")}</h2>
       <button onClick={() => window.location.href = "/users"}>
         {t("ManageUsers")}
       </button>
-
       <div className="delivery-settings">
         <div className="delivery-fields">
           <label>
@@ -298,7 +300,6 @@ export default function AdminPage() {
           {t("Save")}
         </button>
       </div>
-
       <h3 className="add-bread">{t("Add Bread")}</h3>
       <form
         onSubmit={handleAddBread}
@@ -361,227 +362,20 @@ export default function AdminPage() {
         </button>
       </form>
       <h3 className="bread-list">{t("breadList")}</h3>
-      {breads.map((bread) => (
-        <div key={bread.id} className="bread-section" style={{ marginBottom: 24, position: 'relative' }}>
-          {/* Show checkbox - above the table, aligned end (RTL/LTR) */}
-          <div style={{ display: 'flex', flexDirection: 'row', justifyContent: alignEnd, alignItems: 'center', marginBottom: 6 }}>
-            {editingBreadId === bread.id ? (
-              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 500 }}>
-                <input
-                  type="checkbox"
-                  checked={editBreadShow}
-                  onChange={e => setEditBreadShow(e.target.checked)}
-                  style={{ accentColor: '#222', ...labelMargin }}
-                />
-                {t("show")}
-              </label>
-            ) : (
-              <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 500 }}>
-                <input
-                  type="checkbox"
-                  checked={bread.show !== false}
-                  onChange={() => handleToggleShow(bread.id, bread.show !== false)}
-                  style={{ accentColor: '#222', ...labelMargin }}
-                />
-                {t("show")}
-              </label>
-            )}
-          </div>
-          {/* Bread Table */}
-          <div className="table-responsive">
-            <table className="cream-table">
-              <thead>
-                <tr>
-                  <th>{t("Name")}</th>
-                  <th>{t("description")}</th>
-                  <th>{t("available")}</th>
-                  <th>{t("price")}</th>
-                  <th>{t("Actions")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  {editingBreadId === bread.id ? (
-                    <>
-                      <td>
-                        <input
-                          type="text"
-                          value={editBreadName}
-                          onChange={(e) => setEditBreadName(e.target.value)}
-                          className="bread-input"
-                        />
-                      </td>
-                      <td>
-                        <input
-                          type="text"
-                          value={editBreadDescription}
-                          onChange={(e) => setEditBreadDescription(e.target.value)}
-                          className="bread-input"
-                        />
-                      </td>
-                      <td>
-                        <input
-                          type="number"
-                          value={editBreadPieces}
-                          min={0}
-                          onChange={(e) => setEditBreadPieces(e.target.value)}
-                          className="bread-input"
-                        />
-                      </td>
-                      <td>
-                        <input
-                          type="number"
-                          value={editBreadPrice}
-                          min={0}
-                          step="0.01"
-                          onChange={(e) => setEditBreadPrice(e.target.value)}
-                          className="bread-input"
-                        />
-                      </td>
-                      <td>
-                        <button
-                          onClick={() => saveEditingBread(bread.id)}
-                          className="edit-bread-btn"
-                        >
-                          {t("Save")}
-                        </button>
-                        <button onClick={cancelEditingBread} className="edit-bread-btn">
-                          {t("Cancel")}
-                        </button>
-                      </td>
-                    </>
-                  ) : (
-                    <>
-                      <td className="bread-name">{bread.name}</td>
-                      <td>{bread.description}</td>
-                      <td>{bread.availablePieces}</td>
-                      <td>{bread.price?.toFixed(2)}</td>
-                      <td>
-                        <button onClick={() => startEditingBread(bread)} className="edit-bread-btn">
-                          {t("Edit")}
-                        </button>
-                        <button onClick={() => deleteBread(bread.id)} className="edit-bread-btn">
-                          {t("Delete")}
-                        </button>
-                      </td>
-                    </>
-                  )}
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <h3 className="orders-heading">{t("ordersList")}</h3>
-          <div className="table-responsive">
-            <table className="ordered-table">
-              <thead>
-                <tr>
-                  <th>{t("name")}</th>
-                  <th>{t("phone")}</th>
-                  <th>{t("quantity")}</th>
-                  <th>{t("supplied")}</th>
-                  <th>{t("paid")}</th>
-                  <th>{t("cost")}</th>
-                  <th>{t("orderedAt")}</th>
-                  <th>{t("Actions")}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(bread.claimedBy || []).map((claim, i) => {
-                  const key = `${bread.id}_${i}`;
-                  const isEditing = editingOrder[key];
-
-                  return (
-                    <tr key={i}>
-                      <td>
-                        <span style={{ paddingLeft: 6, display: "inline-block", width: 120 }}>
-                          {claim.name}
-                        </span>
-                      </td>
-                      <td>
-                        <span style={{ paddingLeft: 6, display: "inline-block", width: 120 }}>
-                          {claim.phone}
-                        </span>
-                      </td>
-                      <td>
-                        {isEditing ? (
-                          <input
-                            type="number"
-                            value={isEditing.quantity}
-                            min={1}
-                            className="bread-input"
-                            onChange={e =>
-                              handleOrderInputChange(bread.id, i, "quantity", e.target.value)
-                            }
-                          />
-                        ) : (
-                          claim.quantity
-                        )}
-                      </td>
-                      <td style={{ textAlign: "center" }}>
-                        <input
-                          type="checkbox"
-                          checked={!!claim.supplied}
-                          onChange={() => toggleSupplied(bread.id, i)}
-                        />
-                      </td>
-                      <td style={{ textAlign: "center" }}>
-                        <input
-                          type="checkbox"
-                          checked={!!claim.paid}
-                          onChange={() => togglePaid(bread.id, i)}
-                        />
-                      </td>
-                      <td>{((claim.quantity || 0) * bread.price).toFixed(2)}</td>
-                      <td>
-                        {claim.timestamp?.seconds
-                          ? new Date(claim.timestamp.seconds * 1000).toLocaleString()
-                          : ""}
-                      </td>
-                      <td>
-                        {isEditing ? (
-                          <>
-                            <button
-                              onClick={() => saveOrderEdit(bread.id, i, claim)}
-                              className="edit-bread-btn"
-                            >
-                              {t("Save")}
-                            </button>
-                            <button onClick={cancelOrderEdit} className="edit-bread-btn">
-                              {t("Cancel")}
-                            </button>
-                            <button
-                              onClick={() => deleteOrder(bread.id, i)}
-                              className="edit-bread-btn"
-                              style={{ color: "red" }}
-                            >
-                              {t("Delete")}
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <button onClick={() => startEditingOrder(bread.id, i, claim)} className="edit-bread-btn">
-                              {t("Edit")}
-                            </button>
-                            <button
-                              onClick={() => deleteOrder(bread.id, i)}
-                              className="edit-bread-btn"
-                              style={{ color: "red" }}
-                            >
-                              {t("Delete")}
-                            </button>
-                          </>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ))}
-
+      <BreadList
+        breads={breads}
+        t={t}
+        onEditBread={openEditModal}
+        onToggleShow={handleToggleShow}
+        editingOrder={editingOrder}
+        startEditingOrder={startEditingOrder}
+        saveOrderEdit={saveOrderEdit}
+        cancelOrderEdit={cancelOrderEdit}
+        handleOrderInputChange={handleOrderInputChange}
+        deleteOrder={deleteOrder}
+        toggleSupplied={toggleSupplied}
+        togglePaid={togglePaid}
+      />
       <div className="total-revenue">
         {t("totalRevenue")}: {totalRevenue.toFixed(2)}
       </div>
