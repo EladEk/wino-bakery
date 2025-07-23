@@ -20,6 +20,7 @@ export default function HomePage() {
   const [showUpdated, setShowUpdated] = useState(false);
   const [showCancelled, setShowCancelled] = useState(false);
   const [userClaims, setUserClaims] = useState({});
+  const saleDateDay = saleDate ? getHebrewDay(saleDate) : "";
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "breads"), snap => {
@@ -173,6 +174,22 @@ export default function HomePage() {
 
   const dir = document.dir || i18n.dir();
 
+  function getHebrewDay(dateString) {
+  const daysHebrew = [
+    "יום ראשון",   // Sunday
+    "יום שני",     // Monday
+    "יום שלישי",   // Tuesday
+    "יום רביעי",   // Wednesday
+    "יום חמישי",   // Thursday
+    "יום שישי",    // Friday
+    "שבת"          // Saturday
+  ];
+  if (!dateString) return "";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "";
+    return daysHebrew[date.getDay()];
+  }
+
   return (
     <div className={`page-container ${dir === "rtl" ? "rtl" : ""}`}>
       {showThanks    && <div className="thanks-popup">{t("thanksForOrder")}</div>}
@@ -184,10 +201,11 @@ export default function HomePage() {
           {saleDate && (
             <div className="delivery-card">
               <span className="icon">📅</span>
-              <span>
-                {t("saleDate")}: {saleDate}
-                {startHour && endHour && <> {t("between")} {startHour} - {endHour}</>}
-              </span>
+                <span>
+                  {t("saleDate")}: {saleDate} {saleDateDay && `(${saleDateDay})`}
+                  <br/>
+                  {startHour && endHour && <> {t("between")} {startHour} - {endHour}</>}
+                </span>
             </div>
           )}
           {address && (

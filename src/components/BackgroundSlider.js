@@ -2,9 +2,15 @@ import React, { useState, useEffect } from "react";
 import bg1 from "../img/1.jpg";
 import bg2 from "../img/2.jpg";
 import bg3 from "../img/3.jpg";
+import bg4 from "../img/4.jpg";
+import bg5 from "../img/5.jpg";
+import bg6 from "../img/6.jpg";
+import bg7 from "../img/7.jpg";
+import bg8 from "../img/8.jpg";
+import bg9 from "../img/9.jpg";
 import "./BackgroundSlider.css";
 
-const images = [bg1, bg2, bg3];
+const images = [bg1, bg2, bg3, bg4, bg5, bg6, bg7, bg8, bg9];
 const FADE_DURATION = 1000;    // ms
 const VISIBLE_DURATION = 10000; // ms
 
