@@ -41,7 +41,7 @@
 .delivery-card.clickable { cursor: pointer; }
 .delivery-card.clickable:hover { background-color: #f5f5f5; }
 .order-input {
-  width: 30px;
+  width: 40px;
   min-width: 0;
   margin: 0 2px;
   text-align: center;

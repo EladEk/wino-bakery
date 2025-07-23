@@ -18,6 +18,15 @@ export default function BreadTable({ bread, t, onEdit, onToggleShow }) {
           />
           {t("show")}
         </label>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 500, marginInlineStart: 20 }}>
+          <input
+            type="checkbox"
+            checked={bread.isFocaccia || false}
+            disabled // Only editable via admin modal/form
+            style={{ accentColor: '#222', ...labelMargin }}
+          />
+          {t("foccia")}
+        </label>
       </div>
       <div className="table-responsive">
         <table className="cream-table">

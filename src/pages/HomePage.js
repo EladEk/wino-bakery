@@ -5,7 +5,23 @@ import { useAuth } from "../contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import "./HomePage.css";
 
-export default function HomePage() {
+function getHebrewDay(dateString) {
+  const daysHebrew = [
+    "יום ראשון",   // Sunday
+    "יום שני",     // Monday
+    "יום שלישי",   // Tuesday
+    "יום רביעי",   // Wednesday
+    "יום חמישי",   // Thursday
+    "יום שישי",    // Friday
+    "שבת"          // Saturday
+  ];
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return "";
+  return daysHebrew[date.getDay()];
+}
+
+function HomePage() {
   const [breads, setBreads] = useState([]);
   const [loading, setLoading] = useState(true);
   const { userData, currentUser } = useAuth();
@@ -175,22 +191,6 @@ export default function HomePage() {
 
   const dir = document.dir || i18n.dir();
 
-  function getHebrewDay(dateString) {
-    const daysHebrew = [
-      "יום ראשון",   // Sunday
-      "יום שני",     // Monday
-      "יום שלישי",   // Tuesday
-      "יום רביעי",   // Wednesday
-      "יום חמישי",   // Thursday
-      "יום שישי",    // Friday
-      "שבת"          // Saturday
-    ];
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return "";
-    return daysHebrew[date.getDay()];
-  }
-
   return (
     <div className={`page-container ${dir === "rtl" ? "rtl" : ""}`}>
       {showThanks    && <div className="thanks-popup">{t("thanksForOrder")}</div>}
@@ -261,7 +261,7 @@ export default function HomePage() {
                               ...q,
                               [bread.id]: Math.min(
                                 bread.availablePieces + (userClaims[bread.id]?.quantity || 0),
-                                Number(q[bread.id] || 0) + 1
+                                Number(q[bread.id] || 0) + (bread.isFocaccia ? 0.5 : 1)
                               )
                             }))
                           }
@@ -274,6 +274,7 @@ export default function HomePage() {
                         <input
                           type="number"
                           min={0}
+                          step={bread.isFocaccia ? 0.5 : 1}
                           max={bread.availablePieces + (userClaims[bread.id]?.quantity || 0)}
                           value={orderQuantities[bread.id] || 0}
                           readOnly
@@ -284,7 +285,7 @@ export default function HomePage() {
                           onClick={() =>
                             setOrderQuantities(q => ({
                               ...q,
-                              [bread.id]: Math.max(0, Number(q[bread.id] || 0) - 1)
+                              [bread.id]: Math.max(0, Number(q[bread.id] || 0) - (bread.isFocaccia ? 0.5 : 1))
                             }))
                           }
                           disabled={(orderQuantities[bread.id] || 0) <= 0}
@@ -339,3 +340,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+export default HomePage;

@@ -26,6 +26,7 @@ export default function AdminPage() {
   const [breadDescription, setBreadDescription] = useState("");
   const [breadPrice, setBreadPrice] = useState("");
   const [breadShow, setBreadShow] = useState(true);
+  const [breadIsFocaccia, setBreadIsFocaccia] = useState(false);
   const [editingOrder, setEditingOrder] = useState({});
   const [saleDate, setSaleDate] = useState("");
   const [startHour, setStartHour] = useState("");
@@ -78,12 +79,14 @@ export default function AdminPage() {
       price: Number(breadPrice),
       claimedBy: [],
       show: breadShow,
+      isFocaccia: breadIsFocaccia,
     });
     setBreadName("");
     setBreadPieces(1);
     setBreadDescription("");
     setBreadPrice("");
     setBreadShow(true);
+    setBreadIsFocaccia(false);
   };
 
   // Bread edit modal handlers
@@ -103,6 +106,7 @@ export default function AdminPage() {
       description: updatedBread.description,
       price: Number(updatedBread.price),
       show: !!updatedBread.show,
+      isFocaccia: !!updatedBread.isFocaccia,
     });
     closeEditModal();
   };
@@ -356,6 +360,15 @@ export default function AdminPage() {
             style={{ accentColor: "#222", ...labelMargin }}
           />
           {t("show")}
+        </label>
+        <label style={{ display: "flex", alignItems: "center", ...labelMargin }}>
+          <input
+            type="checkbox"
+            checked={breadIsFocaccia}
+            onChange={e => setBreadIsFocaccia(e.target.checked)}
+            style={{ accentColor: "#222", ...labelMargin }}
+          />
+          {t("foccia")}
         </label>
         <button type="submit" className="add-bread-btn">
           {t("Add Bread")}

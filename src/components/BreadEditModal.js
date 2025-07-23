@@ -37,6 +37,7 @@ export default function BreadEditModal({ open, bread, t, onSave, onDelete, onCan
     availablePieces: "",
     price: "",
     show: true,
+    isFocaccia: false,
   });
 
   useEffect(() => {
@@ -46,7 +47,8 @@ export default function BreadEditModal({ open, bread, t, onSave, onDelete, onCan
         description: bread.description ?? "",
         availablePieces: bread.availablePieces ?? "",
         price: bread.price ?? "",
-        show: bread.show !== false
+        show: bread.show !== false,
+        isFocaccia: bread.isFocaccia ?? false
       });
     }
   }, [bread]);
@@ -116,6 +118,15 @@ export default function BreadEditModal({ open, bread, t, onSave, onDelete, onCan
             style={{ accentColor: '#222' }}
           />
           {t("show")}
+        </label>
+        <label style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 12 }}>
+          <input
+            type="checkbox"
+            checked={form.isFocaccia}
+            onChange={e => handleChange("isFocaccia", e.target.checked)}
+            style={{ accentColor: '#222' }}
+          />
+          {t("foccia")}
         </label>
         <div style={{ display: "flex", gap: 14, marginTop: 10, justifyContent: "center" }}>
           <button type="submit" className="edit-bread-btn" style={{ fontWeight: "bold" }}>{t("Save")}</button>
