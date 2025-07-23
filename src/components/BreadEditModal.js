@@ -64,7 +64,7 @@ export default function BreadEditModal({ open, bread, t, onSave, onDelete, onCan
   return (
     <ModalBase open={open} onClose={onCancel}>
       <form onSubmit={handleSubmit}>
-        <h3 style={{ margin: "0 0 10px 0", textAlign: "center" }}>{t("Edit Bread")}</h3>
+        <h3 style={{ margin: "0 0 10px 0", textAlign: "center" }}>{t("EditBread")}</h3>
         <label style={{ display: "block", marginBottom: 8 }}>
           {t("Name")}:<br />
           <input
