@@ -205,6 +205,7 @@ export default function AdminPage() {
 
   return (
     <div className="admin-container">
+      <br/>
       <h2>{t("Admin Dashboard")}</h2>
       <button onClick={() => window.location.href = "/users"}>
         {t("ManageUsers")}
@@ -221,6 +222,7 @@ export default function AdminPage() {
               className="date-input"
             />
           </label>
+          <br/>
           <label>
             {t("between")}:{" "}
             <select
@@ -307,13 +309,15 @@ export default function AdminPage() {
         </label>
         <label>
           {t("description")}:{" "}
-          <input
-            type="text"
+          <textarea
             value={breadDescription}
             onChange={(e) => setBreadDescription(e.target.value)}
             className="bread-input"
+            rows={3}
+            style={{ resize: "vertical" }}
           />
         </label>
+
         <label>
           {t("price")}:{" "}
           <input
@@ -418,7 +422,7 @@ export default function AdminPage() {
 
           <h3 className="orders-heading">{t("ordersList")}</h3>
           <div className="table-responsive">
-            <table className="cream-table">
+            <table className="ordered-table">
               <thead>
                 <tr>
                   <th>{t("name")}</th>

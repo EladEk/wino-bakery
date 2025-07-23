@@ -1,142 +1,147 @@
-.admin-container {
-  max-width: 1000px;
-  margin: 30px auto;
-  font-family: inherit;
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  margin-bottom: 0;
 }
 
-/* Delivery date, time, address section at the top */
-.delivery-settings {
+/* ----------- טבלת לחמים / cream-table ----------- */
+.cream-table {
+  width: 100%;
+  min-width: 600px;
+  border-collapse: collapse;
+  border-radius: 12px;
+  overflow: hidden;
   background: #f7f7ee;
-  padding: 24px;
-  border-radius: 10px;
-  margin-bottom: 32px;
+  margin-bottom: 12px;
+}
+
+.bread-form,
+.delivery-settings {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-}
-
-/* Date and time fields on one row */
-.delivery-fields {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.delivery-details {
-  background: #f7f7ee;
-  display: inline-block;
-  font-weight: 400;
-  font-size: 0.8em;
-  margin-left: 24px;
-  margin-right: 0;
-  color: red;
-  line-height: 1.5;
-  margin-top: 6px;
-  vertical-align: top;
-}
-
-.delivery-details.rtl {
-  margin-left: 0;
-  margin-right: 24px;
-}
-
-/* Address field on its own line below time/date */
-.address-field {
-  margin-top: 4px;
-}
-
-/* Address text input */
-.address-input {
-  width: 260px;
-}
-
-.hour-select, .date-input {
-  margin-right: 10px;
-  min-width: 85px;
-}
-
-.save-btn {
-  margin-top: 8px;
-  padding: 6px 24px;
-}
-
-.bread-form {
-  margin: 32px 0;
-  background: #f7f7ee;
-  padding: 24px;
-  border-radius: 10px;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px 24px;
-  align-items: center;
-}
-
-@media (max-width: 700px) {
-  .bread-form {
-    grid-template-columns: 1fr;
-    padding: 12px;
-  }
-}
-
-.bread-form button {
-  grid-column: span 2;
-  justify-self: start;
-}
-
-@media (max-width: 700px) {
-  .bread-form button {
-    grid-column: auto;
-    justify-self: stretch;
-  }
-}
-
-.bread-input {
-  margin-right: 10px;
-  min-width: 85px;
-  padding: 4px 8px;
-  font-size: 1em;
-}
-
-.add-bread-btn {
-  margin-left: 18px;
-  margin-top: 8px;
-  padding: 6px 20px;
-  border-radius: 6px;
-  background: #ececec;
-  border: 1px solid #d2d2d2;
-  cursor: pointer;
-  font-size: 1em;
-  transition: background 0.15s;
-}
-
-.edit-bread-btn {
-  margin-right: 6px;
-  margin-top: 8px;
-  padding: 6px 20px;
-  border-radius: 6px;
-  background: #ececec;
-  border: 1px solid #d2d2d2;
-  cursor: pointer;
-  font-size: 1em;
-  transition: background 0.15s;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding-right: 10px;
+  background-color: #f7f7ee;
 }
 
 .add-bread {
-  margin-top: 0;
+  color: #222;
+  border: none;
+  padding: 8px 18px;
+  font-weight: bold;
+  font-size: 1em;
+  cursor: pointer;
+  margin-right: 8px;
   margin-bottom: 0;
-  font-size: 1.2em;
-  font-weight: bold;
+  transition: background 0.2s;
 }
 
-.bread-name {
-  font-weight: bold;
-  font-size: 1.1em;
-  color: saddlebrown;
-}
-
-/* Align all table text to the right */
 .cream-table th,
 .cream-table td {
   text-align: right;
+  font-size: 1em;
+  padding: 6px 8px;
+  vertical-align: middle;
+  white-space: normal;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.cream-table th {
+  background: #ececec;
+  font-weight: bold;
+}
+
+.cream-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* ----------- טבלת הזמנות / ordered-table ----------- */
+.ordered-table {
+  width: 100%;
+  min-width: 520px;
+  border-collapse: collapse;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f7f7ee;
+  margin-bottom: 12px;
+}
+
+.ordered-table th,
+.ordered-table td {
+  text-align: right;
+  font-size: 1em;
+  padding: 4px 4px;
+  white-space: nowrap;
+  vertical-align: middle;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.ordered-table th {
+  background: #ececec;
+  font-weight: bold;
+}
+
+.ordered-table tr:last-child td {
+  border-bottom: none;
+}
+
+.ordered-table .actions-cell {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  min-width: 80px;
+}
+
+.ordered-table .actions-cell button {
+  min-width: 38px;
+  font-size: 0.96em;
+  padding: 5px 3px;
+  border-radius: 6px;
+  border: 1px solid #bbb;
+  background: #f7f7ee;
+  cursor: pointer;
+  transition: background 0.13s;
+}
+
+.ordered-table .actions-cell button:hover {
+  background: #ddd;
+}
+
+@media (max-width: 700px) {
+  .cream-table {
+    min-width: 420px;
+  }
+  .cream-table th,
+  .cream-table td {
+    font-size: 0.95em;
+    padding: 3px 3px;
+  }
+
+  .ordered-table {
+    min-width: 420px;
+  }
+  .ordered-table th,
+  .ordered-table td {
+    font-size: 0.93em;
+    padding: 3px 2px;
+  }
+  .ordered-table .actions-cell {
+    min-width: 62px;
+    gap: 2px;
+  }
+  .ordered-table .actions-cell button {
+    min-width: 24px;
+    font-size: 0.87em;
+    padding: 3px 1px;
+  }
+}
+
+/* RTL fix */
+.cream-table th,
+.cream-table td,
+.ordered-table th,
+.ordered-table td {
+  direction: rtl;
 }
