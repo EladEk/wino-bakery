@@ -23,20 +23,20 @@ export default function AdminPage() {
   const [breadPieces, setBreadPieces] = useState(1);
   const [breadDescription, setBreadDescription] = useState("");
   const [breadPrice, setBreadPrice] = useState("");
-  const [breadShow, setBreadShow] = useState(true); // NEW
+  const [breadShow, setBreadShow] = useState(true);
   const [editingBreadId, setEditingBreadId] = useState(null);
   const [editBreadName, setEditBreadName] = useState("");
   const [editBreadPieces, setEditBreadPieces] = useState(1);
   const [editBreadDescription, setEditBreadDescription] = useState("");
   const [editBreadPrice, setEditBreadPrice] = useState("");
-  const [editBreadShow, setEditBreadShow] = useState(true); // NEW
+  const [editBreadShow, setEditBreadShow] = useState(true);
   const [editingOrder, setEditingOrder] = useState({});
   const [saleDate, setSaleDate] = useState("");
   const [startHour, setStartHour] = useState("");
   const [endHour, setEndHour] = useState("");
   const [address, setAddress] = useState("");
   const [bitNumber, setBitNumber] = useState("");
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   useEffect(() => {
     const breadsUnsub = onSnapshot(collection(db, "breads"), (snapshot) => {
@@ -77,7 +77,7 @@ export default function AdminPage() {
       description: breadDescription,
       price: Number(breadPrice),
       claimedBy: [],
-      show: breadShow, // NEW
+      show: breadShow,
     });
     setBreadName("");
     setBreadPieces(1);
@@ -92,7 +92,7 @@ export default function AdminPage() {
     setEditBreadPieces(bread.availablePieces);
     setEditBreadDescription(bread.description || "");
     setEditBreadPrice(bread.price ?? "");
-    setEditBreadShow(bread.show !== undefined ? bread.show : true); // NEW
+    setEditBreadShow(bread.show !== undefined ? bread.show : true);
   };
 
   const cancelEditingBread = () => {
@@ -110,7 +110,7 @@ export default function AdminPage() {
       availablePieces: Number(editBreadPieces),
       description: editBreadDescription,
       price: Number(editBreadPrice),
-      show: editBreadShow, // NEW
+      show: editBreadShow,
     });
     cancelEditingBread();
   };
@@ -215,6 +215,11 @@ export default function AdminPage() {
       ),
     0
   );
+
+  // RTL/LTR
+  const dir = i18n.dir();
+  const alignEnd = dir === "rtl" ? "flex-start" : "flex-end";
+  const labelMargin = dir === "rtl" ? { marginLeft: 8 } : { marginRight: 8 };
 
   return (
     <div className="admin-container">
@@ -342,12 +347,12 @@ export default function AdminPage() {
             className="bread-input"
           />
         </label>
-        <label>
+        <label style={{ display: "flex", alignItems: "center", ...labelMargin }}>
           <input
             type="checkbox"
             checked={breadShow}
             onChange={e => setBreadShow(e.target.checked)}
-            style={{ marginRight: 6 }}
+            style={{ accentColor: "#222", ...labelMargin }}
           />
           {t("show")}
         </label>
@@ -358,32 +363,30 @@ export default function AdminPage() {
       <h3 className="bread-list">{t("breadList")}</h3>
       {breads.map((bread) => (
         <div key={bread.id} className="bread-section" style={{ marginBottom: 24, position: 'relative' }}>
-          {/* Show checkbox - above the table, aligned right */}
-          {editingBreadId === bread.id ? (
-            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', marginBottom: 6 }}>
+          {/* Show checkbox - above the table, aligned end (RTL/LTR) */}
+          <div style={{ display: 'flex', flexDirection: 'row', justifyContent: alignEnd, alignItems: 'center', marginBottom: 6 }}>
+            {editingBreadId === bread.id ? (
               <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 500 }}>
                 <input
                   type="checkbox"
                   checked={editBreadShow}
                   onChange={e => setEditBreadShow(e.target.checked)}
-                  style={{ marginRight: 4, accentColor: '#222' }}
+                  style={{ accentColor: '#222', ...labelMargin }}
                 />
                 {t("show")}
               </label>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', marginBottom: 6 }}>
+            ) : (
               <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 500 }}>
                 <input
                   type="checkbox"
                   checked={bread.show !== false}
                   onChange={() => handleToggleShow(bread.id, bread.show !== false)}
-                  style={{ marginRight: 4, accentColor: '#222' }}
+                  style={{ accentColor: '#222', ...labelMargin }}
                 />
                 {t("show")}
               </label>
-            </div>
-          )}
+            )}
+          </div>
           {/* Bread Table */}
           <div className="table-responsive">
             <table className="cream-table">
@@ -467,15 +470,117 @@ export default function AdminPage() {
               </tbody>
             </table>
           </div>
-          {/* Orders Table remains unchanged */}
+
           <h3 className="orders-heading">{t("ordersList")}</h3>
           <div className="table-responsive">
-            {/* ... */}
-            {/* Orders Table - בלי שינוי */}
+            <table className="ordered-table">
+              <thead>
+                <tr>
+                  <th>{t("name")}</th>
+                  <th>{t("phone")}</th>
+                  <th>{t("quantity")}</th>
+                  <th>{t("supplied")}</th>
+                  <th>{t("paid")}</th>
+                  <th>{t("cost")}</th>
+                  <th>{t("orderedAt")}</th>
+                  <th>{t("Actions")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(bread.claimedBy || []).map((claim, i) => {
+                  const key = `${bread.id}_${i}`;
+                  const isEditing = editingOrder[key];
+
+                  return (
+                    <tr key={i}>
+                      <td>
+                        <span style={{ paddingLeft: 6, display: "inline-block", width: 120 }}>
+                          {claim.name}
+                        </span>
+                      </td>
+                      <td>
+                        <span style={{ paddingLeft: 6, display: "inline-block", width: 120 }}>
+                          {claim.phone}
+                        </span>
+                      </td>
+                      <td>
+                        {isEditing ? (
+                          <input
+                            type="number"
+                            value={isEditing.quantity}
+                            min={1}
+                            className="bread-input"
+                            onChange={e =>
+                              handleOrderInputChange(bread.id, i, "quantity", e.target.value)
+                            }
+                          />
+                        ) : (
+                          claim.quantity
+                        )}
+                      </td>
+                      <td style={{ textAlign: "center" }}>
+                        <input
+                          type="checkbox"
+                          checked={!!claim.supplied}
+                          onChange={() => toggleSupplied(bread.id, i)}
+                        />
+                      </td>
+                      <td style={{ textAlign: "center" }}>
+                        <input
+                          type="checkbox"
+                          checked={!!claim.paid}
+                          onChange={() => togglePaid(bread.id, i)}
+                        />
+                      </td>
+                      <td>{((claim.quantity || 0) * bread.price).toFixed(2)}</td>
+                      <td>
+                        {claim.timestamp?.seconds
+                          ? new Date(claim.timestamp.seconds * 1000).toLocaleString()
+                          : ""}
+                      </td>
+                      <td>
+                        {isEditing ? (
+                          <>
+                            <button
+                              onClick={() => saveOrderEdit(bread.id, i, claim)}
+                              className="edit-bread-btn"
+                            >
+                              {t("Save")}
+                            </button>
+                            <button onClick={cancelOrderEdit} className="edit-bread-btn">
+                              {t("Cancel")}
+                            </button>
+                            <button
+                              onClick={() => deleteOrder(bread.id, i)}
+                              className="edit-bread-btn"
+                              style={{ color: "red" }}
+                            >
+                              {t("Delete")}
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button onClick={() => startEditingOrder(bread.id, i, claim)} className="edit-bread-btn">
+                              {t("Edit")}
+                            </button>
+                            <button
+                              onClick={() => deleteOrder(bread.id, i)}
+                              className="edit-bread-btn"
+                              style={{ color: "red" }}
+                            >
+                              {t("Delete")}
+                            </button>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
       ))}
-
 
       <div className="total-revenue">
         {t("totalRevenue")}: {totalRevenue.toFixed(2)}
