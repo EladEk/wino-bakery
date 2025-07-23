@@ -260,7 +260,7 @@ export default function AdminPage() {
         </div>
         <div className="bit-field">
           <label>
-            {t("bitNumber")}:{" "}
+            {t("phone")}:{" "}
             <input
               type="text"
               value={bitNumber}

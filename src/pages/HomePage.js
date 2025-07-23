@@ -11,7 +11,6 @@ export default function HomePage() {
   const { userData, currentUser } = useAuth();
   const { t, i18n } = useTranslation();
   const [orderQuantities, setOrderQuantities] = useState({});
-  const [editQuantities, setEditQuantities] = useState({});
   const [saleDate, setSaleDate] = useState("");
   const [startHour, setStartHour] = useState("");
   const [endHour, setEndHour] = useState("");
@@ -20,12 +19,28 @@ export default function HomePage() {
   const [showThanks, setShowThanks] = useState(false);
   const [showUpdated, setShowUpdated] = useState(false);
   const [showCancelled, setShowCancelled] = useState(false);
+  const [userClaims, setUserClaims] = useState({});
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "breads"), snap => {
-      setBreads(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      const breadsArr = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setBreads(breadsArr);
+      const claims = {};
+      breadsArr.forEach(bread => {
+        const claim = (bread.claimedBy || []).find(c => c.userId === currentUser.uid);
+        if (claim) claims[bread.id] = claim;
+      });
+      setUserClaims(claims);
+      setOrderQuantities(q => {
+        const newQ = {};
+        breadsArr.forEach(bread => {
+          newQ[bread.id] = claims[bread.id]?.quantity || 0;
+        });
+        return newQ;
+      });
       setLoading(false);
     });
+
     const saleDateRef = doc(db, "config", "saleDate");
     getDoc(saleDateRef).then(docSnap => {
       if (docSnap.exists()) {
@@ -37,13 +52,13 @@ export default function HomePage() {
         setBitNumber(data.bitNumber || "");
       }
     });
-    return unsub;
-  }, []);
 
-  const handleClaim = async breadId => {
+    return unsub;
+  }, [currentUser.uid]);
+
+  const handleOrder = async () => {
     let name = userData?.name;
     let phone = userData?.phone;
-
     if (!name || !phone) {
       const userDoc = await getDoc(doc(db, "users", currentUser.uid));
       if (userDoc.exists()) {
@@ -52,94 +67,117 @@ export default function HomePage() {
         phone = data.phone;
       }
     }
-
     if (!name || !phone) {
-      return alert(t("pleaseCompleteProfile", "Please enter your name and phone first."));
+      return alert(t("pleaseCompleteProfile"));
     }
 
-    const ref = doc(db, "breads", breadId);
-    const snap = await getDoc(ref);
-    if (!snap.exists()) return;
-    const data = snap.data();
-    const qty = Number(orderQuantities[breadId] || 1);
-    if (!qty || qty < 1) return alert(t("invalidQuantity"));
-    if (data.availablePieces < qty) return alert(t("notEnoughAvailable"));
-    if (data.claimedBy?.some(c => c.userId === currentUser.uid))
-      return alert(t("alreadyClaimed"));
+    await Promise.all(breads.map(async bread => {
+      const qty = Number(orderQuantities[bread.id] || 0);
+      const hasClaim = !!userClaims[bread.id];
+      if (qty > 0 && !hasClaim) {
+        const ref = doc(db, "breads", bread.id);
+        await updateDoc(ref, {
+          availablePieces: bread.availablePieces - qty,
+          claimedBy: [
+            ...(bread.claimedBy || []),
+            { phone, name, quantity: qty, userId: currentUser.uid, timestamp: new Date() }
+          ]
+        });
+      }
+    }));
 
-    await updateDoc(ref, {
-      availablePieces: data.availablePieces - qty,
-      claimedBy: [
-        ...(data.claimedBy || []),
-        {
-          phone,
-          name,
-          quantity: qty,
-          userId: currentUser.uid,
-          timestamp: new Date()
-        }
-      ]
-    });
-    setOrderQuantities(q => ({ ...q, [breadId]: 1 }));
     setShowThanks(true);
     setTimeout(() => setShowThanks(false), 3000);
   };
 
-  const handleUnclaim = async breadId => {
-    const ref = doc(db, "breads", breadId);
-    const snap = await getDoc(ref);
-    if (!snap.exists()) return;
-    const data = snap.data();
-    const claim = (data.claimedBy || []).find(c => c.userId === currentUser.uid);
-    if (!claim) return alert(t("notClaimed"));
+  const handleUpdateOrder = async () => {
+    await Promise.all(breads.map(async bread => {
+      const prevClaim = userClaims[bread.id];
+      const newQty = Number(orderQuantities[bread.id] || 0);
 
-    await updateDoc(ref, {
-      availablePieces: data.availablePieces + claim.quantity,
-      claimedBy: (data.claimedBy || []).filter(c => c.userId !== currentUser.uid),
-    });
-    setEditQuantities(q => ({ ...q, [breadId]: undefined }));
-    setShowCancelled(true);
-    setTimeout(() => setShowCancelled(false), 3000);
-  };
+      if (prevClaim) {
+        if (newQty === 0) {
+          const ref = doc(db, "breads", bread.id);
+          await updateDoc(ref, {
+            availablePieces: bread.availablePieces + prevClaim.quantity,
+            claimedBy: (bread.claimedBy || []).filter(c => c.userId !== currentUser.uid)
+          });
+        } else if (newQty !== prevClaim.quantity) {
+          const diff = newQty - prevClaim.quantity;
+          const ref = doc(db, "breads", bread.id);
+          await updateDoc(ref, {
+            availablePieces: bread.availablePieces - diff,
+            claimedBy: (bread.claimedBy || []).map(c =>
+              c.userId === currentUser.uid ? { ...c, quantity: newQty } : c
+            )
+          });
+        }
+      } else if (newQty > 0) {
+        let name = userData?.name;
+        let phone = userData?.phone;
+        if (!name || !phone) {
+          const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            name = data.name;
+            phone = data.phone;
+          }
+        }
+        if (!name || !phone) {
+          alert(t("pleaseCompleteProfile"));
+          return;
+        }
+        const ref = doc(db, "breads", bread.id);
+        await updateDoc(ref, {
+          availablePieces: bread.availablePieces - newQty,
+          claimedBy: [
+            ...(bread.claimedBy || []),
+            { phone, name, quantity: newQty, userId: currentUser.uid, timestamp: new Date() }
+          ]
+        });
+      }
+    }));
 
-  const handleEditOrder = async (bread, newQty) => {
-    newQty = Number(newQty);
-    if (!newQty || newQty < 1) return alert(t("invalidQuantity"));
-
-    const ref = doc(db, "breads", bread.id);
-    const snap = await getDoc(ref);
-    if (!snap.exists()) return;
-    const data = snap.data();
-    const claim = (data.claimedBy || []).find(c => c.userId === currentUser.uid);
-    if (!claim) return;
-
-    const diff = newQty - claim.quantity;
-    if (diff === 0) return;
-    if (diff > 0 && data.availablePieces < diff) return alert(t("notEnoughAvailable"));
-
-    await updateDoc(ref, {
-      availablePieces: data.availablePieces - diff,
-      claimedBy: (data.claimedBy || []).map(c =>
-        c.userId === currentUser.uid ? { ...c, quantity: newQty } : c
-      ),
-    });
-    setEditQuantities(q => ({ ...q, [bread.id]: newQty }));
     setShowUpdated(true);
     setTimeout(() => setShowUpdated(false), 3000);
   };
 
+  const handleCancelOrder = async () => {
+    await Promise.all(breads.map(async bread => {
+      const prevClaim = userClaims[bread.id];
+      if (!prevClaim) return;
+      const ref = doc(db, "breads", bread.id);
+      await updateDoc(ref, {
+        availablePieces: bread.availablePieces + prevClaim.quantity,
+        claimedBy: (bread.claimedBy || []).filter(c => c.userId !== currentUser.uid)
+      });
+    }));
+
+    setShowCancelled(true);
+    setTimeout(() => setShowCancelled(false), 3000);
+  };
+
   const userTotalCost = breads.reduce((sum, bread) => {
-    const claim = (bread.claimedBy || []).find(c => c.userId === currentUser.uid);
-    return claim && bread.price != null ? sum + claim.quantity * bread.price : sum;
+    const qty = orderQuantities[bread.id] || 0;
+    return bread.price != null ? sum + qty * bread.price : sum;
   }, 0);
+
+  const hasOrder = Object.keys(userClaims).length > 0;
+  const isAboutToOrder = Object.values(orderQuantities).some(q => q > 0);
+  const isFirstOrder = !hasOrder && isAboutToOrder;
+  const isOrderChanged = hasOrder && breads.some(bread => {
+    const prev = userClaims[bread.id]?.quantity || 0;
+    const now = orderQuantities[bread.id] || 0;
+    return prev !== now;
+  });
 
   const dir = document.dir || i18n.dir();
 
   return (
     <div className={`page-container ${dir === "rtl" ? "rtl" : ""}`}>
-      {showThanks && <div className="thanks-popup">{t("thanksForOrder", "Thanks!")}</div>}
-      {showUpdated && <div className="updated-popup">{t("updatedOrder", "Updated!")}</div>}
-      {showCancelled && <div className="cancelled-popup">{t("cancelledOrder", "Cancelled!")}</div>}
+      {showThanks    && <div className="thanks-popup">{t("thanksForOrder")}</div>}
+      {showUpdated   && <div className="updated-popup">{t("updatedOrder")}</div>}
+      {showCancelled && <div className="cancelled-popup">{t("cancelledOrder")}</div>}
 
       {(saleDate || address) && (
         <div className={`delivery-details-wrapper ${dir === "rtl" ? "rtl" : ""}`}>
@@ -155,9 +193,7 @@ export default function HomePage() {
           {address && (
             <div
               className="delivery-card clickable"
-              onClick={() =>
-                window.open(`https://waze.com/ul?q=${encodeURIComponent(address)}`, "_blank")
-              }
+              onClick={() => window.open(`https://waze.com/ul?q=${encodeURIComponent(address)}`, "_blank")}
             >
               <span className="icon">📍</span>
               <span>{t("pickupAddress")}: {address}</span>
@@ -174,148 +210,111 @@ export default function HomePage() {
         <>
           <div className="table-responsive">
             <table className="cream-table home-table">
+              <colgroup>
+                <col className="name-col"/>
+                <col className="desc-col" />
+                <col className="avail-col" />
+                <col className="price-col" />
+                <col className="action-col"/>
+              </colgroup>
               <thead>
                 <tr>
                   <th>{t("bread")}</th>
-                  <th className="description">{t("description")}</th>
-                  <th className="available">{t("available")}</th>
-                  <th>{t("price")}</th>
-                  <th>{t("action")}</th>
+                  <th>{t("description")}</th>
+                  <th className="num-col">{t("available")}</th>
+                  <th className="num-col">{t("price")}</th>
+                  <th>{t("quantity")}</th>
                 </tr>
               </thead>
               <tbody>
-                {breads.map(bread => {
-                  const claim = (bread.claimedBy || []).find(c => c.userId === currentUser.uid);
-                  return (
-                    <tr key={bread.id}>
-                      <td>{bread.name}</td>
-                      <td className="description">{bread.description}</td>
-                      <td className="available">{bread.availablePieces}</td>
-                      <td>{bread.price?.toFixed(2) || ""}</td>
-                      <td>
-                        {claim ? (
-                          <div className="order-quantity-row">
-                            <button
-                              className="qty-btn"
-                              onClick={() =>
-                                setEditQuantities(q => ({
-                                  ...q,
-                                  [bread.id]: Math.max(1, Number(q[bread.id] ?? claim.quantity) - 1)
-                                }))
-                              }
-                              disabled={(editQuantities[bread.id] ?? claim.quantity) <= 1}
-                            >–</button>
-                            <input
-                              type="number"
-                              min={1}
-                              max={bread.availablePieces + claim.quantity}
-                              value={editQuantities[bread.id] ?? claim.quantity}
-                              readOnly
-                              className="order-input"
-                              style={{ textAlign: "center" }}
-                            />
-                            <button
-                              className="qty-btn"
-                              onClick={() =>
-                                setEditQuantities(q => ({
-                                  ...q,
-                                  [bread.id]: Math.min(
-                                    bread.availablePieces + claim.quantity,
-                                    Number(q[bread.id] ?? claim.quantity) + 1
-                                  )
-                                }))
-                              }
-                              disabled={
-                                (editQuantities[bread.id] ?? claim.quantity) >=
-                                bread.availablePieces + claim.quantity
-                              }
-                            >+</button>
-                            <button
-                              onClick={() =>
-                                handleEditOrder(
-                                  bread,
-                                  editQuantities[bread.id] ?? claim.quantity
-                                )
-                              }
-                              disabled={
-                                (editQuantities[bread.id] ?? claim.quantity) === claim.quantity
-                              }
-                              style={{ marginLeft: 8 }}
-                              className={
-                                (editQuantities[bread.id] ?? claim.quantity) !== claim.quantity
-                                  ? "update-flash"
-                                  : ""
-                              }
-                            >
-                              {t("updateOrder")}
-                            </button>
-                            <button
-                              onClick={() => handleUnclaim(bread.id)}
-                              className="cancel-btn"
-                            >
-                              {t("cancelOrder")}
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="order-quantity-row">
-                            <button
-                              className="qty-btn"
-                              onClick={() =>
-                                setOrderQuantities(q => ({
-                                  ...q,
-                                  [bread.id]: Math.max(1, Number(q[bread.id] || 1) - 1)
-                                }))
-                              }
-                              disabled={(orderQuantities[bread.id] || 1) <= 1}
-                            >–</button>
-                            <input
-                              type="number"
-                              min={1}
-                              max={bread.availablePieces}
-                              value={orderQuantities[bread.id] || 1}
-                              readOnly
-                              className="order-input"
-                              style={{ textAlign: "center" }}
-                            />
-                            <button
-                              className="qty-btn"
-                              onClick={() =>
-                                setOrderQuantities(q => ({
-                                  ...q,
-                                  [bread.id]: Math.min(
-                                    bread.availablePieces,
-                                    Number(q[bread.id] || 1) + 1
-                                  )
-                                }))
-                              }
-                              disabled={
-                                (orderQuantities[bread.id] || 1) >= bread.availablePieces
-                              }
-                            >+</button>
-                            <button
-                              onClick={() => handleClaim(bread.id)}
-                              disabled={bread.availablePieces < 1}
-                              style={{ marginLeft: 8 }}
-                            >
-                              {t("order")}
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
+                {breads.map(bread => (
+                  <tr key={bread.id}>
+                    <td>{bread.name}</td>
+                    <td>{bread.description}</td>
+                    <td className="num-col">{bread.availablePieces}</td>
+                    <td className="num-col">{bread.price?.toFixed(2) || ""}</td>
+                    <td>
+                      <div className="order-quantity-row">
+                        <button
+                          className="qty-btn"
+                          onClick={() =>
+                            setOrderQuantities(q => ({
+                              ...q,
+                              [bread.id]: Math.min(
+                                bread.availablePieces + (userClaims[bread.id]?.quantity || 0),
+                                Number(q[bread.id] || 0) + 1
+                              )
+                            }))
+                          }
+                          disabled={
+                            (orderQuantities[bread.id] || 0) >= (
+                              bread.availablePieces + (userClaims[bread.id]?.quantity || 0)
+                            )
+                          }
+                        >+</button>
+                        <input
+                          type="number"
+                          min={0}
+                          max={bread.availablePieces + (userClaims[bread.id]?.quantity || 0)}
+                          value={orderQuantities[bread.id] || 0}
+                          readOnly
+                          className="order-input"
+                        />
+                        <button
+                          className="qty-btn"
+                          onClick={() =>
+                            setOrderQuantities(q => ({
+                              ...q,
+                              [bread.id]: Math.max(0, Number(q[bread.id] || 0) - 1)
+                            }))
+                          }
+                          disabled={(orderQuantities[bread.id] || 0) <= 0}
+                        >–</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
+
+          <div className="action-buttons-wrapper">
+            {!hasOrder ? (
+              <button
+                onClick={handleOrder}
+                className={`order-btn${isFirstOrder ? " flash" : ""}`}
+                disabled={!isAboutToOrder}
+              >
+                {t("order")}
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={handleUpdateOrder}
+                  className={`updt-btn${isOrderChanged ? " flash" : ""}`}
+                  disabled={!isOrderChanged}
+                >
+                  {t("updateOrder")}
+                </button>
+                <button
+                  onClick={handleCancelOrder}
+                  className="cancel-btn"
+                >
+                  {t("cancelOrder")}
+                </button>
+              </>
+            )}
+          </div>
+
           <div className="total-revenue user-total-cost">
             {t("userTotalCost")}: {userTotalCost.toFixed(2)}
           </div>
-            {bitNumber && (
-              <div className="transfer-number-info">
-                {t("transferNumberLabel")}: <b>{bitNumber}</b>
-              </div>
-            )}
+
+          {bitNumber && (
+            <div className="transfer-number-info">
+              {t("transferNumberLabel")}: <b>{bitNumber}</b>
+            </div>
+          )}
         </>
       )}
     </div>

@@ -1,4 +1,4 @@
-just.bread-heading {
+.bread-heading {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -14,134 +14,6 @@ just.bread-heading {
   max-width: 90%;
   text-align: center;
 }
-
-.delivery-details {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-width: 600px;
-  margin: 0 auto 32px auto;
-  padding: 20px 28px;
-  background: #ffffff;
-  border: 1px solid #ddd;
-  border-radius: 16px;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
-  color: #2c2c2c;
-  font-size: 1em;
-  line-height: 1.6;
-}
-
-.delivery-details.rtl {
-  text-align: right;
-  direction: rtl;
-}
-
-.delivery-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.delivery-item span.icon {
-  font-size: 1.2em;
-}
-
-.order-input {
-  width: 50px;
-  margin: 0 8px;
-  text-align: center;
-  font-size: 1em;
-  padding: 4px 6px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background-color: #fafafa;
-}
-
-.qty-btn {
-  padding: 4px 10px;
-  font-size: 1.1em;
-  font-weight: bold;
-  border: none;
-  border-radius: 6px;
-  background-color: #eee;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.qty-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.qty-btn:hover:not(:disabled) {
-  background-color: #ddd;
-}
-
-.cancel-btn {
-  margin-left: 6px;
-  background-color: #f44336;
-  color: white;
-  border: none;
-  padding: 4px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.cancel-btn:hover {
-  background-color: #d32f2f;
-}
-
-.user-total-cost {
-  font-size: 1.2em;
-  font-weight: bold;
-  text-align: center;
-  margin-top: 24px;
-}
-
-.table-responsive {
-  overflow-x: auto;
-  margin-top: 20px;
-}
-
-.cream-table {
-  width: 100%;
-  border-collapse: collapse;
-  background-color: #fffaf5;
-  border: 1px solid #eee;
-}
-
-.cream-table th,
-.cream-table td {
-  padding: 12px 16px;
-  border-bottom: 1px solid #ddd;
-  text-align: left;
-}
-
-.cream-table th {
-  background-color: #f3e9dd;
-  color: #333;
-  font-weight: 600;
-}
-
-.thanks-popup,
-.updated-popup,
-.cancelled-popup {
-  position: fixed;
-  top: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #222;
-  color: #fff;
-  padding: 18px 32px;
-  border-radius: 18px;
-  font-size: 1.5em;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
-  z-index: 1000;
-  opacity: 0.97;
-  transition: opacity 0.3s;
-}
-
 .delivery-details-wrapper {
   display: flex;
   justify-content: center;
@@ -149,11 +21,7 @@ just.bread-heading {
   gap: 12px;
   margin: 20px auto;
 }
-
-.delivery-details-wrapper.rtl {
-  direction: rtl;
-}
-
+.delivery-details-wrapper.rtl { direction: rtl; }
 .delivery-card {
   flex: 1 1 280px;
   display: flex;
@@ -169,77 +37,169 @@ just.bread-heading {
   max-width: 360px;
   transition: background-color 0.2s;
 }
-
-.delivery-card .icon {
-  font-size: 1.4em;
+.delivery-card .icon { font-size: 1.4em; }
+.delivery-card.clickable { cursor: pointer; }
+.delivery-card.clickable:hover { background-color: #f5f5f5; }
+.order-input {
+  width: 30px;
+  min-width: 0;
+  margin: 0 2px;
+  text-align: center;
+  font-size: 1.1em;
+  padding: 2px 0;
+  border: none;
+  background: transparent;
+  font-weight: bold;
+  display: block;
+  outline: none;
 }
-
-.delivery-card.clickable {
+.qty-btn {
+  font-family: inherit;
+  padding: 0;
+  border-radius: 6px;
   cursor: pointer;
+  font-size: 1.25em;
+  width: 32px;
+  min-width: 28px;
+  background: #eee;
+  border: none;
+  transition: background 0.18s;
+  margin: 0 2px;
+  box-sizing: border-box;
 }
-
-.delivery-card.clickable:hover {
-  background-color: #f5f5f5;
+.qty-btn:hover:not(:disabled) { background: #ddd; }
+.qty-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.user-total-cost {
+  font-size: 1.2em;
+  font-weight: bold;
+  text-align: center;
+  margin-top: 24px;
 }
-
-.home-table {
-  direction: ltr; /* ברירת מחדל */
+.table-responsive {
+  overflow-x: auto;
+  margin-top: 20px;
+  margin-bottom: 0;
 }
-
-.rtl .home-table {
-  direction: rtl;
+.cream-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #eee;
+  table-layout: fixed;
+  background-color: transparent;
 }
-
-.rtl .home-table th,
-.rtl .home-table td {
+.cream-table th,
+.cream-table td {
+  padding: 2px 2px;
+  font-size: 0.95em;
+  font-weight: bold;
+  word-wrap: break-word;
   text-align: right;
+  border-bottom: 1px solid #ddd;
 }
-
-/* --- Column widths for the breads table --- */
-.home-table th.available,
-.home-table td.available {
-  /* narrow column – tweak as needed */
-  width: 60px;          /* fixed width on mobile */
-  max-width: 70px;
-  text-align: center;   /* keeps the number centered */
+.cream-table th:last-child,
+.cream-table td:last-child {
+  padding-left: 1px;
+  padding-right: 1px;
 }
-
-/* widen the description column */
-.home-table th.description,
-.home-table td.description {
-  width: 40%;           /* takes more horizontal room */
+.num-col {
+  text-align: right !important;
+  direction: ltr;
+  font-variant-numeric: tabular-nums;
 }
-
-/* optional: let long descriptions wrap nicely */
-.home-table td.description {
-  white-space: normal;  /* allow multi-line text */
-  line-height: 1.4;
+.cream-table tbody tr,
+.cream-table tbody td {
+  background: rgba(255,255,255,0.65) !important;
 }
-
-.update-flash {
+.cream-table th { background: #f3e9dd; font-weight: 600; }
+.rtl .home-table { direction: rtl; }
+.action-buttons-wrapper {
+  max-width: 360px;
+  margin: 0 auto 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.order-btn,
+.updt-btn,
+.cancel-btn {
+  width: 100%;
+  font-size: 1.05em;
+  font-family: inherit;
+  font-weight: bold;
+  padding: 10px 0;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  margin: 0;
+  transition: background 0.18s, color 0.18s;
+  box-sizing: border-box;
+}
+.order-btn {
+  background: #ffcc00;
+  color: #222;
+  animation: none;
+}
+.order-btn.flash, .updt-btn.flash {
   animation: flashButton 1s infinite;
 }
-
 @keyframes flashButton {
-  0% { background-color: #ffcc00; }
-  50% { background-color: #ffe680; }
-  100% { background-color: #ffcc00; }
+  0% { background: #ffcc00; }
+ 50% { background: #ffe680; }
+100% { background: #ffcc00; }
 }
-.bit-pay-btn {
-  background: #00c3ff;
+.order-btn:disabled {
+  background: #b0b0b0;
   color: #fff;
-  border: none;
-  font-weight: bold;
-  font-size: 1.1em;
-  padding: 10px 26px;
-  border-radius: 12px;
-  cursor: pointer;
-  margin-top: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-  transition: background 0.18s;
+  cursor: not-allowed;
 }
-.bit-pay-btn:hover {
-  background: #007cff;
+.updt-btn {
+  background: #1976d2;
+  color: #fff;
+}
+.updt-btn:disabled {
+  background: #b0b0b0;
+  color: #fff;
+  cursor: not-allowed;
+}
+.cancel-btn {
+  background: #f44336;
+  color: #fff;
+}
+.cancel-btn:hover { background: #d32f2f; }
+.bit-pay-btn {
+  font-family: inherit;
+  padding: 4px 10px;
+  width: 100%;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background-color 0.18s;
+}
+.order-quantity-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0;
+  min-width: 88px;
+  justify-content: center;
+  flex-wrap: nowrap;
+}
+.thanks-popup,
+.updated-popup,
+.cancelled-popup {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #222;
+  color: #fff;
+  padding: 18px 32px;
+  border-radius: 18px;
+  font-size: 1.5em;
+  box-shadow: 0 4px 16px rgba(0,0,0,.16);
+  z-index: 1000;
+  opacity: .97;
+  transition: opacity .3s;
 }
 .transfer-number-info {
   text-align: center;
@@ -250,21 +210,31 @@ just.bread-heading {
   border-radius: 10px;
   direction: ltr;
 }
-
-/* Home (breads) table: tighten “זמין” column, widen description */
-
-/* 2nd column = description */
-.home-table th:nth-child(2),
-.home-table td:nth-child(2) {
-  width: 40%;          /* give it breathing room */
-  white-space: normal; /* allow wrapping */
-  line-height: 1.4;
+@media (max-width: 480px) {
+  .cream-table th,
+  .cream-table td {
+    padding: 1px 0px;
+    font-size: 0.93em;
+  }
+  .order-quantity-row {
+    min-width: 68px;
+  }
+  .qty-btn {
+    width: 24px;
+    min-width: 20px;
+    font-size: 1.12em;
+    margin: 0 1px;
+  }
+  .order-input {
+    width: 20px;
+    font-size: 1em;
+    margin: 0 1px;
+  }
+  .table-responsive {
+    overflow-x: auto;
+    margin-top: 20px;
+    margin-bottom: 0;
+  }
 }
 
-/* 3rd column = available */
-.home-table th:nth-child(3),
-.home-table td:nth-child(3) {
-  width: 65px;         /* fixed, tweak as you like */
-  max-width: 80px;
-  text-align: center;
-}
+
