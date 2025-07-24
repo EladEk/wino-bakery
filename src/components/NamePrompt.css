@@ -56,3 +56,12 @@
 .np-btn:not(:disabled):hover{
   background:#1d4ed8;
 }
+
+.np-error {
+  color: #b91c1c;
+  background: #fdecea;
+  border-radius: .6em;
+  margin-bottom: 1rem;
+  padding: .7em;
+  font-size: 1em;
+}

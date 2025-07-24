@@ -43,6 +43,7 @@
   "phoneRequired": "יש להזין מספר טלפון",
   "codeRequired": "יש להזין קוד אימות",
   "backHome": "חזרה",
+  "nameAlreadyExists": "שם זה כבר קיים",
   "Pieces": "כמות",
   "Save": "שמור",
   "save": "שמור",

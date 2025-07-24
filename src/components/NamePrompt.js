@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 import { useAuth } from "../contexts/AuthContext";
 import { useTranslation } from "react-i18next";
@@ -12,12 +12,24 @@ export default function NamePrompt() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
 
   const save = async () => {
     if (!name.trim() || !phone.trim()) return;
     setSaving(true);
+    setError("");
     const trimmedName = name.trim();
     const trimmedPhone = phone.trim();
+
+    // Check for existing user with the same name
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("name", "==", trimmedName));
+    const querySnapshot = await getDocs(q);
+    if (!querySnapshot.empty) {
+      setError(t("nameAlreadyExists", "A user with this name already exists"));
+      setSaving(false);
+      return;
+    }
 
     await setDoc(
       doc(db, "users", currentUser.uid),
@@ -47,6 +59,7 @@ export default function NamePrompt() {
           onChange={e => setPhone(e.target.value)}
           disabled={saving}
         />
+        {error && <div className="np-error">{error}</div>}
         <button
           className="np-btn"
           onClick={save}
