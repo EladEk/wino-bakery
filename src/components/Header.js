@@ -77,7 +77,6 @@ export default function Header() {
         {atAdmin && (
           <>
             <button onClick={() => navigate("/")}>{t("backHome")}</button>
-            <button onClick={() => navigate("/order-history")}>{t("OrderHistory")}</button>
           </>
         )}
 
