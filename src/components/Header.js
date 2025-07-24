@@ -46,13 +46,16 @@ export default function Header() {
   const atLogin = location.pathname === "/login";
   const atUsers = location.pathname === "/users";
   const atOrders = location.pathname === "/orders";
+  const atOrderHistory = location.pathname === "/order-history";
   const isAdmin = userData?.isAdmin;
 
   return (
     <header className="app-header">
       <div className="left-buttons">
         {/* Hide logout on login page */}
-        {!atLogin && isAdmin && <button onClick={logout}>{t("logout")}</button>}
+        {!atLogin && (
+          <button onClick={logout}>{t("logout")}</button>
+        )}
       </div>
 
       <div className="app-logo" onClick={() => navigate("/")}>
@@ -65,23 +68,29 @@ export default function Header() {
             📱 {t("installApp") || "Install App"}
           </button>
         )}
+
+        {/* כפתורי אדמין */}
         {atHome && isAdmin && (
           <button onClick={() => navigate("/admin")}>{t("adminPanel")}</button>
         )}
+
         {atAdmin && (
           <>
             <button onClick={() => navigate("/")}>{t("backHome")}</button>
+            <button onClick={() => navigate("/order-history")}>{t("OrderHistory")}</button>
           </>
         )}
+
+        {atOrderHistory && isAdmin && (
+          <button onClick={() => navigate("/admin")}>{t("back") || "Back to Admin"}</button>
+        )}
+
         {atOrders && isAdmin && (
           <button onClick={() => navigate("/admin")}>{t("back") || "Back to Admin"}</button>
         )}
+
         {atUsers && isAdmin && (
           <button onClick={() => navigate("/admin")}>{t("back") || "Back to Admin"}</button>
-        )}
-        {/* Hide logout on login page */}
-        {!atLogin && !isAdmin && (
-          <button onClick={logout}>{t("logout")}</button>
         )}
       </div>
     </header>

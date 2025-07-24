@@ -5,8 +5,9 @@ import { useTranslation } from "react-i18next";
 import AuthPage from "./pages/AuthPage";
 import HomePage from "./pages/HomePage";
 import AdminPage from "./pages/AdminPage";
-import UserManagementPage from "./pages/UserManagementPage"; // ✅ New page
+import UserManagementPage from "./pages/UserManagementPage";
 import OrderSummary from "./pages/OrderSummary";
+import OrderHistoryPage from "./pages/OrderHistoryPage"; // ✅ חדש
 
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -58,6 +59,15 @@ function AppShell() {
           }
         />
         <Route path="/orders" element={<OrderSummary />} />
+        {/* --- הוספנו את היסטוריית ההזמנות --- */}
+        <Route
+          path="/order-history"
+          element={
+            <AdminRoute>
+              <OrderHistoryPage />
+            </AdminRoute>
+          }
+        />
       </Routes>
     </Router>
   );

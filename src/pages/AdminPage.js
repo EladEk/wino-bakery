@@ -8,12 +8,17 @@ import {
   updateDoc,
   deleteDoc,
   getDoc,
-  setDoc
+  getDocs,
+  setDoc,
+  serverTimestamp,
+  writeBatch
 } from "firebase/firestore";
 import { useTranslation } from "react-i18next";
 import BreadEditModal from "../components/BreadEditModal";
 import BreadList from "../components/BreadList";
+import EndSaleModal from "../components/EndSaleModal";
 import "./AdminPage.css";
+import { useNavigate } from "react-router-dom";
 
 const HOUR_OPTIONS = Array.from({ length: 15 }, (_, i) =>
   String(i + 7).padStart(2, '0') + ':00'
@@ -33,11 +38,16 @@ export default function AdminPage() {
   const [endHour, setEndHour] = useState("");
   const [address, setAddress] = useState("");
   const [bitNumber, setBitNumber] = useState("");
-  const { t, i18n } = useTranslation();
-
-  // Modal state
   const [modalOpen, setModalOpen] = useState(false);
   const [modalBread, setModalBread] = useState(null);
+
+  // End-sale modal & popup state
+  const [showEndSaleDialog, setShowEndSaleDialog] = useState(false);
+  const [endSaleLoading, setEndSaleLoading] = useState(false);
+  const [popup, setPopup] = useState({ show: false, message: "", error: false });
+
+  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const breadsUnsub = onSnapshot(collection(db, "breads"), (snapshot) => {
@@ -216,6 +226,45 @@ export default function AdminPage() {
     0
   );
 
+  // End Sale Logic (with popup)
+  async function handleEndSale() {
+    setEndSaleLoading(true);
+    try {
+      const breadsSnap = await getDocs(collection(db, "breads"));
+      const allBreads = breadsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      const orderHistoryDoc = {
+        saleDate: serverTimestamp(),
+        breads: allBreads.map(bread => ({
+          breadId: bread.id,
+          breadName: bread.name,
+          breadDescription: bread.description,
+          breadPrice: bread.price,
+          orders: (bread.claimedBy || []).map(order => ({
+            ...order
+          }))
+        }))
+      };
+      await addDoc(collection(db, "ordersHistory"), orderHistoryDoc);
+
+      const batch = writeBatch(db);
+      breadsSnap.docs.forEach(docRef => {
+        batch.update(docRef.ref, { claimedBy: [] });
+      });
+      await batch.commit();
+
+      setShowEndSaleDialog(false);
+      setPopup({ show: true, message: t("saleEndedSuccessfully"), error: false });
+    } catch (err) {
+      setPopup({ show: true, message: t("saleEndError"), error: true });
+      console.error(err);
+    }
+    setEndSaleLoading(false);
+
+    // Auto close popup after 2.5s
+    setTimeout(() => setPopup({ show: false, message: "", error: false }), 2500);
+  }
+
   // RTL/LTR
   const dir = i18n.dir();
   const labelMargin = dir === "rtl" ? { marginLeft: 8 } : { marginRight: 8 };
@@ -230,6 +279,55 @@ export default function AdminPage() {
         onDelete={handleModalDelete}
         onCancel={closeEditModal}
       />
+
+      {/* הודעת popup */}
+      {popup.show && (
+        <div
+          style={{
+            position: "fixed",
+            top: "30px",
+            left: "50%",
+            transform: "translateX(-50%)",
+            background: popup.error ? "#dc2b2b" : "#31b931",
+            color: "#fff",
+            padding: "18px 40px",
+            borderRadius: "16px",
+            fontSize: "1.1rem",
+            fontWeight: 600,
+            boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
+            zIndex: 9999,
+            display: "flex",
+            alignItems: "center"
+          }}
+        >
+          <span style={{ flex: 1 }}>{popup.message}</span>
+          <button
+            onClick={() => setPopup({ show: false, message: "", error: false })}
+            style={{
+              background: "transparent",
+              color: "#fff",
+              border: "none",
+              fontSize: "1.3rem",
+              cursor: "pointer",
+              marginLeft: 18,
+              fontWeight: 700
+            }}
+            aria-label="close"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {/* דיאלוג סיום מכירה */}
+      <EndSaleModal
+        open={showEndSaleDialog}
+        loading={endSaleLoading}
+        onConfirm={handleEndSale}
+        onCancel={() => setShowEndSaleDialog(false)}
+        t={t}
+      />
+
       <br/>
       <h2>{t("Admin Dashboard")}</h2>
       <div>
@@ -239,7 +337,19 @@ export default function AdminPage() {
         <button onClick={() => window.location.href = "/orders"}>
           {t("OrderSummary")}
         </button>
+        <button onClick={() => navigate("/order-history")}>
+          {t("OrderHistory")}
+        </button>
+        <button
+          className="end-sale-btn"
+          onClick={() => setShowEndSaleDialog(true)}
+          disabled={endSaleLoading}
+          style={{ background: "#c00", color: "#fff", marginLeft: 8 }}
+        >
+          {t("EndSale")}
+        </button>
       </div>
+
       <div className="delivery-settings">
         <div className="delivery-fields">
           <label>
