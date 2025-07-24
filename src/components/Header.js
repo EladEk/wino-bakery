@@ -56,7 +56,7 @@ export default function Header() {
       </div>
 
       <div className="app-logo" onClick={() => navigate("/")}>
-        <img src={logo} alt="Logo" height="50" />
+        <img src={logo} alt="Logo" className="logo-img" />
       </div>
 
       <div className="right-buttons">
