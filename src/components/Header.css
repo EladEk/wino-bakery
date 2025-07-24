@@ -38,6 +38,13 @@
   z-index: 101;
 }
 
+.logo-img {
+  height: 50px;
+  margin-top: 18px;
+  width: auto;
+  display: block;
+}
+
 /* Optional button styles */
 button {
   padding: 6px 12px;
