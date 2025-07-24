@@ -232,9 +232,14 @@ export default function AdminPage() {
       />
       <br/>
       <h2>{t("Admin Dashboard")}</h2>
-      <button onClick={() => window.location.href = "/users"}>
-        {t("ManageUsers")}
-      </button>
+      <div>
+        <button onClick={() => window.location.href = "/users"}>
+          {t("ManageUsers")}
+        </button>
+        <button onClick={() => window.location.href = "/orders"}>
+          {t("OrderSummary")}
+        </button>
+      </div>
       <div className="delivery-settings">
         <div className="delivery-fields">
           <label>

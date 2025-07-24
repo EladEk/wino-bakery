@@ -6,6 +6,7 @@ import AuthPage from "./pages/AuthPage";
 import HomePage from "./pages/HomePage";
 import AdminPage from "./pages/AdminPage";
 import UserManagementPage from "./pages/UserManagementPage"; // ✅ New page
+import OrderSummary from "./pages/OrderSummary";
 
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -56,6 +57,7 @@ function AppShell() {
             </AdminRoute>
           }
         />
+        <Route path="/orders" element={<OrderSummary />} />
       </Routes>
     </Router>
   );

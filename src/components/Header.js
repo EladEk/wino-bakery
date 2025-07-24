@@ -14,7 +14,6 @@ export default function Header() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstall, setShowInstall] = useState(false);
 
-  // Listen for install prompt event
   useEffect(() => {
     const handler = (e) => {
       e.preventDefault();
@@ -22,8 +21,6 @@ export default function Header() {
       setShowInstall(true);
     };
     window.addEventListener("beforeinstallprompt", handler);
-
-    // If already installed, hide the button
     window.addEventListener("appinstalled", () => {
       setShowInstall(false);
     });
@@ -48,6 +45,7 @@ export default function Header() {
   const atAdmin = location.pathname === "/admin";
   const atLogin = location.pathname === "/login";
   const atUsers = location.pathname === "/users";
+  const atOrders = location.pathname === "/orders";
   const isAdmin = userData?.isAdmin;
 
   return (
@@ -71,10 +69,15 @@ export default function Header() {
           <button onClick={() => navigate("/admin")}>{t("adminPanel")}</button>
         )}
         {atAdmin && (
-          <button onClick={() => navigate("/")}>{t("backHome")}</button>
+          <>
+            <button onClick={() => navigate("/")}>{t("backHome")}</button>
+          </>
+        )}
+        {atOrders && isAdmin && (
+          <button onClick={() => navigate("/admin")}>{t("back") || "Back to Admin"}</button>
         )}
         {atUsers && isAdmin && (
-          <button onClick={() => navigate("/admin")}>{t("backToAdmin") || "Back to Admin"}</button>
+          <button onClick={() => navigate("/admin")}>{t("back") || "Back to Admin"}</button>
         )}
         {/* Hide logout on login page */}
         {!atLogin && !isAdmin && (
