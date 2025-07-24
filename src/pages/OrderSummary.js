@@ -9,6 +9,7 @@ export default function OrderSummary() {
   const { t } = useTranslation();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showSupplied, setShowSupplied] = useState(false);
 
   useEffect(() => {
     fetchOrders();
@@ -30,7 +31,6 @@ export default function OrderSummary() {
     breadsSnapshot.forEach(breadDoc => {
       const bread = breadDoc.data();
       (bread.claimedBy || []).forEach((claim, idx) => {
-        if (claim.supplied) return; // show only not supplied
         if (!userOrders[claim.userId]) {
           userOrders[claim.userId] = {
             name: usersMap[claim.userId]?.name || claim.name || "Unknown",
@@ -58,7 +58,7 @@ export default function OrderSummary() {
     setLoading(false);
   };
 
-  // Now updates local state instantly, no reload
+  // Just update state, do not filter out supplied items
   const toggleCheckbox = async (breadId, claimIndex, type) => {
     const breadRef = doc(db, "breads", breadId);
     const breadDocSnap = await getDoc(breadRef);
@@ -72,68 +72,77 @@ export default function OrderSummary() {
 
     await updateDoc(breadRef, { claimedBy: updatedClaims });
 
-    // Instant local update (without refetch)
     setOrders(prevOrders =>
-      prevOrders
-        .map(order => ({
-          ...order,
-          items: order.items.map(item =>
-            item.breadId === breadId && item.claimIndex === claimIndex
-              ? { ...item, [type]: !item[type] }
-              : item
-          ),
-        }))
-        // Remove order if all items are now supplied (for supplied checkbox only)
-        .filter(order =>
-          order.items.some(item => !item.supplied)
-        )
-        .map(order => ({
-          ...order,
-          items: order.items.filter(item => !item.supplied),
-        }))
-        .filter(order => order.items.length > 0)
+      prevOrders.map(order => ({
+        ...order,
+        items: order.items.map(item =>
+          item.breadId === breadId && item.claimIndex === claimIndex
+            ? { ...item, [type]: !item[type] }
+            : item
+        ),
+      }))
     );
   };
 
   return (
     <div className="order-summary">
-      <h2>{t("OrderSummary")}</h2>
+      <h2>{t("Order Summary")}</h2>
+      <div style={{ textAlign: "right", marginBottom: 16 }}>
+        <label style={{ cursor: "pointer", fontSize: "1.05em" }}>
+          <input
+            type="checkbox"
+            checked={showSupplied}
+            onChange={e => setShowSupplied(e.target.checked)}
+            style={{ marginLeft: 6 }}
+          />
+          {t("showSupplied", "Show Supplied")}
+        </label>
+      </div>
       {loading ? (
         <BreadLoader />
       ) : orders.length === 0 ? (
         <p>{t("No pending orders")}</p>
       ) : (
-        orders.map(order => (
-          <div key={order.userId} className="order-card">
-            <h3>{order.name}</h3>
-            <p>{order.phone}</p>
-            <ul>
-              {order.items.map((item, idx) => (
-                <li key={idx} style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                  <span>
-                    <b>{item.breadName}</b> × {item.quantity}
-                  </span>
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={item.paid}
-                      onChange={() => toggleCheckbox(item.breadId, item.claimIndex, "paid")}
-                    />{" "}
-                    {t("paid")}
-                  </label>
-                  <label style={{ marginLeft: 10 }}>
-                    <input
-                      type="checkbox"
-                      checked={item.supplied}
-                      onChange={() => toggleCheckbox(item.breadId, item.claimIndex, "supplied")}
-                    />{" "}
-                    {t("supplied")}
-                  </label>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))
+        orders.map(order => {
+          // Filter items by showSupplied flag
+          const visibleItems = showSupplied
+            ? order.items
+            : order.items.filter(item => !item.supplied);
+
+          if (visibleItems.length === 0) return null;
+
+          return (
+            <div key={order.userId} className="order-card">
+              <h3>{order.name}</h3>
+              <p>{order.phone}</p>
+              <ul>
+                {visibleItems.map((item, idx) => (
+                  <li key={idx} style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                    <span>
+                      <b>{item.breadName}</b> × {item.quantity}
+                    </span>
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={item.paid}
+                        onChange={() => toggleCheckbox(item.breadId, item.claimIndex, "paid")}
+                      />{" "}
+                      {t("paid")}
+                    </label>
+                    <label style={{ marginLeft: 10 }}>
+                      <input
+                        type="checkbox"
+                        checked={item.supplied}
+                        onChange={() => toggleCheckbox(item.breadId, item.claimIndex, "supplied")}
+                      />{" "}
+                      {t("supplied")}
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })
       )}
     </div>
   );
