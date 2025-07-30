@@ -96,59 +96,66 @@ export default function OrderHistoryPage() {
               🗑️ {t("deleteSale") || "Delete Sale"}
             </button>
           </div>
-          <table className="sale-table">
-            <thead>
-              <tr>
-                <th>{t("BreadName")}</th>
-                <th>{t("description")}</th>
-                <th>{t("price")}</th>
-                <th>{t("name")}</th>
-                <th>{t("phone")}</th>
-                <th>{t("Pieces")}</th>
-                <th>{t("supplied")}</th>
-                <th>{t("paid")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sale.breads.map(bread =>
-                (bread.orders || [])
-                  .filter(order =>
-                    !filterName ||
-                    (order.name && order.name.toLowerCase().includes(filterName.toLowerCase()))
-                  )
-                  .map(order => (
-                    <tr key={bread.breadId + "-" + (order.userId || order.name)}>
-                      <td>{bread.breadName}</td>
-                      <td>{bread.breadDescription}</td>
-                      <td>{bread.breadPrice}</td>
-                      <td>{order.name}</td>
-                      <td>{order.phone}</td>
-                      <td>{order.quantity}</td>
-                      <td>{order.supplied ? t("Yes") : t("No")}</td>
-                      <td>{order.paid ? t("Yes") : t("No")}</td>
-                    </tr>
-                  ))
-              )}
-            </tbody>
-          </table>
+
+          {/* Responsive scrollable table container */}
+          <div className="sale-table-responsive">
+            <table className="sale-table">
+              <thead>
+                <tr>
+                  <th>{t("BreadName")}</th>
+                  <th>{t("price")}</th>
+                  <th>{t("Pieces")}</th>
+                  <th>{t("name")}</th>
+                  <th>{t("phone")}</th>
+                  <th>{t("description")}</th>
+                  
+                  <th>{t("supplied")}</th>
+                  <th>{t("paid")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sale.breads.map(bread =>
+                  (bread.orders || [])
+                    .filter(order =>
+                      !filterName ||
+                      (order.name && order.name.toLowerCase().includes(filterName.toLowerCase()))
+                    )
+                    .map(order => (
+                      <tr key={bread.breadId + "-" + (order.userId || order.name)}>
+                        <td>{bread.breadName}</td>
+                        <td>{bread.breadPrice}</td>
+                        <td>{order.quantity}</td>
+                        <td>{order.name}</td>
+                        <td>{order.phone}</td>
+                        <td>{bread.breadDescription}</td>
+                        <td>{order.supplied ? t("Yes") : t("No")}</td>
+                        <td>{order.paid ? t("Yes") : t("No")}</td>
+                      </tr>
+                    ))
+                )}
+              </tbody>
+            </table>
+          </div>
 
           {/* טבלת סיכום */}
-          <table className="sale-totals-table">
-            <thead>
-              <tr>
-                <th>{t("BreadName")}</th>
-                <th>{t("totalSold")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {getBreadsTotals(sale).map(row => (
-                <tr key={row.name}>
-                  <td>{row.name}</td>
-                  <td>{row.totalSold}</td>
+          <div className="sale-table-responsive">
+            <table className="sale-totals-table">
+              <thead>
+                <tr>
+                  <th>{t("BreadName")}</th>
+                  <th>{t("totalSold")}</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {getBreadsTotals(sale).map(row => (
+                  <tr key={row.name}>
+                    <td>{row.name}</td>
+                    <td>{row.totalSold}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
           {/* סך הכנסות */}
           <div className="sale-total-revenue">

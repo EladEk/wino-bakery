@@ -153,3 +153,14 @@
   color: #1976d2;
   text-align: left;
 }
+
+.sale-table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  margin-bottom: 8px;
+}
+
+.sale-table,
+.sale-totals-table {
+  min-width: 650px;
+}
