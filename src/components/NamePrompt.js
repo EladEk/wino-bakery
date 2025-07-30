@@ -21,7 +21,13 @@ export default function NamePrompt() {
     const trimmedName = name.trim();
     const trimmedPhone = phone.trim();
 
-    // Check for existing user with the same name
+    const isValidPhone = /^05\d{8}$/.test(trimmedPhone);
+    if (!isValidPhone) {
+      setError(t("invalidPhone", "Please enter a valid Israeli phone number (e.g. 0501234567)"));
+      setSaving(false);
+      return;
+    }
+
     const usersRef = collection(db, "users");
     const q = query(usersRef, where("name", "==", trimmedName));
     const querySnapshot = await getDocs(q);
@@ -38,7 +44,7 @@ export default function NamePrompt() {
     );
 
     setUserData(prev => ({ ...prev, name: trimmedName, phone: trimmedPhone }));
-    setNeedsProfile(false); // close modal
+    setNeedsProfile(false);
   };
 
   return (

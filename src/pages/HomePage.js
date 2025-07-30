@@ -4,6 +4,7 @@ import { collection, onSnapshot, doc, updateDoc, getDoc } from "firebase/firesto
 import { useAuth } from "../contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import "./HomePage.css";
+import PopupWidget from "../components/PopupWidget";
 
 function getHebrewDay(dateString) {
   const daysHebrew = [
@@ -32,11 +33,15 @@ function HomePage() {
   const [endHour, setEndHour] = useState("");
   const [address, setAddress] = useState("");
   const [bitNumber, setBitNumber] = useState("");
-  const [showThanks, setShowThanks] = useState(false);
-  const [showUpdated, setShowUpdated] = useState(false);
-  const [showCancelled, setShowCancelled] = useState(false);
   const [userClaims, setUserClaims] = useState({});
+  const [popupType, setPopupType] = useState("");
   const saleDateDay = saleDate ? getHebrewDay(saleDate) : "";
+
+  // Helper to show a popup for 2 seconds
+  const showPopup = (type) => {
+    setPopupType(type);
+    setTimeout(() => setPopupType(""), 2000);
+  };
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "breads"), snap => {
@@ -104,8 +109,7 @@ function HomePage() {
       }
     }));
 
-    setShowThanks(true);
-    setTimeout(() => setShowThanks(false), 3000);
+    showPopup("success");
   };
 
   const handleUpdateOrder = async () => {
@@ -156,8 +160,7 @@ function HomePage() {
       }
     }));
 
-    setShowUpdated(true);
-    setTimeout(() => setShowUpdated(false), 3000);
+    showPopup("update");
   };
 
   const handleCancelOrder = async () => {
@@ -171,8 +174,7 @@ function HomePage() {
       });
     }));
 
-    setShowCancelled(true);
-    setTimeout(() => setShowCancelled(false), 3000);
+    showPopup("cancel");
   };
 
   const userTotalCost = breads.reduce((sum, bread) => {
@@ -193,9 +195,9 @@ function HomePage() {
 
   return (
     <div className={`page-container ${dir === "rtl" ? "rtl" : ""}`}>
-      {showThanks    && <div className="thanks-popup">{t("thanksForOrder")}</div>}
-      {showUpdated   && <div className="updated-popup">{t("updatedOrder")}</div>}
-      {showCancelled && <div className="cancelled-popup">{t("cancelledOrder")}</div>}
+      {popupType && (
+        <PopupWidget type={popupType} />
+      )}
 
       {(saleDate || address) && (
         <div className={`delivery-details-wrapper ${dir === "rtl" ? "rtl" : ""}`}>
