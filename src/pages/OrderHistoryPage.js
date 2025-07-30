@@ -40,6 +40,20 @@ export default function OrderHistoryPage() {
     }));
   }
 
+  // סך הכנסות
+  function getTotalRevenue(sale) {
+    if (!sale || !sale.breads) return 0;
+    return sale.breads.reduce(
+      (sum, bread) =>
+        sum +
+        (bread.orders || []).reduce(
+          (s, o) => s + ((o.quantity || 0) * (bread.breadPrice || 0)),
+          0
+        ),
+      0
+    );
+  }
+
   return (
     <div className="order-history-page">
       {/* פופאפ הודעה */}
@@ -89,6 +103,7 @@ export default function OrderHistoryPage() {
                 <th>{t("description")}</th>
                 <th>{t("price")}</th>
                 <th>{t("name")}</th>
+                <th>{t("phone")}</th>
                 <th>{t("Pieces")}</th>
                 <th>{t("supplied")}</th>
                 <th>{t("paid")}</th>
@@ -107,6 +122,7 @@ export default function OrderHistoryPage() {
                       <td>{bread.breadDescription}</td>
                       <td>{bread.breadPrice}</td>
                       <td>{order.name}</td>
+                      <td>{order.phone}</td>
                       <td>{order.quantity}</td>
                       <td>{order.supplied ? t("Yes") : t("No")}</td>
                       <td>{order.paid ? t("Yes") : t("No")}</td>
@@ -133,6 +149,11 @@ export default function OrderHistoryPage() {
               ))}
             </tbody>
           </table>
+
+          {/* סך הכנסות */}
+          <div className="sale-total-revenue">
+            {t("totalRevenue")}: {getTotalRevenue(sale).toFixed(2)}
+          </div>
         </div>
       ))}
     </div>

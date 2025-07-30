@@ -5,7 +5,7 @@
   border-radius: 20px;
   box-shadow: 0 3px 12px rgba(0,0,0,0.07), 0 1.5px 6px rgba(0,0,0,0.04);
   padding: 32px 24px;
-  direction: rtl;  /* יישור ברירת מחדל לימין */
+  direction: rtl; 
   text-align: right;
 }
 
@@ -132,7 +132,6 @@
   flex: 1;
 }
 
-/* מובייל */
 @media (max-width: 600px) {
   .order-history-page {
     padding: 12px 2vw;
@@ -145,4 +144,12 @@
   .sale-block {
     padding: 12px 4px 4px 4px;
   }
+}
+
+.sale-total-revenue {
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-top: 12px;
+  color: #1976d2;
+  text-align: left;
 }
