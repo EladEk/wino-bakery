@@ -86,6 +86,7 @@
   border-bottom: none;
 }
 
+/* Results actions cell (no longer used for buttons, but keep for consistency) */
 .ordered-table .actions-cell {
   display: flex;
   gap: 6px;
@@ -107,6 +108,16 @@
 
 .ordered-table .actions-cell button:hover {
   background: #ddd;
+}
+
+/* Checkbox styling for supplied/paid */
+.check-cell {
+  text-align: center;
+}
+.check-cell input[type="checkbox"] {
+  transform: scale(1.1);
+  accent-color: #222;
+  cursor: pointer;
 }
 
 @media (max-width: 700px) {
@@ -144,4 +155,50 @@
 .ordered-table th,
 .ordered-table td {
   direction: rtl;
+}
+
+/* ----------- Customer search UI ----------- */
+.customer-search {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 8px 0 12px 0;
+}
+.customer-search.rtl { direction: rtl; }
+
+.search-input {
+  flex: 1;
+  min-width: 220px;
+  max-width: 420px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background: #fff;
+  font-size: 1em;
+}
+
+.clear-btn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #bbb;
+  background: #f7f7ee;
+  cursor: pointer;
+  font-size: 0.95em;
+  transition: background 0.13s;
+}
+.clear-btn:hover { background: #eaeaea; }
+
+.customer-results {
+  margin: 6px 0 16px 0;
+}
+.results-title {
+  margin: 0 0 6px 0;
+  font-size: 1.05em;
+  color: #333;
+}
+
+.customer-table .num-col {
+  text-align: right !important;
+  direction: ltr;
+  font-variant-numeric: tabular-nums;
 }

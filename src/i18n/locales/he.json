@@ -115,5 +115,17 @@
   "areYouSure": "האם אתה בטוח?",
   "foccia" : "פוקצ'ה",
   "breadsToOrder": "לחמים להזמנה",
-  "breadsIOrdered": "לחמים שהזמנתי"
+  "breadsIOrdered": "לחמים שהזמנתי",
+    "searchCustomerPlaceholder": "חיפוש לקוח (שם / טלפון / UID)",
+  "customerOrders": "הזמנות הלקוח",
+  "customer": "לקוח",
+  "phone": "טלפון",
+  "bread": "לחם",
+  "quantity": "כמות",
+  "price": "מחיר",
+  "subtotal": "סכום",
+  "supplied": "סופק",
+  "paid": "שולם",
+  "noResults": "לא נמצאו תוצאות",
+  "Clear": "נקה"
 }

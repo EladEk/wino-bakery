@@ -64,5 +64,17 @@
   "pickupAddress": "Pickup address",
   "transferNumberLabel": "Transfer number (Bit/PayBox)",
   "between": "between",
-   "paid": "Paid"
+   "paid": "Paid",
+     "searchCustomerPlaceholder": "Search customer (name / phone / UID)",
+  "customerOrders": "Customer orders",
+  "customer": "Customer",
+  "phone": "Phone",
+  "bread": "Bread",
+  "quantity": "Quantity",
+  "price": "Price",
+  "subtotal": "Subtotal",
+  "supplied": "Supplied",
+  "paid": "Paid",
+  "noResults": "No results",
+  "Clear": "Clear"
 }
