@@ -113,5 +113,7 @@
   "EditBread": "ערוך לחם",
   "BreadName": "שם לחם",
   "areYouSure": "האם אתה בטוח?",
-  "foccia" : "פוקצ'ה"
+  "foccia" : "פוקצ'ה",
+  "breadsToOrder": "לחמים להזמנה",
+  "breadsIOrdered": "לחמים שהזמנתי"
 }

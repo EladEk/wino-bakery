@@ -57,5 +57,12 @@
   "adminPanel": "Admin Panel",
   "ordered": "Ordered",
   "verificationCode": "Verification Code",
+    "breadsToOrder": "Breads to order",
+  "breadsIOrdered": "Breads I ordered",
+  "saleDate": "Sale date",
+  "between": "between",
+  "pickupAddress": "Pickup address",
+  "transferNumberLabel": "Transfer number (Bit/PayBox)",
+  "between": "between",
    "paid": "Paid"
 }
