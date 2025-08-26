@@ -7,7 +7,7 @@ import HomePage from "./pages/HomePage";
 import AdminPage from "./pages/AdminPage";
 import UserManagementPage from "./pages/UserManagementPage";
 import OrderSummary from "./pages/OrderSummary";
-import OrderHistoryPage from "./pages/OrderHistoryPage"; // ✅ חדש
+import OrderHistoryPage from "./pages/OrderHistoryPage"; 
 
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -15,7 +15,7 @@ import AdminRoute from "./components/AdminRoute";
 
 import Header from "./components/Header";
 import BackgroundSlider from "./components/BackgroundSlider";
-import NamePrompt from "./components/NamePrompt";
+import NamePrompt from "./components/HomePage/NamePrompt";
 
 function AppShell() {
   const { i18n } = useTranslation();
@@ -59,7 +59,6 @@ function AppShell() {
           }
         />
         <Route path="/orders" element={<OrderSummary />} />
-        {/* --- הוספנו את היסטוריית ההזמנות --- */}
         <Route
           path="/order-history"
           element={

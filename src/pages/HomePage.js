@@ -5,8 +5,8 @@ import { useAuth } from "../contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import "./HomePage.css";
 
-import PopupWidget from "../components/PopupWidget";
-import CustomerBreadsTable from "../components/CustomerBreadsTable";
+import PopupWidget from "../components/HomePage/PopupWidget";
+import CustomerBreadsTable from "../components/HomePage/CustomerBreadsTable";
 
 function getHebrewDay(dateString) {
   const daysHebrew = ["יום ראשון","יום שני","יום שלישי","יום רביעי","יום חמישי","יום שישי","שבת"];

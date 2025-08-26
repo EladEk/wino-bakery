@@ -14,21 +14,19 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
 
 import "./AdminPage.css";
 
-import BreadEditModal from "../components/BreadEditModal";
-import BreadList from "../components/BreadList";
-import EndSaleModal from "../components/EndSaleModal";
-
-import AdminDeliverySettings from "../components/AdminDeliverySettings";
-import AdminAddBreadForm from "../components/AdminAddBreadForm";
-import AdminCustomerSearch from "../components/AdminCustomerSearch";
+import BreadEditModal from "../components/AdminPage/BreadEditModal";
+import BreadList from "../components/AdminPage/BreadList";
+import EndSaleModal from "../components/AdminPage/EndSaleModal";
+import AdminDeliverySettings from "../components/AdminPage/AdminDeliverySettings";
+import AdminAddBreadForm from "../components/AdminPage/AdminAddBreadForm";
+import AdminCustomerSearch from "../components/AdminPage/AdminCustomerSearch";
+import AdminNavigation from "../components/AdminPage/AdminNavigation";
 
 export default function AdminPage() {
   const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
 
   // Breads + editing (for BreadList + modal)
   const [breads, setBreads] = useState([]);
@@ -49,7 +47,6 @@ export default function AdminPage() {
   const [popup, setPopup] = useState({ show: false, message: "", error: false });
 
   const dir = i18n.dir();
-  const labelMargin = dir === "rtl" ? { marginLeft: 8 } : { marginRight: 8 };
 
   // Live breads + config
   useEffect(() => {
@@ -105,7 +102,6 @@ export default function AdminPage() {
     });
     closeEditModal();
   };
-
   const handleModalDelete = async (breadToDelete) => {
     if (window.confirm(t("areYouSure"))) {
       await deleteDoc(doc(db, "breads", breadToDelete.id));
@@ -159,7 +155,7 @@ export default function AdminPage() {
     });
   };
 
-  // Mark supplied/paid (used by BreadList AND Customer search component)
+  // Mark supplied/paid
   const toggleSupplied = async (breadId, idx) => {
     const bread = breads.find((b) => b.id === breadId);
     const updated = (bread.claimedBy || []).map((c, i) =>
@@ -175,7 +171,7 @@ export default function AdminPage() {
     await updateDoc(doc(db, "breads", breadId), { claimedBy: updated });
   };
 
-  // End sale: archive to ordersHistory and clear claimedBy
+  // End sale: archive & clear
   async function handleEndSale() {
     setEndSaleLoading(true);
     try {
@@ -220,36 +216,11 @@ export default function AdminPage() {
     <div className="admin-container">
       {/* Toast */}
       {popup.show && (
-        <div
-          style={{
-            position: "fixed",
-            top: 30,
-            left: "50%",
-            transform: "translateX(-50%)",
-            background: popup.error ? "#dc2b2b" : "#31b931",
-            color: "#fff",
-            padding: "18px 40px",
-            borderRadius: 16,
-            fontSize: "1.1rem",
-            fontWeight: 600,
-            boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
-            zIndex: 9999,
-            display: "flex",
-            alignItems: "center",
-          }}
-        >
-          <span style={{ flex: 1 }}>{popup.message}</span>
+        <div className={`admin-toast ${popup.error ? "error" : ""}`}>
+          <span className="toast-message">{popup.message}</span>
           <button
+            className="toast-close"
             onClick={() => setPopup({ show: false, message: "", error: false })}
-            style={{
-              background: "transparent",
-              color: "#fff",
-              border: "none",
-              fontSize: "1.3rem",
-              cursor: "pointer",
-              marginLeft: 18,
-              fontWeight: 700,
-            }}
           >
             ×
           </button>
@@ -265,23 +236,23 @@ export default function AdminPage() {
         t={t}
       />
 
+      {/* Management buttons bar just under the header */}
+      <AdminNavigation />
+
       <h2>{t("Admin Dashboard")}</h2>
 
-      <div>
-        <button onClick={() => (window.location.href = "/users")}>{t("ManageUsers")}</button>
-        <button onClick={() => (window.location.href = "/orders")}>{t("OrderSummary")}</button>
-        <button onClick={() => navigate("/order-history")}>{t("OrderHistory")}</button>
+      {/* Centered red End Sale button */}
+      <div className="end-sale-bar">
         <button
           className="end-sale-btn"
           onClick={() => setShowEndSaleDialog(true)}
           disabled={endSaleLoading}
-          style={{ background: "#c00", color: "#fff", marginLeft: 8 }}
         >
           {t("EndSale")}
         </button>
       </div>
 
-      {/* Delivery settings (moved out) */}
+      {/* Delivery / pickup config */}
       <AdminDeliverySettings
         t={t}
         saleDate={saleDate}
@@ -297,12 +268,12 @@ export default function AdminPage() {
         onSave={saveSaleDate}
       />
 
-      {/* Add bread form (moved out) */}
+      {/* Add new bread */}
       <AdminAddBreadForm t={t} />
 
       <h3 className="bread-list">{t("breadList")}</h3>
 
-      {/* Customer search (moved out) */}
+      {/* Search customer orders */}
       <AdminCustomerSearch
         t={t}
         breads={breads}
@@ -311,7 +282,7 @@ export default function AdminPage() {
         togglePaid={togglePaid}
       />
 
-      {/* Main bread list (kept) */}
+      {/* Main breads + per-bread orders table */}
       <BreadList
         breads={breads}
         t={t}

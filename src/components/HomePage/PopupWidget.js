@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import ThanksImg from "../img/Thanks.png";
+import ThanksImg from "../../img/Thanks.png";
 import "./PopupWidget.css";
 
 export default function PopupWidget({ type = "success", message = "" }) {

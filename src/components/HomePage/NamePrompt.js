@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { doc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
-import { db } from "../firebase";
-import { useAuth } from "../contexts/AuthContext";
+import { db } from "../../firebase";
+import { useAuth } from "../../contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import "./NamePrompt.css";
 
