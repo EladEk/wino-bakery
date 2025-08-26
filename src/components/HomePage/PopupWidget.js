@@ -11,7 +11,6 @@ export default function PopupWidget({ type = "success", message = "" }) {
     content = (
       <div className="popup-thanks-content">
         <div className="popup-thanks-headline">{t("thanksHeadline")}</div>
-        <img src={ThanksImg} alt={t("thanksHeadline")} className="popup-thanks-image" />
       </div>
     );
   } else if (type === "update") {
