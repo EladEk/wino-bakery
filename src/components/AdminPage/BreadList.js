@@ -1,6 +1,6 @@
 import React from "react";
-import BreadTable from "../BreadTable";
-import OrdersTable from "../OrdersTable";
+import BreadTable from "./BreadTable";
+import OrdersTable from "./OrdersTable";
 
 export default function BreadList({
   breads,

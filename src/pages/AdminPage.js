@@ -1,73 +1,73 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { db } from "../firebase";
 import {
   collection,
   onSnapshot,
-  addDoc,
   doc,
   updateDoc,
   deleteDoc,
   getDoc,
   getDocs,
+  addDoc,
   setDoc,
   serverTimestamp,
-  writeBatch
+  writeBatch,
 } from "firebase/firestore";
 import { useTranslation } from "react-i18next";
+
+import "./AdminPage.css";
+
 import BreadEditModal from "../components/AdminPage/BreadEditModal";
 import BreadList from "../components/AdminPage/BreadList";
 import EndSaleModal from "../components/AdminPage/EndSaleModal";
+import AdminDeliverySettings from "../components/AdminPage/AdminDeliverySettings";
+import AdminAddBreadForm from "../components/AdminPage/AdminAddBreadForm";
+import AdminCustomerSearch from "../components/AdminPage/AdminCustomerSearch";
 import AdminNavigation from "../components/AdminPage/AdminNavigation";
-import "./AdminPage.css";
-import { useNavigate } from "react-router-dom";
-
-const HOUR_OPTIONS = Array.from({ length: 15 }, (_, i) =>
-  String(i + 7).padStart(2, '0') + ':00'
-);
 
 export default function AdminPage() {
+  const { t, i18n } = useTranslation();
+
+  // Breads + editing (for BreadList + modal)
   const [breads, setBreads] = useState([]);
-  const [breadName, setBreadName] = useState("");
-  const [breadPieces, setBreadPieces] = useState(1);
-  const [breadDescription, setBreadDescription] = useState("");
-  const [breadPrice, setBreadPrice] = useState("");
-  const [breadShow, setBreadShow] = useState(true);
-  const [breadIsFocaccia, setBreadIsFocaccia] = useState(false);
   const [editingOrder, setEditingOrder] = useState({});
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalBread, setModalBread] = useState(null);
+
+  // Sale/delivery config
   const [saleDate, setSaleDate] = useState("");
   const [startHour, setStartHour] = useState("");
   const [endHour, setEndHour] = useState("");
   const [address, setAddress] = useState("");
   const [bitNumber, setBitNumber] = useState("");
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalBread, setModalBread] = useState(null);
 
-  // End-sale modal & popup state
+  // End-sale modal & toast
   const [showEndSaleDialog, setShowEndSaleDialog] = useState(false);
   const [endSaleLoading, setEndSaleLoading] = useState(false);
   const [popup, setPopup] = useState({ show: false, message: "", error: false });
 
-  const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
+  const dir = i18n.dir();
 
+  // Live breads + config
   useEffect(() => {
-    const breadsUnsub = onSnapshot(collection(db, "breads"), (snapshot) => {
+    const unsub = onSnapshot(collection(db, "breads"), (snapshot) => {
       setBreads(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
     const saleDateRef = doc(db, "config", "saleDate");
-    getDoc(saleDateRef).then(docSnap => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        setSaleDate(data.value || "");
-        setStartHour(data.startHour || "");
-        setEndHour(data.endHour || "");
-        setAddress(data.address || "");
-        setBitNumber(data.bitNumber || "");
+    getDoc(saleDateRef).then((snap) => {
+      if (snap.exists()) {
+        const d = snap.data();
+        setSaleDate(d.value || "");
+        setStartHour(d.startHour || "");
+        setEndHour(d.endHour || "");
+        setAddress(d.address || "");
+        setBitNumber(d.bitNumber || "");
       }
     });
-    return () => breadsUnsub();
+    return () => unsub();
   }, []);
 
+  // Save sale/delivery config
   const saveSaleDate = async () => {
     const saleDateRef = doc(db, "config", "saleDate");
     await setDoc(saleDateRef, {
@@ -80,27 +80,7 @@ export default function AdminPage() {
     alert(t("updated"));
   };
 
-  const handleAddBread = async (e) => {
-    e.preventDefault();
-    if (!breadName || breadPieces < 1 || breadPrice === "") return;
-    await addDoc(collection(db, "breads"), {
-      name: breadName,
-      availablePieces: Number(breadPieces),
-      description: breadDescription,
-      price: Number(breadPrice),
-      claimedBy: [],
-      show: breadShow,
-      isFocaccia: breadIsFocaccia,
-    });
-    setBreadName("");
-    setBreadPieces(1);
-    setBreadDescription("");
-    setBreadPrice("");
-    setBreadShow(true);
-    setBreadIsFocaccia(false);
-  };
-
-  // Bread edit modal handlers
+  // Modal open/close
   const openEditModal = (bread) => {
     setModalBread(bread);
     setModalOpen(true);
@@ -110,6 +90,7 @@ export default function AdminPage() {
     setModalBread(null);
   };
 
+  // Save & delete bread (from modal)
   const handleModalSave = async (updatedBread) => {
     await updateDoc(doc(db, "breads", updatedBread.id), {
       name: updatedBread.name,
@@ -121,7 +102,6 @@ export default function AdminPage() {
     });
     closeEditModal();
   };
-
   const handleModalDelete = async (breadToDelete) => {
     if (window.confirm(t("areYouSure"))) {
       await deleteDoc(doc(db, "breads", breadToDelete.id));
@@ -129,55 +109,16 @@ export default function AdminPage() {
     }
   };
 
+  // Toggle show/hide bread
   const handleToggleShow = async (breadId, currentShow) => {
-    await updateDoc(doc(db, "breads", breadId), {
-      show: !currentShow
-    });
+    await updateDoc(doc(db, "breads", breadId), { show: !currentShow });
   };
 
-  // Orders logic (same as before)
+  // Order editing inside BreadList
   const startEditingOrder = (breadId, idx, claim) => {
     setEditingOrder({ [`${breadId}_${idx}`]: { quantity: claim.quantity } });
   };
-
-  const saveOrderEdit = async (breadId, idx, claim) => {
-    const bread = breads.find((b) => b.id === breadId);
-    const key = `${breadId}_${idx}`;
-    const newVal = editingOrder[key];
-    const newQty = Number(newVal.quantity);
-
-    if (!newQty || newQty < 1) {
-      alert(t("invalidQuantity"));
-      return;
-    }
-
-    const otherClaimsTotal = (bread.claimedBy || []).reduce((sum, c, i) => {
-      if (i !== idx) return sum + (c.quantity || 0);
-      return sum;
-    }, 0);
-
-    const maxAllowed = bread.availablePieces + (claim.quantity || 0);
-    if (newQty > maxAllowed - otherClaimsTotal) {
-      alert(t("notEnoughAvailable"));
-      return;
-    }
-
-    const diff = newQty - claim.quantity;
-    const updated = (bread.claimedBy || []).map((c, i) =>
-      i === idx ? { ...c, quantity: newQty } : c
-    );
-
-    await updateDoc(doc(db, "breads", breadId), {
-      claimedBy: updated,
-      availablePieces: bread.availablePieces - diff,
-    });
-    setEditingOrder({});
-  };
-
-  const cancelOrderEdit = () => {
-    setEditingOrder({});
-  };
-
+  const cancelOrderEdit = () => setEditingOrder({});
   const handleOrderInputChange = (breadId, idx, field, value) => {
     if (field !== "quantity") return;
     const key = `${breadId}_${idx}`;
@@ -186,7 +127,24 @@ export default function AdminPage() {
       [key]: { ...prev[key], [field]: value },
     }));
   };
-
+  const saveOrderEdit = async (breadId, idx, claim) => {
+    const bread = breads.find((b) => b.id === breadId);
+    const key = `${breadId}_${idx}`;
+    const newQty = Number(editingOrder[key]?.quantity);
+    if (!newQty || newQty < 1) {
+      alert(t("invalidQuantity"));
+      return;
+    }
+    const diff = newQty - claim.quantity;
+    const updated = (bread.claimedBy || []).map((c, i) =>
+      i === idx ? { ...c, quantity: newQty } : c
+    );
+    await updateDoc(doc(db, "breads", breadId), {
+      claimedBy: updated,
+      availablePieces: bread.availablePieces - diff,
+    });
+    setEditingOrder({});
+  };
   const deleteOrder = async (breadId, idx) => {
     const bread = breads.find((b) => b.id === breadId);
     const claimToDelete = bread.claimedBy[idx];
@@ -197,130 +155,79 @@ export default function AdminPage() {
     });
   };
 
+  // Mark supplied/paid
   const toggleSupplied = async (breadId, idx) => {
     const bread = breads.find((b) => b.id === breadId);
     const updated = (bread.claimedBy || []).map((c, i) =>
       i === idx ? { ...c, supplied: !c.supplied } : c
     );
-    await updateDoc(doc(db, "breads", breadId), {
-      claimedBy: updated,
-    });
+    await updateDoc(doc(db, "breads", breadId), { claimedBy: updated });
   };
-
   const togglePaid = async (breadId, idx) => {
     const bread = breads.find((b) => b.id === breadId);
     const updated = (bread.claimedBy || []).map((c, i) =>
       i === idx ? { ...c, paid: !c.paid } : c
     );
-    await updateDoc(doc(db, "breads", breadId), {
-      claimedBy: updated,
-    });
+    await updateDoc(doc(db, "breads", breadId), { claimedBy: updated });
   };
 
-  const totalRevenue = breads.reduce(
-    (sum, bread) =>
-      sum +
-      (bread.claimedBy || []).reduce(
-        (s, c) => s + (c.quantity || 0) * (bread.price || 0),
-        0
-      ),
-    0
-  );
-
-  // End Sale Logic (with popup)
+  // End sale: archive & clear
   async function handleEndSale() {
     setEndSaleLoading(true);
     try {
       const breadsSnap = await getDocs(collection(db, "breads"));
-      const allBreads = breadsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-      const orderHistoryDoc = {
+      const allBreads = breadsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      await addDoc(collection(db, "ordersHistory"), {
         saleDate: serverTimestamp(),
-        breads: allBreads.map(bread => ({
+        breads: allBreads.map((bread) => ({
           breadId: bread.id,
           breadName: bread.name,
           breadDescription: bread.description,
           breadPrice: bread.price,
-          orders: (bread.claimedBy || []).map(order => ({
-            ...order
-          }))
-        }))
-      };
-      await addDoc(collection(db, "ordersHistory"), orderHistoryDoc);
-
-      const batch = writeBatch(db);
-      breadsSnap.docs.forEach(docRef => {
-        batch.update(docRef.ref, { claimedBy: [] });
+          orders: (bread.claimedBy || []).map((o) => ({ ...o })),
+        })),
       });
+      const batch = writeBatch(db);
+      breadsSnap.docs.forEach((d) => batch.update(d.ref, { claimedBy: [] }));
       await batch.commit();
 
       setShowEndSaleDialog(false);
       setPopup({ show: true, message: t("saleEndedSuccessfully"), error: false });
     } catch (err) {
-      setPopup({ show: true, message: t("saleEndError"), error: true });
       console.error(err);
+      setPopup({ show: true, message: t("saleEndError"), error: true });
     }
     setEndSaleLoading(false);
-
-    // Auto close popup after 2.5s
     setTimeout(() => setPopup({ show: false, message: "", error: false }), 2500);
   }
 
-  // RTL/LTR
-  const dir = i18n.dir();
-  const labelMargin = dir === "rtl" ? { marginLeft: 8 } : { marginRight: 8 };
+  // Revenue
+  const totalRevenue = useMemo(
+    () =>
+      breads.reduce(
+        (sum, b) =>
+          sum + (b.claimedBy || []).reduce((s, c) => s + (c.quantity || 0) * (b.price || 0), 0),
+        0
+      ),
+    [breads]
+  );
 
   return (
     <div className="admin-container">
-      <BreadEditModal
-        open={modalOpen}
-        bread={modalBread}
-        t={t}
-        onSave={handleModalSave}
-        onDelete={handleModalDelete}
-        onCancel={closeEditModal}
-      />
-
-      {/* הודעת popup */}
+      {/* Toast */}
       {popup.show && (
-        <div
-          style={{
-            position: "fixed",
-            top: "30px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            background: popup.error ? "#dc2b2b" : "#31b931",
-            color: "#fff",
-            padding: "18px 40px",
-            borderRadius: "16px",
-            fontSize: "1.1rem",
-            fontWeight: 600,
-            boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
-            zIndex: 9999,
-            display: "flex",
-            alignItems: "center"
-          }}
-        >
-          <span style={{ flex: 1 }}>{popup.message}</span>
+        <div className={`admin-toast ${popup.error ? "error" : ""}`}>
+          <span className="toast-message">{popup.message}</span>
           <button
+            className="toast-close"
             onClick={() => setPopup({ show: false, message: "", error: false })}
-            style={{
-              background: "transparent",
-              color: "#fff",
-              border: "none",
-              fontSize: "1.3rem",
-              cursor: "pointer",
-              marginLeft: 18,
-              fontWeight: 700
-            }}
-            aria-label="close"
           >
             ×
           </button>
         </div>
       )}
 
-      {/* דיאלוג סיום מכירה */}
+      {/* End-sale dialog */}
       <EndSaleModal
         open={showEndSaleDialog}
         loading={endSaleLoading}
@@ -329,163 +236,53 @@ export default function AdminPage() {
         t={t}
       />
 
-      <br/>
+      {/* Management buttons bar just under the header */}
       <AdminNavigation />
 
       <h2>{t("Admin Dashboard")}</h2>
-      <div>
-        <div className="end-sale-bar">
+
+      {/* Centered red End Sale button */}
+      <div className="end-sale-bar">
         <button
           className="end-sale-btn"
           onClick={() => setShowEndSaleDialog(true)}
           disabled={endSaleLoading}
-          style={{ background: "#c00", color: "#fff", marginLeft: 8 }}
         >
           {t("EndSale")}
         </button>
       </div>
-      </div>
 
-      <div className="delivery-settings">
-        <div className="delivery-fields">
-          <label>
-            {t("saleDate")}:{" "}
-            <input
-              type="date"
-              value={saleDate}
-              onChange={e => setSaleDate(e.target.value)}
-              className="date-input"
-            />
-          </label>
-          <br/>
-          <label>
-            {t("between")}:{" "}
-            <select
-              value={startHour}
-              onChange={e => setStartHour(e.target.value)}
-              className="hour-select"
-            >
-              <option value="">{t("startHour")}</option>
-              {HOUR_OPTIONS.map(h => (
-                <option key={h} value={h}>{h}</option>
-              ))}
-            </select>
-            -
-            <select
-              value={endHour}
-              onChange={e => setEndHour(e.target.value)}
-              className="hour-select"
-            >
-              <option value="">{t("endHour")}</option>
-              {HOUR_OPTIONS.map(h => (
-                <option key={h} value={h}>{h}</option>
-              ))}
-            </select>
-          </label>
-        </div>
-        <div className="address-field">
-          <label>
-            {t("address")}:{" "}
-            <input
-              type="text"
-              value={address}
-              onChange={e => setAddress(e.target.value)}
-              className="address-input"
-              placeholder={t("pickupAddressInput")}
-            />
-          </label>
-        </div>
-        <div className="bit-field">
-          <label>
-            {t("phone")}:{" "}
-            <input
-              type="text"
-              value={bitNumber}
-              onChange={e => setBitNumber(e.target.value)}
-              className="address-input"
-              placeholder={t("bitNumberPlaceholder")}
-            />
-          </label>
-        </div>
-        <button
-          onClick={saveSaleDate}
-          disabled={!saleDate || !startHour || !endHour}
-          className="save-btn"
-        >
-          {t("Save")}
-        </button>
-      </div>
-      <h3 className="add-bread">{t("Add Bread")}</h3>
-      <form
-        onSubmit={handleAddBread}
-        className="bread-form"
-      >
-        <label>
-          {t("Name")}:{" "}
-          <input
-            type="text"
-            value={breadName}
-            onChange={(e) => setBreadName(e.target.value)}
-            required
-            className="bread-input"
-          />
-        </label>
-        <label>
-          {t("Pieces")}:{" "}
-          <input
-            type="number"
-            value={breadPieces}
-            min={1}
-            onChange={(e) => setBreadPieces(e.target.value)}
-            required
-            className="bread-input"
-          />
-        </label>
-        <label>
-          {t("description")}:{" "}
-          <textarea
-            value={breadDescription}
-            onChange={(e) => setBreadDescription(e.target.value)}
-            className="bread-input"
-            rows={3}
-            style={{ resize: "vertical" }}
-          />
-        </label>
-        <label>
-          {t("price")}:{" "}
-          <input
-            type="number"
-            value={breadPrice}
-            min={0}
-            step="0.01"
-            onChange={(e) => setBreadPrice(e.target.value)}
-            required
-            className="bread-input"
-          />
-        </label>
-        <label style={{ display: "flex", alignItems: "center", ...labelMargin }}>
-          <input
-            type="checkbox"
-            checked={breadShow}
-            onChange={e => setBreadShow(e.target.checked)}
-            style={{ accentColor: "#222", ...labelMargin }}
-          />
-          {t("show")}
-        </label>
-        <label style={{ display: "flex", alignItems: "center", ...labelMargin }}>
-          <input
-            type="checkbox"
-            checked={breadIsFocaccia}
-            onChange={e => setBreadIsFocaccia(e.target.checked)}
-            style={{ accentColor: "#222", ...labelMargin }}
-          />
-          {t("foccia")}
-        </label>
-        <button type="submit" className="add-bread-btn">
-          {t("Add Bread")}
-        </button>
-      </form>
+      {/* Delivery / pickup config */}
+      <AdminDeliverySettings
+        t={t}
+        saleDate={saleDate}
+        setSaleDate={setSaleDate}
+        startHour={startHour}
+        setStartHour={setStartHour}
+        endHour={endHour}
+        setEndHour={setEndHour}
+        address={address}
+        setAddress={setAddress}
+        bitNumber={bitNumber}
+        setBitNumber={setBitNumber}
+        onSave={saveSaleDate}
+      />
+
+      {/* Add new bread */}
+      <AdminAddBreadForm t={t} />
+
       <h3 className="bread-list">{t("breadList")}</h3>
+
+      {/* Search customer orders */}
+      <AdminCustomerSearch
+        t={t}
+        breads={breads}
+        dir={dir}
+        toggleSupplied={toggleSupplied}
+        togglePaid={togglePaid}
+      />
+
+      {/* Main breads + per-bread orders table */}
       <BreadList
         breads={breads}
         t={t}
@@ -500,9 +297,20 @@ export default function AdminPage() {
         toggleSupplied={toggleSupplied}
         togglePaid={togglePaid}
       />
+
       <div className="total-revenue">
         {t("totalRevenue")}: {totalRevenue.toFixed(2)}
       </div>
+
+      {/* Edit bread modal */}
+      <BreadEditModal
+        open={modalOpen}
+        bread={modalBread}
+        t={t}
+        onSave={handleModalSave}
+        onDelete={handleModalDelete}
+        onCancel={closeEditModal}
+      />
     </div>
   );
 }

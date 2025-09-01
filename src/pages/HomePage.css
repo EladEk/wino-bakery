@@ -14,6 +14,12 @@
   max-width: 90%;
   text-align: center;
 }
+/* Slightly smaller for subsection headings (e.g., "Breads I ordered") */
+.bread-heading.sub {
+  font-size: 1.25em;
+  margin-top: 20px;
+}
+
 .delivery-details-wrapper {
   display: flex;
   justify-content: center;
@@ -40,6 +46,7 @@
 .delivery-card .icon { font-size: 1.4em; }
 .delivery-card.clickable { cursor: pointer; }
 .delivery-card.clickable:hover { background-color: #f5f5f5; }
+
 .order-input {
   width: 40px;
   min-width: 0;
@@ -53,6 +60,7 @@
   display: block;
   outline: none;
 }
+
 .qty-btn {
   font-family: inherit;
   padding: 0;
@@ -69,17 +77,20 @@
 }
 .qty-btn:hover:not(:disabled) { background: #ddd; }
 .qty-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
 .user-total-cost {
   font-size: 1.2em;
   font-weight: bold;
   text-align: center;
   margin-top: 24px;
 }
+
 .table-responsive {
   overflow-x: auto;
   margin-top: 20px;
   margin-bottom: 0;
 }
+
 .cream-table {
   width: 100%;
   border-collapse: collapse;
@@ -101,17 +112,23 @@
   padding-left: 1px;
   padding-right: 1px;
 }
+.cream-table td:first-child { padding-right: 12px; }
+.cream-table th:first-child { padding-right: 12px; }
+
 .num-col {
   text-align: right !important;
   direction: ltr;
   font-variant-numeric: tabular-nums;
 }
+
 .cream-table tbody tr,
 .cream-table tbody td {
   background: rgba(255,255,255,0.65) !important;
 }
 .cream-table th { background: #f3e9dd; font-weight: 600; }
+
 .rtl .home-table { direction: rtl; }
+
 .action-buttons-wrapper {
   max-width: 360px;
   margin: 0 auto 0 auto;
@@ -119,6 +136,7 @@
   flex-direction: column;
   gap: 12px;
 }
+
 .order-btn,
 .updt-btn,
 .cancel-btn {
@@ -134,6 +152,7 @@
   transition: background 0.18s, color 0.18s;
   box-sizing: border-box;
 }
+
 .order-btn {
   background: #ffcc00;
   color: #222;
@@ -152,20 +171,17 @@
   color: #fff;
   cursor: not-allowed;
 }
-.updt-btn {
-  background: #1976d2;
-  color: #fff;
-}
+
+.updt-btn { background: #1976d2; color: #fff; }
 .updt-btn:disabled {
   background: #b0b0b0;
   color: #fff;
   cursor: not-allowed;
 }
-.cancel-btn {
-  background: #f44336;
-  color: #fff;
-}
+
+.cancel-btn { background: #f44336; color: #fff; }
 .cancel-btn:hover { background: #d32f2f; }
+
 .bit-pay-btn {
   font-family: inherit;
   padding: 4px 10px;
@@ -175,6 +191,7 @@
   font-size: 1em;
   transition: background-color 0.18s;
 }
+
 .order-quantity-row {
   display: flex;
   flex-direction: row;
@@ -184,6 +201,7 @@
   justify-content: center;
   flex-wrap: nowrap;
 }
+
 .thanks-popup,
 .updated-popup,
 .cancelled-popup {
@@ -201,6 +219,7 @@
   opacity: .97;
   transition: opacity .3s;
 }
+
 .transfer-number-info {
   text-align: center;
   margin-top: 16px;
@@ -210,15 +229,14 @@
   border-radius: 10px;
   direction: ltr;
 }
+
 @media (max-width: 480px) {
   .cream-table th,
   .cream-table td {
     padding: 1px 0px;
     font-size: 0.93em;
   }
-  .order-quantity-row {
-    min-width: 68px;
-  }
+  .order-quantity-row { min-width: 68px; }
   .qty-btn {
     width: 24px;
     min-width: 20px;
@@ -236,10 +254,6 @@
     margin-bottom: 0;
   }
 }
-.cream-table td:first-child {
-  padding-right: 12px;
-}
-.cream-table th:first-child {
-  padding-right: 12px;
-}
 
+/* --- small extras for the two-section layout --- */
+.sections-wrapper { display: flex; flex-direction: column; gap: 8px; }

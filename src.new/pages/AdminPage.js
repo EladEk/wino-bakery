@@ -24,6 +24,7 @@ import AdminDeliverySettings from "../components/AdminPage/AdminDeliverySettings
 import AdminAddBreadForm from "../components/AdminPage/AdminAddBreadForm";
 import AdminCustomerSearch from "../components/AdminPage/AdminCustomerSearch";
 import AdminNavigation from "../components/AdminPage/AdminNavigation";
+import AdminAddBreadModal from "../components/AdminPage/AdminAddBreadModal";
 
 export default function AdminPage() {
   const { t, i18n } = useTranslation();
@@ -45,6 +46,9 @@ export default function AdminPage() {
   const [showEndSaleDialog, setShowEndSaleDialog] = useState(false);
   const [endSaleLoading, setEndSaleLoading] = useState(false);
   const [popup, setPopup] = useState({ show: false, message: "", error: false });
+
+  // NEW: Add-bread modal
+  const [showAddModal, setShowAddModal] = useState(false);
 
   const dir = i18n.dir();
 
@@ -102,6 +106,7 @@ export default function AdminPage() {
     });
     closeEditModal();
   };
+
   const handleModalDelete = async (breadToDelete) => {
     if (window.confirm(t("areYouSure"))) {
       await deleteDoc(doc(db, "breads", breadToDelete.id));
@@ -155,7 +160,7 @@ export default function AdminPage() {
     });
   };
 
-  // Mark supplied/paid
+  // Mark supplied/paid (used by BreadList AND Customer search component)
   const toggleSupplied = async (breadId, idx) => {
     const bread = breads.find((b) => b.id === breadId);
     const updated = (bread.claimedBy || []).map((c, i) =>
@@ -171,7 +176,7 @@ export default function AdminPage() {
     await updateDoc(doc(db, "breads", breadId), { claimedBy: updated });
   };
 
-  // End sale: archive & clear
+  // End sale: archive to ordersHistory and clear claimedBy
   async function handleEndSale() {
     setEndSaleLoading(true);
     try {
@@ -206,7 +211,11 @@ export default function AdminPage() {
     () =>
       breads.reduce(
         (sum, b) =>
-          sum + (b.claimedBy || []).reduce((s, c) => s + (c.quantity || 0) * (b.price || 0), 0),
+          sum +
+          (b.claimedBy || []).reduce(
+            (s, c) => s + (c.quantity || 0) * (b.price || 0),
+            0
+          ),
         0
       ),
     [breads]
@@ -268,12 +277,23 @@ export default function AdminPage() {
         onSave={saveSaleDate}
       />
 
-      {/* Add new bread */}
-      <AdminAddBreadForm t={t} />
+      {/* Open Add Bread modal button */}
+      <div style={{ display: "flex", justifyContent: "center", margin: "10px 0 16px" }}>
+        <button className="add-bread" onClick={() => setShowAddModal(true)}>
+          {t("addBread") || "Add Bread"}
+        </button>
+      </div>
 
-      <h3 className="bread-list">{t("breadList")}</h3>
+      {/* Add Bread Modal */}
+      <AdminAddBreadModal
+        open={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        t={t}
+      >
+        <AdminAddBreadForm t={t} />
+      </AdminAddBreadModal>
 
-      {/* Search customer orders */}
+      {/* --- Customer Search FIRST --- */}
       <AdminCustomerSearch
         t={t}
         breads={breads}
@@ -281,6 +301,9 @@ export default function AdminPage() {
         toggleSupplied={toggleSupplied}
         togglePaid={togglePaid}
       />
+
+      {/* Now the bread list title BELOW the search */}
+      <h3 className="bread-list">{t("breadList")}</h3>
 
       {/* Main breads + per-bread orders table */}
       <BreadList

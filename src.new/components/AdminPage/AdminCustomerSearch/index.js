@@ -1,6 +1,12 @@
 import React, { useMemo, useState } from "react";
 import "./styles.css";
 
+/**
+ * Customer search for Admin page.
+ * - Search by name/phone/userId (case-insensitive)
+ * - Shows per-bread line items for matching customer(s)
+ * - Supports markSupplied / markPaid toggles (checkboxes)
+ */
 export default function AdminCustomerSearch({ t, breads, dir, toggleSupplied, togglePaid }) {
   const [q, setQ] = useState("");
 
@@ -10,7 +16,7 @@ export default function AdminCustomerSearch({ t, breads, dir, toggleSupplied, to
     const rows = [];
     for (const b of breads) {
       (b.claimedBy || []).forEach((c, idx) => {
-        const hay = `${c.name||""} ${c.phone||""} ${c.userId||""}`.toLowerCase();
+        const hay = `${c.name || ""} ${c.phone || ""} ${c.userId || ""}`.toLowerCase();
         if (hay.includes(term)) {
           rows.push({ bread: b, claim: c, idx });
         }
@@ -20,7 +26,7 @@ export default function AdminCustomerSearch({ t, breads, dir, toggleSupplied, to
   }, [q, breads]);
 
   return (
-    <div>
+    <section>
       <div className={`customer-search ${dir === "rtl" ? "rtl" : ""}`}>
         <input
           className="search-input"
@@ -29,7 +35,9 @@ export default function AdminCustomerSearch({ t, breads, dir, toggleSupplied, to
           onChange={(e) => setQ(e.target.value)}
         />
         {!!q && (
-          <button className="clear-btn" onClick={() => setQ("")}>{t("clear") || "Clear"}</button>
+          <button className="clear-btn" onClick={() => setQ("")}>
+            {t("clear") || "Clear"}
+          </button>
         )}
       </div>
 
@@ -38,6 +46,7 @@ export default function AdminCustomerSearch({ t, breads, dir, toggleSupplied, to
           <div className="results-title">
             {results.length ? t("results") : t("noResultsFound")}
           </div>
+
           {results.length > 0 && (
             <div className="table-responsive customer-table">
               <table className="ordered-table">
@@ -61,12 +70,22 @@ export default function AdminCustomerSearch({ t, breads, dir, toggleSupplied, to
                       <td>{claim.phone || ""}</td>
                       <td className="num-col">{claim.quantity}</td>
                       <td className="num-col">{bread.price?.toFixed(2) || ""}</td>
-                      <td className="num-col">{((bread.price||0) * (claim.quantity||0)).toFixed(2)}</td>
-                      <td className="check-cell">
-                        <input type="checkbox" checked={!!claim.supplied} onChange={() => toggleSupplied(bread.id, idx)} />
+                      <td className="num-col">
+                        {((bread.price || 0) * (claim.quantity || 0)).toFixed(2)}
                       </td>
                       <td className="check-cell">
-                        <input type="checkbox" checked={!!claim.paid} onChange={() => togglePaid(bread.id, idx)} />
+                        <input
+                          type="checkbox"
+                          checked={!!claim.supplied}
+                          onChange={() => toggleSupplied(bread.id, idx)}
+                        />
+                      </td>
+                      <td className="check-cell">
+                        <input
+                          type="checkbox"
+                          checked={!!claim.paid}
+                          onChange={() => togglePaid(bread.id, idx)}
+                        />
                       </td>
                     </tr>
                   ))}
@@ -76,6 +95,6 @@ export default function AdminCustomerSearch({ t, breads, dir, toggleSupplied, to
           )}
         </div>
       )}
-    </div>
+    </section>
   );
 }

@@ -86,6 +86,7 @@
   border-bottom: none;
 }
 
+/* Results actions cell (no longer used for buttons, but keep for consistency) */
 .ordered-table .actions-cell {
   display: flex;
   gap: 6px;
@@ -107,6 +108,16 @@
 
 .ordered-table .actions-cell button:hover {
   background: #ddd;
+}
+
+/* Checkbox styling for supplied/paid */
+.check-cell {
+  text-align: center;
+}
+.check-cell input[type="checkbox"] {
+  transform: scale(1.1);
+  accent-color: #222;
+  cursor: pointer;
 }
 
 @media (max-width: 700px) {
@@ -146,47 +157,65 @@
   direction: rtl;
 }
 
-
-/* ===== Toast (class-based) ===== */
-.admin-toast {
-  position: fixed;
-  top: 30px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #31b931; /* success */
-  color: #fff;
-  padding: 18px 40px;
-  border-radius: 16px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-  z-index: 9999;
+/* ----------- Customer search UI ----------- */
+.customer-search {
   display: flex;
+  gap: 8px;
   align-items: center;
+  margin: 8px 0 12px 0;
 }
-.admin-toast.error { background: #dc2b2b; }
-.toast-message { flex: 1; }
-.toast-close {
-  background: transparent;
-  color: #fff;
-  border: none;
-  font-size: 1.3rem;
-  cursor: pointer;
-  margin-inline-start: 18px;
-  font-weight: 700;
+.customer-search.rtl { direction: rtl; }
+
+.search-input {
+  flex: 1;
+  min-width: 220px;
+  max-width: 420px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background: #fff;
+  font-size: 1em;
 }
 
-/* ===== Centered red End Sale button ===== */
+.clear-btn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #bbb;
+  background: #f7f7ee;
+  cursor: pointer;
+  font-size: 0.95em;
+  transition: background 0.13s;
+}
+.clear-btn:hover { background: #eaeaea; }
+
+.customer-results {
+  margin: 6px 0 16px 0;
+}
+.results-title {
+  margin: 0 0 6px 0;
+  font-size: 1.05em;
+  color: #333;
+}
+
+.customer-table .num-col {
+  text-align: right !important;
+  direction: ltr;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Center the End Sale button bar */
 .end-sale-bar {
   display: flex;
   justify-content: center;
   margin: 10px 0 16px;
 }
+
+/* Prominent red End Sale button */
 .end-sale-btn {
-  background: #d32f2f;
+  background: #d32f2f;        /* red */
   color: #fff;
   border: none;
-  border-radius: 999px; /* pill */
+  border-radius: 999px;        /* pill shape */
   padding: 10px 18px;
   font-weight: 700;
   font-size: 1rem;
