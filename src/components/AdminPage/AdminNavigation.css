@@ -1,19 +1,14 @@
-/* Bar that sits below the header */
 .admin-navigation {
   background: #F6E5D3;
   border-bottom: 1px solid #e8d7c4;
   padding: 8px 12px;
 }
-
-/* Row of buttons */
 .admin-navigation__inner {
   display: flex;
-  gap: 6px;                 /* reduced space between buttons (was 8px) */
+  gap: 6px;
   justify-content: center;
-  flex-wrap: wrap;          /* desktop/tablet can wrap nicely */
+  flex-wrap: wrap;
 }
-
-/* Button look aligned with header buttons */
 .admin-nav-link {
   border: 1px solid #bbb;
   background: #fff;
@@ -25,32 +20,22 @@
   white-space: nowrap;
 }
 .admin-nav-link:hover { background: #f0f0f0; }
-
-/* Active page */
 .admin-nav-link.active {
   background: #fff6e0;
   border-color: #a78b66;
   font-weight: 600;
 }
-
-/* --- Mobile: force single row + smaller spacing --- */
 @media (max-width: 560px) {
-  .admin-navigation {
-    padding: 6px 8px;
-  }
-
+  .admin-navigation { padding: 6px 8px; }
   .admin-navigation__inner {
-    justify-content: flex-start; /* start-aligned for scroll */
-    flex-wrap: nowrap;           /* one line only */
-    overflow-x: auto;            /* allow sideways scroll if needed */
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    gap: 4px;                    /* tighter gap on mobile */
+    gap: 4px;
   }
-
-  /* optional: hide scrollbar visuals */
   .admin-navigation__inner::-webkit-scrollbar { height: 0; }
   .admin-navigation__inner { scrollbar-width: none; }
-
   .admin-nav-link {
     padding: 5px 8px;
     font-size: 0.9rem;

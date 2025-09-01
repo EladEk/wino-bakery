@@ -1,0 +1,78 @@
+.app-header {
+  position: relative;
+  height: 50px;
+  background: #F6E5D3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 20px;
+  box-sizing: border-box;
+  z-index: 100;
+}
+
+/* Center logo absolutely centered */
+.app-logo {
+  position: absolute;
+  left: 47%;
+  top: 35%;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+}
+
+/* Left buttons container: logout for admins */
+.left-buttons {
+  position: absolute;
+  left: 16px;
+  display: flex;
+  align-items: center;
+  z-index: 101;
+}
+
+/* Right buttons container: admin panel, back home, logout for non-admins */
+.right-buttons {
+  position: absolute;
+  right: 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  z-index: 101;
+}
+
+.logo-img {
+  height: 50px;
+  margin-top: 5px;
+  width: auto;
+  display: block;
+}
+
+/* Optional button styles */
+button {
+  padding: 6px 12px;
+  cursor: pointer;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+button:hover {
+  background-color: #e0e0e0;
+}
+
+.install-btn {
+  background: #fcb900;
+  color: #222;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 18px;
+  font-weight: bold;
+  font-size: 1em;
+  cursor: pointer;
+  margin-right: 8px;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.install-btn:hover {
+  background: #ffdb74;
+}

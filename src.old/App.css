@@ -1,0 +1,220 @@
+/* src/App.css */
+
+/* ========== Base Styles ========== */
+@font-face {
+  font-family: 'GveretLevin';
+src: url('./assets/fonts/font.ttf') format('truetype'); 
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  font-family: 'GveretLevin', sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #fafafa;
+}
+
+input,
+button {
+  padding: 8px;
+  margin: 5px;
+  font-family: inherit;      /* inherit from parent (usually <body>) */
+  font-size: inherit;        /* optional – keeps size consistent too */
+  font-weight: inherit;
+}
+
+form {
+  margin: 20px 0;
+}
+
+.rtl {
+  direction: rtl;
+}
+
+/* ========== App Header & Logo ========== */
+.app-header {
+  position: relative;       /* allow absolute children */
+  display: flex;
+  align-items: center;
+  justify-content: center; /* center content horizontally */
+  padding: 8px 16px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  min-height: 60px;         /* ensure enough height for logo */
+  overflow: visible;        /* allow logo to fully show */
+  z-index: 100;
+}
+
+.app-logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  height: 50px;   /* increase if needed to match your design */
+  width: auto;
+}
+
+/* ========== Page Container ========== */
+.page-container {
+  max-width: 1000px;
+  margin: 30px auto;
+  padding: 0 16px;
+}
+
+/* ========== Horizontal Scrolling Wrapper ========== */
+.table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-responsive table {
+  min-width: 600px;
+}
+
+/* ========== Cream-White Tables ========== */
+.cream-table {
+  width: 100%;
+  background-color: #FFFDEA;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin-bottom: 30px;
+}
+
+.cream-table th,
+.cream-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #ECE8E0;
+  text-align: right;
+}
+
+.cream-table th {
+  background-color: #FFFCE6;
+  font-weight: bold;
+}
+
+.cream-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* ========== Home-Page Table Enhancements ========== */
+.home-table {
+  font-size: 1.1em;
+}
+
+.home-table tbody tr:nth-child(even) td {
+  background-color: #FFFCF0;
+}
+
+.home-table tbody tr:hover td {
+  background-color: #FFFCE6;
+}
+
+/* ========== Section & Page Headings ========== */
+h2,
+h3 {
+  display: inline-block;
+  background-color: #FFFDEA;
+  padding: 6px 12px;
+  border-radius: 6px;
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+/* ========== Orders Heading Centered ========== */
+.orders-heading {
+  display: block;
+  text-align: center;
+  margin: 16px 0;
+}
+
+/* ========== Bread-Section Grouping (Admin) ========== */
+.bread-section {
+  background-color: rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 32px;
+}
+
+.bread-section .cream-table {
+  background-color: transparent;
+  box-shadow: none;
+  margin-bottom: 16px;
+}
+
+.bread-section .cream-table th,
+.bread-section .cream-table td {
+  background-color: transparent;
+}
+
+/* ========== User Orders Container (Home Page) ========== */
+.home-orders-container {
+  max-width: 700px;
+  margin: 20px auto;
+}
+
+/* ========== Total Revenue Box ========== */
+.total-revenue {
+  margin-top: 18px;
+  background-color: #FFFDEA;
+  color: red;
+  font-weight: bold;
+  padding: 12px 16px;
+  border-radius: 6px;
+}
+
+/* ========== Responsive Adjustments ========== */
+@media (max-width: 768px) {
+  .app-header {
+    min-height: 50px;
+    padding: 8px;
+  }
+  .app-logo {
+    height: 40px;
+  }
+  .cream-table th,
+  .cream-table td {
+    padding: 8px 12px;
+  }
+  .home-table {
+    font-size: 1em;
+  }
+  .table-responsive table {
+    min-width: 100%;
+  }
+}
+
+
+/* space & align the two header buttons */
+.header-buttons {
+  margin-left: auto;
+  display: flex;
+  gap: 8px;
+}
+
+/* ensure header is tall enough and allows overflow */
+.app-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;  /* logo in middle */
+  padding: 8px 16px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  min-height: 60px;
+  overflow: visible;
+  z-index: 100;
+}
+
+/* center logo absolutely */
+.app-logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  height: 50px;
+  width: auto;
+}

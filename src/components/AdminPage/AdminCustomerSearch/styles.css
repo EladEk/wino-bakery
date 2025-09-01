@@ -1,0 +1,7 @@
+.customer-search{display:flex;gap:8px;align-items:center;margin:8px 0 12px}
+.customer-search.rtl{direction:rtl}
+.search-input{flex:1;min-width:220px;max-width:420px;padding:8px 10px;border-radius:8px;border:1px solid #ccc;background:#fff;font-size:1em}
+.clear-btn{padding:8px 12px;border-radius:8px;border:1px solid #bbb;background:#f7f7ee;cursor:pointer;font-size:.95em;transition:background .13s}
+.clear-btn:hover{background:#eaeaea}
+.customer-results{margin:6px 0 16px}
+.results-title{margin:0 0 6px;font-size:1.05em;color:#333}

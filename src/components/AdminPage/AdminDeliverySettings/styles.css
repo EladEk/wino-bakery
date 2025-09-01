@@ -1,0 +1,4 @@
+.delivery-settings{display:flex;flex-direction:column;gap:8px;background:#f7f7ee;padding:10px;border-radius:8px;margin:12px 0}
+.delivery-settings input{padding:6px;border:1px solid #ccc;border-radius:6px}
+.save-btn{background:#1976d2;color:#fff;border:none;border-radius:8px;padding:8px 12px;font-weight:600;cursor:pointer}
+.save-btn:disabled{opacity:.6;cursor:not-allowed}
