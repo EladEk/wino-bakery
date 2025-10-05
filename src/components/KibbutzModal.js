@@ -124,6 +124,17 @@ export default function KibbutzModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   const activeKibbutzim = (kibbutzim || []).filter(k => k && k.isActive);
+  
+  // Debug logging
+  console.log('KibbutzModal state:', {
+    isOpen,
+    loading,
+    kibbutzError,
+    kibbutzim: kibbutzim?.length || 0,
+    activeKibbutzim: activeKibbutzim.length,
+    selectedKibbutz,
+    userData: userData ? { uid: userData.uid, kibbutzId: userData.kibbutzId } : null
+  });
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -176,7 +187,10 @@ export default function KibbutzModal({ isOpen, onClose }) {
                     <div 
                       key={kibbutz.id}
                       className={`kibbutz-card ${selectedKibbutz?.id === kibbutz.id ? 'selected' : ''}`}
-                      onClick={() => setSelectedKibbutz(kibbutz)}
+                      onClick={() => {
+                        console.log('Kibbutz clicked:', kibbutz);
+                        setSelectedKibbutz(kibbutz);
+                      }}
                     >
                       <div className="kibbutz-name">🏘️ {kibbutz.name}</div>
                       {kibbutz.description && (
@@ -191,7 +205,11 @@ export default function KibbutzModal({ isOpen, onClose }) {
                 <div className="kibbutz-actions">
                   <button 
                     className="join-kibbutz-btn"
-                    onClick={handleJoinKibbutz}
+                    onClick={() => {
+                      console.log('Join button clicked, selectedKibbutz:', selectedKibbutz);
+                      console.log('userData:', userData);
+                      handleJoinKibbutz();
+                    }}
                     disabled={isJoining}
                   >
                     {isJoining ? 'מצטרף...' : `הצטרף לקיבוץ ${selectedKibbutz.name}`}
