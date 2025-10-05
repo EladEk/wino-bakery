@@ -16,7 +16,6 @@ export default function OrderSummary() {
 
   useEffect(() => {
     fetchOrders();
-    // eslint-disable-next-line
   }, []);
 
   const fetchOrders = async () => {
@@ -27,7 +26,7 @@ export default function OrderSummary() {
     const usersMap = {};
     usersSnapshot.forEach(doc => {
       const data = doc.data();
-      usersMap[data.id] = { 
+      usersMap[doc.id] = { 
         name: data.name || data.email, 
         phone: data.phone || "",
         kibbutzId: data.kibbutzId,
@@ -71,7 +70,6 @@ export default function OrderSummary() {
     setLoading(false);
   };
 
-  // Just update state, do not filter out supplied items
   const toggleCheckbox = async (breadId, claimIndex, type) => {
     const breadRef = doc(db, "breads", breadId);
     const breadDocSnap = await getDoc(breadRef);
@@ -147,13 +145,11 @@ export default function OrderSummary() {
       ) : (
         orders
           .filter(order => {
-            // Filter by kibbutz
             if (selectedKibbutz === "all") return true;
             if (selectedKibbutz === "no-kibbutz") return !order.kibbutzId;
             return order.kibbutzId === selectedKibbutz;
           })
           .map(order => {
-            // Filter items by showSupplied flag
             const visibleItems = showSupplied
               ? order.items
               : order.items.filter(item => !item.supplied);

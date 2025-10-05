@@ -1,19 +1,14 @@
 import { collections, docs, firestoreService } from './firestore';
 
 export const orderHistoryService = {
-  // Get all order history
   getAll: () => firestoreService.getDocs(collections.ordersHistory()),
 
-  // Get order history by ID
   getById: (id) => firestoreService.getDoc(docs.ordersHistory(id)),
 
-  // Subscribe to order history changes
   subscribe: (callback) => firestoreService.subscribeToCollection(collections.ordersHistory(), callback),
 
-  // Delete order history entry
   delete: (id) => firestoreService.deleteDoc(docs.ordersHistory(id)),
 
-  // Get orders by date range
   getByDateRange: async (startDate, endDate) => {
     const allHistory = await orderHistoryService.getAll();
     return allHistory.filter(entry => {
@@ -22,7 +17,6 @@ export const orderHistoryService = {
     });
   },
 
-  // Get orders by customer
   getByCustomer: async (customerId) => {
     const allHistory = await orderHistoryService.getAll();
     return allHistory.map(entry => ({
@@ -34,7 +28,6 @@ export const orderHistoryService = {
     })).filter(entry => entry.breads.length > 0);
   },
 
-  // Calculate total revenue from history
   calculateTotalRevenue: async () => {
     const allHistory = await orderHistoryService.getAll();
     return allHistory.reduce((total, entry) => {

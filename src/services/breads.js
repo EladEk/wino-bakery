@@ -1,16 +1,12 @@
 import { collections, docs, firestoreService } from './firestore';
 
 export const breadsService = {
-  // Get all breads
   getAll: () => firestoreService.getDocs(collections.breads()),
 
-  // Get bread by ID
   getById: (id) => firestoreService.getDoc(docs.bread(id)),
 
-  // Subscribe to breads changes
   subscribe: (callback) => firestoreService.subscribeToCollection(collections.breads(), callback),
 
-  // Create new bread
   create: async (breadData) => {
     const data = {
       name: breadData.name,
@@ -25,7 +21,6 @@ export const breadsService = {
     return await firestoreService.addDoc(collections.breads(), data);
   },
 
-  // Update bread
   update: async (id, breadData) => {
     const data = {
       name: breadData.name,
@@ -39,10 +34,8 @@ export const breadsService = {
     return await firestoreService.updateDoc(docs.bread(id), data);
   },
 
-  // Delete bread
   delete: (id) => firestoreService.deleteDoc(docs.bread(id)),
 
-  // Toggle bread visibility
   toggleShow: async (id, currentShow) => {
     return await firestoreService.updateDoc(docs.bread(id), { 
       show: !currentShow,
@@ -50,7 +43,6 @@ export const breadsService = {
     });
   },
 
-  // Add order to bread
   addOrder: async (breadId, orderData) => {
     const bread = await breadsService.getById(breadId);
     if (!bread) throw new Error('Bread not found');
@@ -65,7 +57,9 @@ export const breadsService = {
       paid: false,
       kibbutzId: orderData.kibbutzId || null,
       kibbutzName: orderData.kibbutzName || null,
-      discountPercentage: orderData.discountPercentage || 0
+      discountPercentage: orderData.discountPercentage || 0,
+      surchargeType: orderData.surchargeType || 'none',
+      surchargeValue: orderData.surchargeValue || 0
     };
 
     const updatedClaimedBy = [...(bread.claimedBy || []), newOrder];
@@ -78,7 +72,6 @@ export const breadsService = {
     });
   },
 
-  // Update order quantity
   updateOrderQuantity: async (breadId, orderIndex, newQuantity) => {
     const bread = await breadsService.getById(breadId);
     if (!bread || !bread.claimedBy[orderIndex]) throw new Error('Order not found');
@@ -97,7 +90,6 @@ export const breadsService = {
     });
   },
 
-  // Remove order
   removeOrder: async (breadId, orderIndex) => {
     const bread = await breadsService.getById(breadId);
     if (!bread || !bread.claimedBy[orderIndex]) throw new Error('Order not found');
@@ -112,7 +104,6 @@ export const breadsService = {
     });
   },
 
-  // Toggle order supplied status
   toggleSupplied: async (breadId, orderIndex) => {
     const bread = await breadsService.getById(breadId);
     if (!bread || !bread.claimedBy[orderIndex]) throw new Error('Order not found');
@@ -127,7 +118,6 @@ export const breadsService = {
     });
   },
 
-  // Toggle order paid status
   togglePaid: async (breadId, orderIndex) => {
     const bread = await breadsService.getById(breadId);
     if (!bread || !bread.claimedBy[orderIndex]) throw new Error('Order not found');
@@ -142,11 +132,9 @@ export const breadsService = {
     });
   },
 
-  // End sale - archive and clear all orders
   endSale: async () => {
     const allBreads = await breadsService.getAll();
     
-    // Archive current orders
     const archiveData = {
       saleDate: firestoreService.serverTimestamp(),
       breads: allBreads.map(bread => ({
@@ -160,7 +148,6 @@ export const breadsService = {
     
     await firestoreService.addDoc(collections.ordersHistory(), archiveData);
 
-    // Clear all orders from breads
     const batch = firestoreService.batch();
     allBreads.forEach(bread => {
       batch.update(docs.bread(bread.id), { 
@@ -170,5 +157,28 @@ export const breadsService = {
     });
     
     return await batch.commit();
+  },
+
+  updateOrderStatus: async (breadId, userId, field, value) => {
+    const breadDoc = await firestoreService.getDoc(docs.bread(breadId));
+    
+    if (!breadDoc) {
+      throw new Error(`Bread not found with ID: ${breadId}`);
+    }
+    
+    const updatedClaimedBy = breadDoc.claimedBy.map(claim => {
+      if (claim.userId === userId) {
+        return {
+          ...claim,
+          [field]: value
+        };
+      }
+      return claim;
+    });
+
+    return await firestoreService.updateDoc(docs.bread(breadId), {
+      claimedBy: updatedClaimedBy,
+      updatedAt: firestoreService.serverTimestamp()
+    });
   }
 };

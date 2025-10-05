@@ -26,6 +26,7 @@ export default function OrdersTable({ bread, t, editingOrder, startEditingOrder,
 
               const isKibbutzMember = claim.kibbutzId;
               const rowStyle = isKibbutzMember ? { backgroundColor: '#e3f2fd', color: '#1976d2' } : {};
+              
 
               return (
                 <tr key={i} style={rowStyle}>
@@ -42,7 +43,7 @@ export default function OrdersTable({ bread, t, editingOrder, startEditingOrder,
                   </td>
                   <td>
                     <span style={{ paddingLeft: 6, display: "inline-block", width: 120 }}>
-                      {claim.kibbutzName || t("notAssignedToKibbutz")}
+                      {claim.kibbutzId ? (claim.kibbutzName || t("unknownKibbutz")) : t("notAssignedToKibbutz")}
                     </span>
                   </td>
                   <td>

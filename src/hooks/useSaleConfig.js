@@ -41,7 +41,7 @@ export const useSaleConfig = () => {
   };
 
   const getHebrewDay = (dateString) => {
-    const daysHebrew = ["יום ראשון", "יום שני", "יום שלישי", "יום רביעי", "יום חמישי", "יום שישי", "שבת"];
+    const daysHebrew = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     if (!dateString) return "";
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return "";

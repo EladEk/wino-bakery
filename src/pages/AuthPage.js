@@ -46,7 +46,6 @@ export default function AuthPage() {
         return;
       }
 
-      // Existing user: check if blocked
       const data = userSnap.data();
       if (data.isBlocked) {
         await signOut(auth);

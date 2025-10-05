@@ -5,7 +5,7 @@ import { useAuth } from "../contexts/AuthContext";
 export default function AdminRoute({ children }) {
   const { currentUser, userData, loading } = useAuth();
 
-  if (loading) return null; // Loader handled in context
+  if (loading) return null;
   if (!currentUser || !userData?.isAdmin) return <Navigate to="/" />;
   return children;
 }

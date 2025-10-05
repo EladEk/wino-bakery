@@ -22,7 +22,7 @@ export default function BreadTable({ bread, t, onEdit, onToggleShow }) {
           <input
             type="checkbox"
             checked={bread.isFocaccia || false}
-            disabled // Only editable via admin modal/form
+            disabled
             style={{ accentColor: '#222', ...labelMargin }}
           />
           {t("foccia")}

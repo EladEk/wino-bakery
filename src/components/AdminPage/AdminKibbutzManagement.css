@@ -33,21 +33,18 @@
 }
 
 .add-kibbutz-btn {
-  background: linear-gradient(135deg, #4CAF50, #45a049);
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
+  background-color: #f0f0f0;
+  color: #333;
+  border: 1px solid #ccc;
+  padding: 6px 12px;
+  border-radius: 4px;
   font-size: 1rem;
-  font-weight: bold;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.13s;
 }
 
 .add-kibbutz-btn:hover {
-  background: linear-gradient(135deg, #45a049, #3d8b40);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  background-color: #e0e0e0;
 }
 
 /* Stats */
@@ -92,8 +89,7 @@
   border-radius: 8px;
   padding: 20px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
 }
@@ -106,6 +102,13 @@
 .kibbutz-card.inactive {
   opacity: 0.6;
   background: #f5f5f5;
+}
+
+.kibbutz-main-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
 }
 
 .kibbutz-info {
@@ -146,6 +149,16 @@
   display: inline-block;
 }
 
+.kibbutz-surcharge {
+  color: #ff6b35;
+  font-weight: bold;
+  background: rgba(255, 107, 53, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-top: 4px;
+}
+
 .kibbutz-actions {
   display: flex;
   gap: 10px;
@@ -153,63 +166,49 @@
 }
 
 .kibbutz-actions button {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 6px;
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
   font-size: 0.9rem;
   cursor: pointer;
-  transition: all 0.2s ease;
-  font-weight: 500;
+  transition: background 0.13s;
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+.kibbutz-actions button:hover {
+  background-color: #e0e0e0;
 }
 
 .view-orders-btn {
-  background: #2196F3;
-  color: white;
-}
-
-.view-orders-btn:hover {
-  background: #1976D2;
+  background-color: #f0f0f0;
+  color: #333;
 }
 
 .view-users-btn {
-  background: #9C27B0;
-  color: white;
-}
-
-.view-users-btn:hover {
-  background: #7B1FA2;
+  background-color: #f0f0f0;
+  color: #333;
 }
 
 .edit-btn {
-  background: #FF9800;
-  color: white;
-}
-
-.edit-btn:hover {
-  background: #F57C00;
+  background-color: #f0f0f0;
+  color: #333;
 }
 
 .toggle-btn.activate {
-  background: #4CAF50;
-  color: white;
-}
-
-.toggle-btn.activate:hover {
-  background: #45a049;
+  background-color: #f0f0f0;
+  color: #333;
 }
 
 .toggle-btn.deactivate {
-  background: #FF9800;
-  color: white;
-}
-
-.toggle-btn.deactivate:hover {
-  background: #F57C00;
+  background-color: #f0f0f0;
+  color: #333;
 }
 
 .delete-btn {
-  background: #f44336;
+  background-color: #f44336;
   color: white;
+  border: 1px solid #d32f2f;
 }
 
 .delete-btn:hover {
@@ -344,30 +343,18 @@
 }
 
 .form-actions button {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 6px;
+  padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
   font-size: 1rem;
   cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.form-actions button[type="button"] {
-  background: #f0f0f0;
+  transition: background 0.13s;
+  background-color: #f0f0f0;
   color: #333;
 }
 
-.form-actions button[type="button"]:hover {
-  background: #e0e0e0;
-}
-
-.form-actions button[type="submit"] {
-  background: #4CAF50;
-  color: white;
-}
-
-.form-actions button[type="submit"]:hover {
-  background: #45a049;
+.form-actions button:hover {
+  background-color: #e0e0e0;
 }
 
 /* Orders Content */
@@ -542,18 +529,18 @@
 }
 
 .remove-user-btn {
-  background: #f44336;
+  background-color: #f44336;
   color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
+  border: 1px solid #d32f2f;
+  padding: 6px 12px;
+  border-radius: 4px;
   font-size: 0.9rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.13s;
 }
 
 .remove-user-btn:hover {
-  background: #d32f2f;
+  background-color: #d32f2f;
 }
 
 /* Responsive Design */
@@ -633,4 +620,120 @@
   background: #4a5568;
   border-color: #718096;
   color: #a0aec0;
+}
+
+/* Kibbutz orders section */
+.kibbutz-orders-section {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
+}
+
+.kibbutz-orders-section h4 {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 1.1em;
+}
+
+.toggle-orders-btn {
+  background-color: #17a2b8;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9em;
+  margin-right: 8px;
+}
+
+.toggle-orders-btn:hover {
+  background-color: #138496;
+}
+
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.order-item {
+  background-color: white;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.order-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.order-customer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.customer-phone {
+  font-size: 0.9em;
+  color: #666;
+}
+
+.order-bread {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.order-quantity,
+.order-price,
+.discount {
+  font-size: 0.9em;
+  color: #555;
+}
+
+.discount {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.order-status {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.status-controls {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.status-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.status-checkbox input[type="checkbox"] {
+  margin: 0;
+  cursor: pointer;
+  transform: scale(1.2);
+}
+
+.status-checkbox:hover .status-badge {
+  opacity: 0.8;
+}
+
+.no-orders,
+.loading-orders {
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  padding: 20px;
 }

@@ -14,7 +14,7 @@ export default function OrderSummary({
   const lines = useMemo(() => {
     return breads
       .map(b => {
-        const qty = Number(orderQuantities[b.id] || 0); // live quantity
+        const qty = Number(orderQuantities[b.id] || 0);
         if (qty <= 0) return null;
         const price = Number(b.price || 0);
         const prevClaimQty = Number(userClaims[b.id]?.quantity || 0);
@@ -35,7 +35,6 @@ export default function OrderSummary({
 
   const total = lines.reduce((s, l) => s + l.subtotal, 0);
 
-  // detect unsaved changes
   const hasUnsaved = breads.some(b => {
     const saved = Number(userClaims[b.id]?.quantity || 0);
     const input = Number(orderQuantities[b.id] || 0);

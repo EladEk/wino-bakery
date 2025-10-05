@@ -14,7 +14,6 @@ export const useOrders = () => {
       const visibleBreads = breadsData.filter(b => b.show !== false);
       setBreads(visibleBreads);
 
-      // Extract current user claims
       const claims = {};
       visibleBreads.forEach(bread => {
         const claim = (bread.claimedBy || []).find(c => c.userId === currentUser?.uid);
@@ -22,7 +21,6 @@ export const useOrders = () => {
       });
       setUserClaims(claims);
 
-      // Sync UI inputs with saved claims
       setOrderQuantities(() => {
         const quantities = {};
         visibleBreads.forEach(bread => {
@@ -37,7 +35,6 @@ export const useOrders = () => {
     return () => unsubscribe();
   }, [currentUser?.uid]);
 
-  // Split breads by saved quantities
   const breadsToOrder = useMemo(
     () => breads.filter(b => Number(userClaims[b.id]?.quantity || 0) === 0),
     [breads, userClaims]
@@ -48,32 +45,47 @@ export const useOrders = () => {
     [breads, userClaims]
   );
 
-  // Check for unsaved changes
   const hasChanges = useMemo(
     () => breads.some(b => Number(userClaims[b.id]?.quantity || 0) !== Number(orderQuantities[b.id] || 0)),
     [breads, userClaims, orderQuantities]
   );
 
-  // Check if there's any input selected
   const hasAnyInput = useMemo(
     () => Object.values(orderQuantities).some(q => Number(q) > 0),
     [orderQuantities]
   );
 
-  // Calculate user total cost with kibbutz discount
   const userTotalCost = useMemo(() => {
     return breadsOrdered.reduce((sum, bread) => {
       const qty = Number(orderQuantities[bread.id] || 0);
       if (bread.price == null) return sum;
       
-      const basePrice = qty * bread.price;
-      const discountPercentage = userData?.kibbutzId ? 
-        (bread.claimedBy?.find(c => c.userId === currentUser?.uid)?.discountPercentage || 0) : 0;
+      let finalPrice = bread.price;
       
-      const discountAmount = basePrice * (discountPercentage / 100);
-      return sum + (basePrice - discountAmount);
+      // Apply kibbutz discount and surcharge if user is a kibbutz member
+      if (userData?.kibbutzId && kibbutzim) {
+        const userKibbutz = kibbutzim.find(k => k.id === userData.kibbutzId);
+        if (userKibbutz) {
+          // Apply discount
+          if (userKibbutz.discountPercentage > 0) {
+            const discount = userKibbutz.discountPercentage / 100;
+            finalPrice = finalPrice * (1 - discount);
+          }
+          
+          // Apply surcharge
+          if (userKibbutz.surchargeType && userKibbutz.surchargeType !== 'none' && userKibbutz.surchargeValue > 0) {
+            if (userKibbutz.surchargeType === 'percentage') {
+              finalPrice = finalPrice * (1 + userKibbutz.surchargeValue / 100);
+            } else if (userKibbutz.surchargeType === 'fixed') {
+              finalPrice = finalPrice + userKibbutz.surchargeValue;
+            }
+          }
+        }
+      }
+      
+      return sum + (qty * finalPrice);
     }, 0);
-  }, [breadsOrdered, orderQuantities, userData?.kibbutzId, currentUser?.uid]);
+  }, [breadsOrdered, orderQuantities, userData?.kibbutzId, kibbutzim]);
 
   const updateQuantity = (breadId, quantity) => {
     setOrderQuantities(prev => ({ ...prev, [breadId]: quantity }));
@@ -97,7 +109,6 @@ export const useOrders = () => {
 
     if (orders.length === 0) return;
 
-    // Process orders sequentially to avoid race conditions
     for (const order of orders) {
       await breadsService.addOrder(order.breadId, {
         userId: currentUser.uid,
@@ -120,20 +131,17 @@ export const useOrders = () => {
 
       if (prev) {
         if (newQty === 0) {
-          // Remove order
           const orderIndex = bread.claimedBy.findIndex(c => c.userId === currentUser.uid);
           if (orderIndex !== -1) {
             await breadsService.removeOrder(bread.id, orderIndex);
           }
         } else if (newQty !== prev.quantity) {
-          // Update quantity
           const orderIndex = bread.claimedBy.findIndex(c => c.userId === currentUser.uid);
           if (orderIndex !== -1) {
             await breadsService.updateOrderQuantity(bread.id, orderIndex, newQty);
           }
         }
       } else if (newQty > 0) {
-        // Add new order
         await breadsService.addOrder(bread.id, {
           userId: currentUser.uid,
           name: currentUser.displayName || 'Unknown',

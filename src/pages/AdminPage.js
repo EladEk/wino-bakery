@@ -28,30 +28,25 @@ import AdminNavigation from "../components/AdminPage/AdminNavigation";
 export default function AdminPage() {
   const { t, i18n } = useTranslation();
 
-  // Breads + editing (for BreadList + modal)
   const [breads, setBreads] = useState([]);
   const [editingOrder, setEditingOrder] = useState({});
   const [modalOpen, setModalOpen] = useState(false);
   const [modalBread, setModalBread] = useState(null);
 
-  // Sale/delivery config
   const [saleDate, setSaleDate] = useState("");
   const [startHour, setStartHour] = useState("");
   const [endHour, setEndHour] = useState("");
   const [address, setAddress] = useState("");
   const [bitNumber, setBitNumber] = useState("");
 
-  // End-sale modal & toast
   const [showEndSaleDialog, setShowEndSaleDialog] = useState(false);
   const [endSaleLoading, setEndSaleLoading] = useState(false);
   const [popup, setPopup] = useState({ show: false, message: "", error: false });
 
-  // Add Bread popup (modal)
   const [addBreadOpen, setAddBreadOpen] = useState(false);
 
   const dir = i18n.dir();
 
-  // Close Add Bread modal on Esc
   useEffect(() => {
     if (!addBreadOpen) return;
     const onKey = (e) => e.key === "Escape" && setAddBreadOpen(false);
@@ -59,14 +54,12 @@ export default function AdminPage() {
     return () => document.removeEventListener("keydown", onKey);
   }, [addBreadOpen]);
 
-  // Lock background scroll when Add Bread modal is open
   useEffect(() => {
     if (!addBreadOpen) return;
     document.body.classList.add("modal-open");
     return () => document.body.classList.remove("modal-open");
   }, [addBreadOpen]);
 
-  // Live breads + config
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "breads"), (snapshot) => {
       setBreads(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
@@ -85,7 +78,6 @@ export default function AdminPage() {
     return () => unsub();
   }, []);
 
-  // Save sale/delivery config
   const saveSaleDate = async () => {
     const saleDateRef = doc(db, "config", "saleDate");
     await setDoc(saleDateRef, {
@@ -98,7 +90,6 @@ export default function AdminPage() {
     alert(t("updated"));
   };
 
-  // Modal open/close (edit bread)
   const openEditModal = (bread) => {
     setModalBread(bread);
     setModalOpen(true);
@@ -108,7 +99,6 @@ export default function AdminPage() {
     setModalBread(null);
   };
 
-  // Save & delete bread (from edit modal)
   const handleModalSave = async (updatedBread) => {
     await updateDoc(doc(db, "breads", updatedBread.id), {
       name: updatedBread.name,
@@ -127,12 +117,10 @@ export default function AdminPage() {
     }
   };
 
-  // Toggle show/hide bread
   const handleToggleShow = async (breadId, currentShow) => {
     await updateDoc(doc(db, "breads", breadId), { show: !currentShow });
   };
 
-  // Order editing inside BreadList
   const startEditingOrder = (breadId, idx, claim) => {
     setEditingOrder({ [`${breadId}_${idx}`]: { quantity: claim.quantity } });
   };
@@ -173,7 +161,6 @@ export default function AdminPage() {
     });
   };
 
-  // Mark supplied/paid
   const toggleSupplied = async (breadId, idx) => {
     const bread = breads.find((b) => b.id === breadId);
     const updated = (bread.claimedBy || []).map((c, i) =>
@@ -189,7 +176,6 @@ export default function AdminPage() {
     await updateDoc(doc(db, "breads", breadId), { claimedBy: updated });
   };
 
-  // End sale: archive & clear
   async function handleEndSale() {
     setEndSaleLoading(true);
     try {
@@ -219,7 +205,6 @@ export default function AdminPage() {
     setTimeout(() => setPopup({ show: false, message: "", error: false }), 2500);
   }
 
-  // Revenue
   const totalRevenue = useMemo(
     () =>
       breads.reduce(

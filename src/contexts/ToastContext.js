@@ -20,7 +20,6 @@ export const ToastProvider = ({ children }) => {
     
     setToasts(prev => [...prev, toast]);
 
-    // Auto remove toast after duration
     setTimeout(() => {
       removeToast(id);
     }, duration);
@@ -36,7 +35,6 @@ export const ToastProvider = ({ children }) => {
     setToasts([]);
   }, []);
 
-  // Convenience methods
   const showSuccess = useCallback((message) => showToast(message, 'success'), [showToast]);
   const showError = useCallback((message) => showToast(message, 'error'), [showToast]);
   const showWarning = useCallback((message) => showToast(message, 'warning'), [showToast]);

@@ -5,26 +5,48 @@ import { useTranslation } from "react-i18next";
 import { useKibbutz } from "../hooks/useKibbutz";
 import { usersService } from "../services/users";
 import { useToast } from "../contexts/ToastContext";
-import "../pages/AdminPage.css"; // reuse same styles
+import "../pages/AdminPage.css";
 
 export default function UserManagementPage() {
   const { t } = useTranslation();
   const { kibbutzim } = useKibbutz();
+  
   const { showSuccess, showError } = useToast();
   const [users, setUsers] = useState([]);
   const [editingUserId, setEditingUserId] = useState(null);
   const [editData, setEditData] = useState({ name: "", email: "", phone: "" });
   const [showKibbutzModal, setShowKibbutzModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, "users"), snapshot => {
-      setUsers(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    const unsub = onSnapshot(collection(db, "users"), async snapshot => {
+      const usersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      
+      for (const user of usersData) {
+        if (user.kibbutzId && !user.kibbutzName && kibbutzim) {
+          const kibbutz = kibbutzim.find(k => k.id === user.kibbutzId);
+          if (kibbutz) {
+            try {
+              await usersService.updateProfile(user.id, {
+                name: user.name,
+                phone: user.phone,
+                kibbutzId: user.kibbutzId,
+                kibbutzName: kibbutz.name
+              });
+            } catch (error) {
+              console.error('Error updating user kibbutz name:', error);
+            }
+          }
+        }
+      }
+      
+      
+      setUsers(usersData);
     });
     return () => unsub();
-  }, []);
+  }, [kibbutzim]);
 
-  // 🔄 Update breads.claimedBy when user info changes
   async function updateBreadClaimsForUser(userId, newUserFields) {
     const breadsSnapshot = await getDocs(collection(db, "breads"));
     for (const breadDoc of breadsSnapshot.docs) {
@@ -36,7 +58,7 @@ export default function UserManagementPage() {
           updated = true;
           return {
             ...claim,
-            ...newUserFields, // update name/email/phone
+            ...newUserFields,
           };
         }
         return claim;
@@ -47,19 +69,15 @@ export default function UserManagementPage() {
     }
   }
 
-  // ❌ Remove all orders for this user from breads.claimedBy
-  // ❌ Remove all orders for this user from breads.claimedBy and restore availablePieces
   async function removeBreadClaimsForUser(userId) {
     const breadsSnapshot = await getDocs(collection(db, "breads"));
     for (const breadDoc of breadsSnapshot.docs) {
       const bread = breadDoc.data();
       const claimedBy = bread.claimedBy || [];
-      // Find all claims by this user:
       const claimsToRemove = claimedBy.filter(claim => claim.userId === userId);
       const filtered = claimedBy.filter(claim => claim.userId !== userId);
 
       if (claimsToRemove.length > 0) {
-        // Sum the quantity to restore
         const totalQtyToAdd = claimsToRemove.reduce((sum, claim) => sum + (claim.quantity || 0), 0);
         await updateDoc(doc(db, "breads", breadDoc.id), {
           claimedBy: filtered,
@@ -90,7 +108,6 @@ export default function UserManagementPage() {
       email: editData.email,
       phone: editData.phone,
     });
-    // 🔄 Update breads where claimedBy[].userId === userId
     await updateBreadClaimsForUser(userId, {
       name: editData.name,
       email: editData.email,
@@ -120,11 +137,8 @@ export default function UserManagementPage() {
 
   const deleteUser = async (userId, email) => {
     if (window.confirm(`Delete user ${email || userId}? This action is permanent. All their orders will be deleted.`)) {
-      // ❌ Delete all their orders from all breads
       await removeBreadClaimsForUser(userId);
-      // ❌ Delete user doc
       await deleteDoc(doc(db, "users", userId));
-      // User can now re-register!
     }
   };
 
@@ -155,24 +169,83 @@ export default function UserManagementPage() {
     setShowKibbutzModal(true);
   };
 
+  const filteredUsers = users.filter(user => {
+    if (!searchTerm) return true;
+    const term = searchTerm.toLowerCase();
+    return (
+      (user.name && user.name.toLowerCase().includes(term)) ||
+      (user.email && user.email.toLowerCase().includes(term)) ||
+      (user.phone && user.phone.toString().includes(term)) ||
+      (user.id && user.id.toLowerCase().includes(term))
+    );
+  });
+
   return (
     <div className="admin-container">
       <h2>{t("Users")}</h2>
-      <div className="table-responsive">
-        <table className="cream-table">
-          <thead>
-            <tr>
-              <th>{t("Phone")}</th>
-              <th>{t("Name")}</th>
-              <th>{t("Email")}</th>
-              <th>{t("kibbutzManagement")}</th>
-              <th>{t("Admin")}</th>
-              <th>{t("Blocked")}</th>
-              <th>{t("Actions")}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((u) => (
+      
+      {/* Search Input */}
+      <div style={{ marginBottom: "20px", display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
+        <input
+          type="text"
+          placeholder={t("searchUsers")}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{
+            padding: "10px 15px",
+            borderRadius: "6px",
+            border: "1px solid #ddd",
+            fontSize: "1rem",
+            minWidth: "300px",
+            direction: "rtl",
+            textAlign: "center"
+          }}
+        />
+        <div style={{ 
+          color: "#666", 
+          fontSize: "0.9rem",
+          backgroundColor: "white",
+          padding: "8px 16px",
+          borderRadius: "6px",
+          border: "1px solid #ddd",
+          boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
+        }}>
+          {searchTerm ? (
+            `${filteredUsers.length} ${t("ofUsers")} ${users.length} ${t("usersCount")}`
+          ) : (
+            `${users.length} ${t("usersCount")}`
+          )}
+        </div>
+      </div>
+
+      {filteredUsers.length === 0 && searchTerm ? (
+        <div style={{ 
+          textAlign: "center", 
+          padding: "40px", 
+          color: "#666", 
+          fontSize: "1.1rem",
+          backgroundColor: "#f9f9f9",
+          borderRadius: "8px",
+          border: "2px dashed #ddd"
+        }}>
+{t("noUsersFound")} "{searchTerm}"
+        </div>
+      ) : (
+        <div className="table-responsive">
+          <table className="cream-table">
+            <thead>
+              <tr>
+                <th>{t("Phone")}</th>
+                <th>{t("Name")}</th>
+                <th>{t("Email")}</th>
+                <th>{t("kibbutzManagement")}</th>
+                <th>{t("Admin")}</th>
+                <th>{t("Blocked")}</th>
+                <th>{t("Actions")}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredUsers.map((u) => (
               <tr key={u.id}>
                 <td>
                   {editingUserId === u.id ? (
@@ -217,8 +290,8 @@ export default function UserManagementPage() {
                   )}
                 </td>
                 <td>
-                  {u.kibbutzName ? (
-                    <span className="kibbutz-badge">🏘️ {u.kibbutzName}</span>
+                  {u.kibbutzId ? (
+                    <span className="kibbutz-badge">🏘️ {u.kibbutzName || t("unknownKibbutz")}</span>
                   ) : (
                     <span className="no-kibbutz">{t("notAssignedToKibbutz")}</span>
                   )}
@@ -271,6 +344,7 @@ export default function UserManagementPage() {
           </tbody>
         </table>
       </div>
+      )}
 
       {/* Kibbutz Selection Modal */}
       {showKibbutzModal && selectedUser && (

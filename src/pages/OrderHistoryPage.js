@@ -31,7 +31,6 @@ export default function OrderHistoryPage() {
     setTimeout(() => setPopup({ show: false, message: "", error: false }), 2500);
   };
 
-  // פונקציית סיכום לחמים
   function getBreadsTotals(sale) {
     if (!sale || !sale.breads) return [];
     return sale.breads.map(bread => ({
@@ -40,7 +39,6 @@ export default function OrderHistoryPage() {
     }));
   }
 
-  // סך הכנסות
   function getTotalRevenue(sale) {
     if (!sale || !sale.breads) return 0;
     return sale.breads.reduce(
@@ -134,7 +132,7 @@ export default function OrderHistoryPage() {
                             {isKibbutzMember && <span style={{ marginLeft: 5 }}>🏘️</span>}
                           </td>
                           <td>{order.phone}</td>
-                          <td>{order.kibbutzName || t("notAssignedToKibbutz")}</td>
+                          <td>{order.kibbutzId ? (order.kibbutzName || t("unknownKibbutz")) : t("notAssignedToKibbutz")}</td>
                           <td>{bread.breadDescription}</td>
                           <td>{order.supplied ? t("Yes") : t("No")}</td>
                           <td>{order.paid ? t("Yes") : t("No")}</td>

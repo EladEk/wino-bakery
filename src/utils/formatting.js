@@ -1,4 +1,3 @@
-// Date formatting utilities
 export const formatDate = (date, locale = 'he-IL') => {
   if (!date) return '';
   
@@ -27,16 +26,14 @@ export const formatDateTime = (date, locale = 'he-IL') => {
   });
 };
 
-// Hebrew day names
 export const getHebrewDay = (dateString) => {
-  const daysHebrew = ["יום ראשון", "יום שני", "יום שלישי", "יום רביעי", "יום חמישי", "יום שישי", "שבת"];
+  const daysHebrew = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   if (!dateString) return "";
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return "";
   return daysHebrew[date.getDay()];
 };
 
-// Number formatting
 export const formatPrice = (price, locale = 'he-IL') => {
   const numPrice = Number(price);
   if (isNaN(numPrice)) return '0.00';
@@ -54,7 +51,6 @@ export const formatQuantity = (quantity) => {
   return numQuantity.toLocaleString();
 };
 
-// Currency formatting
 export const formatCurrency = (amount, currency = 'ILS', locale = 'he-IL') => {
   const numAmount = Number(amount);
   if (isNaN(numAmount)) return '₪0.00';
@@ -67,7 +63,6 @@ export const formatCurrency = (amount, currency = 'ILS', locale = 'he-IL') => {
   });
 };
 
-// Text formatting
 export const capitalizeFirst = (text) => {
   if (!text) return '';
   return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
@@ -79,7 +74,6 @@ export const truncateText = (text, maxLength = 50) => {
   return text.substring(0, maxLength) + '...';
 };
 
-// Phone number formatting
 export const formatPhoneNumber = (phone) => {
   if (!phone) return '';
   const cleaned = phone.replace(/\D/g, '');

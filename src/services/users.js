@@ -2,16 +2,12 @@ import { collections, docs, firestoreService } from './firestore';
 import { where } from 'firebase/firestore';
 
 export const usersService = {
-  // Get user by ID
   getById: (id) => firestoreService.getDoc(docs.user(id)),
 
-  // Get all users
   getAll: () => firestoreService.getDocs(collections.users()),
 
-  // Subscribe to user changes
   subscribe: (callback) => firestoreService.subscribeToCollection(collections.users(), callback),
 
-  // Create user
   create: async (userId, userData) => {
     const data = {
       email: userData.email,
@@ -24,7 +20,6 @@ export const usersService = {
     return await firestoreService.setDoc(docs.user(userId), data);
   },
 
-  // Update user
   update: async (userId, userData) => {
     const data = {
       ...userData,
@@ -33,7 +28,6 @@ export const usersService = {
     return await firestoreService.updateDoc(docs.user(userId), data);
   },
 
-  // Update user profile (name, phone, kibbutz)
   updateProfile: async (userId, profileData) => {
     const data = {
       name: profileData.name,

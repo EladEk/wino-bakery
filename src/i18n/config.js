@@ -13,8 +13,8 @@ i18n
       he: { translation: he },
       en: { translation: en }
     },
-    fallbackLng: 'he',         // ברירת מחדל עברית
-    lng: 'he',                 // אם תמיד רוצים עברית
+    fallbackLng: 'he',
+    lng: 'he',
     interpolation: {
       escapeValue: false
     }

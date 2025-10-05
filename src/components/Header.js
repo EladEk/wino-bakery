@@ -75,7 +75,7 @@ export default function Header() {
             onClick={() => setShowKibbutzModal(true)}
             className={`kibbutz-btn ${isKibbutzMember ? 'kibbutz-member' : 'kibbutz-join'}`}
           >
-            {isKibbutzMember ? '🏘️ ' + userData.kibbutzName : '🏘️ שייך לקיבוץ'}
+            {isKibbutzMember ? '🏘️ ' + userData.kibbutzName : '🏘️ ' + t('joinKibbutzButton')}
           </button>
         )}
 

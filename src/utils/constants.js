@@ -1,4 +1,3 @@
-// Application constants
 export const APP_CONFIG = {
   NAME: 'Bread Bakery',
   VERSION: '1.0.0',
@@ -7,7 +6,6 @@ export const APP_CONFIG = {
   RTL_LANGUAGES: ['he', 'ar']
 };
 
-// Firebase collections
 export const COLLECTIONS = {
   BREADS: 'breads',
   USERS: 'users',
@@ -15,13 +13,11 @@ export const COLLECTIONS = {
   ORDERS_HISTORY: 'ordersHistory'
 };
 
-// User roles
 export const USER_ROLES = {
   ADMIN: 'admin',
   USER: 'user'
 };
 
-// Order status
 export const ORDER_STATUS = {
   PENDING: 'pending',
   SUPPLIED: 'supplied',
@@ -29,13 +25,11 @@ export const ORDER_STATUS = {
   CANCELLED: 'cancelled'
 };
 
-// Bread types
 export const BREAD_TYPES = {
   REGULAR: 'regular',
   FOCACCIA: 'focaccia'
 };
 
-// UI constants
 export const UI_CONSTANTS = {
   TOAST_DURATION: 3000,
   MODAL_ANIMATION_DURATION: 200,
@@ -44,7 +38,6 @@ export const UI_CONSTANTS = {
   MIN_QUANTITY: 1
 };
 
-// Validation rules
 export const VALIDATION_RULES = {
   NAME_MIN_LENGTH: 2,
   NAME_MAX_LENGTH: 50,
@@ -54,7 +47,6 @@ export const VALIDATION_RULES = {
   PRICE_MAX: 999.99
 };
 
-// Error messages
 export const ERROR_MESSAGES = {
   NETWORK_ERROR: 'Network error. Please check your connection.',
   UNAUTHORIZED: 'You are not authorized to perform this action.',
@@ -63,7 +55,6 @@ export const ERROR_MESSAGES = {
   GENERIC_ERROR: 'An unexpected error occurred. Please try again.'
 };
 
-// Success messages
 export const SUCCESS_MESSAGES = {
   ORDER_PLACED: 'Order placed successfully!',
   ORDER_UPDATED: 'Order updated successfully!',

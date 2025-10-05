@@ -20,10 +20,8 @@ export const DirectionProvider = ({ children }) => {
     const currentDirection = APP_CONFIG.RTL_LANGUAGES.includes(i18n.language) ? 'rtl' : 'ltr';
     setDirection(currentDirection);
     
-    // Update document direction
     document.dir = currentDirection;
     
-    // Update document language
     document.documentElement.lang = i18n.language;
   }, [i18n.language]);
 

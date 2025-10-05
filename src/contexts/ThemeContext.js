@@ -12,15 +12,12 @@ export const useTheme = () => {
 
 export const ThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState(() => {
-    // Get theme from localStorage or default to 'light'
     return localStorage.getItem('theme') || 'light';
   });
 
   useEffect(() => {
-    // Apply theme to document
     document.documentElement.setAttribute('data-theme', theme);
     
-    // Save theme to localStorage
     localStorage.setItem('theme', theme);
   }, [theme]);
 

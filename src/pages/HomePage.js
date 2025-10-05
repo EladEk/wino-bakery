@@ -3,18 +3,11 @@ import { db } from "../firebase";
 import { collection, onSnapshot, doc, updateDoc, getDoc } from "firebase/firestore";
 import { useAuth } from "../contexts/AuthContext";
 import { useTranslation } from "react-i18next";
+import { useKibbutz } from "../hooks/useKibbutz";
 import "./HomePage.css";
 
 import PopupWidget from "../components/HomePage/PopupWidget";
 import CustomerBreadsTable from "../components/HomePage/CustomerBreadsTable";
-
-function getHebrewDay(dateString) {
-  const daysHebrew = ["יום ראשון","יום שני","יום שלישי","יום רביעי","יום חמישי","יום שישי","שבת"];
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return "";
-  return daysHebrew[date.getDay()];
-}
 
 export default function HomePage() {
   const [breads, setBreads] = useState([]);
@@ -22,20 +15,25 @@ export default function HomePage() {
 
   const { userData, currentUser } = useAuth();
   const { t, i18n } = useTranslation();
+  const { kibbutzim } = useKibbutz();
 
-  // Live UI quantities (user edits here before saving)
+  const getHebrewDay = (dateString) => {
+    const daysHebrew = [t("sunday"), t("monday"), t("tuesday"), t("wednesday"), t("thursday"), t("friday"), t("saturday")];
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return "";
+    return daysHebrew[date.getDay()];
+  };
+
   const [orderQuantities, setOrderQuantities] = useState({});
-  // Persisted claims of the current user (from Firestore)
   const [userClaims, setUserClaims] = useState({});
 
-  // Sale/delivery info
   const [saleDate, setSaleDate] = useState("");
   const [startHour, setStartHour] = useState("");
   const [endHour, setEndHour] = useState("");
   const [address, setAddress] = useState("");
   const [bitNumber, setBitNumber] = useState("");
 
-  // UI helpers
   const [popupType, setPopupType] = useState("");
 
   const saleDateDay = saleDate ? getHebrewDay(saleDate) : "";
@@ -46,16 +44,14 @@ export default function HomePage() {
     setTimeout(() => setPopupType(""), 2000);
   };
 
-  // Load breads and user claims
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "breads"), snap => {
       const arr = snap.docs
         .map(d => ({ id: d.id, ...d.data() }))
-        .filter(b => b.show !== false); // show==true (or undefined)
+        .filter(b => b.show !== false);
 
       setBreads(arr);
 
-      // extract current user claims
       const claims = {};
       arr.forEach(b => {
         const claim = (b.claimedBy || []).find(c => c.userId === currentUser.uid);
@@ -63,7 +59,6 @@ export default function HomePage() {
       });
       setUserClaims(claims);
 
-      // sync UI inputs with saved claims
       setOrderQuantities(() => {
         const m = {};
         arr.forEach(b => (m[b.id] = Number(claims[b.id]?.quantity || 0)));
@@ -73,10 +68,9 @@ export default function HomePage() {
       setLoading(false);
     });
 
-    // load config doc
     const saleDateRef = doc(db, "config", "saleDate");
     getDoc(saleDateRef).then(snap => {
-      if (snap.exists()) {
+      if (snap.exists) {
         const d = snap.data();
         setSaleDate(d.value || "");
         setStartHour(d.startHour || "");
@@ -89,13 +83,12 @@ export default function HomePage() {
     return unsub;
   }, [currentUser.uid]);
 
-  // Guard to ensure profile has name+phone before ordering
   const ensureProfile = async () => {
     let name = userData?.name;
     let phone = userData?.phone;
     if (!name || !phone) {
       const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-      if (userDoc.exists()) {
+      if (userDoc.exists) {
         const d = userDoc.data();
         name = d.name;
         phone = d.phone;
@@ -193,7 +186,6 @@ export default function HomePage() {
     showPopup("cancel");
   };
 
-  // Split lists by **saved** quantities so rows move only after Order/Update
   const breadsToOrder = useMemo(
     () => breads.filter(b => Number(userClaims[b.id]?.quantity || 0) === 0),
     [breads, userClaims]
@@ -203,25 +195,76 @@ export default function HomePage() {
     [breads, userClaims]
   );
 
-  // Are there unsaved changes?
   const hasChanges = useMemo(
     () => breads.some(b => Number(userClaims[b.id]?.quantity || 0) !== Number(orderQuantities[b.id] || 0)),
     [breads, userClaims, orderQuantities]
   );
 
-  // Is there any input selected (for first-time Order button)
   const hasAnyInput = useMemo(
     () => Object.values(orderQuantities).some(q => Number(q) > 0),
     [orderQuantities]
   );
 
-  // Total (live preview) for the “ordered” section
   const userTotalCost = useMemo(() => {
-    return breadsOrdered.reduce((sum, b) => {
+    const total = breadsOrdered.reduce((sum, b) => {
       const qty = Number(orderQuantities[b.id] || 0);
-      return b.price != null ? sum + qty * b.price : sum;
+      if (b.price == null) return sum;
+      
+      let finalPrice = b.price;
+      
+      // Apply kibbutz discount and surcharge if user is a kibbutz member
+      if (userData?.kibbutzId && kibbutzim) {
+        const userKibbutz = kibbutzim.find(k => k.id === userData.kibbutzId);
+        if (userKibbutz) {
+          // Apply discount
+          if (userKibbutz.discountPercentage > 0) {
+            const discount = userKibbutz.discountPercentage / 100;
+            finalPrice = finalPrice * (1 - discount);
+          }
+          
+          // Apply surcharge
+          if (userKibbutz.surchargeType && userKibbutz.surchargeType !== 'none' && userKibbutz.surchargeValue > 0) {
+            if (userKibbutz.surchargeType === 'percentage') {
+              finalPrice = finalPrice * (1 + userKibbutz.surchargeValue / 100);
+            } else if (userKibbutz.surchargeType === 'fixedPerBread') {
+              finalPrice = finalPrice + userKibbutz.surchargeValue;
+            }
+            // Note: fixedPerOrder is handled after the loop
+          }
+        }
+      }
+      
+      return sum + (qty * finalPrice);
     }, 0);
-  }, [breadsOrdered, orderQuantities]);
+    
+    // Add per-order surcharge if applicable
+    if (userData?.kibbutzId && kibbutzim) {
+      const userKibbutz = kibbutzim.find(k => k.id === userData.kibbutzId);
+      if (userKibbutz && userKibbutz.surchargeType === 'fixedPerOrder' && userKibbutz.surchargeValue > 0) {
+        const hasAnyOrders = Object.values(orderQuantities).some(q => Number(q) > 0);
+        if (hasAnyOrders) {
+          return total + userKibbutz.surchargeValue;
+        }
+      }
+    }
+    
+    return total;
+  }, [breadsOrdered, orderQuantities, userData?.kibbutzId, kibbutzim]);
+
+  const orderSurcharge = useMemo(() => {
+    if (userData?.kibbutzId && kibbutzim) {
+      const userKibbutz = kibbutzim.find(k => k.id === userData.kibbutzId);
+      if (userKibbutz && userKibbutz.surchargeType === 'fixedPerOrder' && userKibbutz.surchargeValue > 0) {
+        const hasAnyOrders = Object.values(orderQuantities).some(q => Number(q) > 0);
+        return hasAnyOrders ? userKibbutz.surchargeValue : 0;
+      }
+    }
+    return 0;
+  }, [userData?.kibbutzId, kibbutzim, orderQuantities]);
+
+  const subtotal = useMemo(() => {
+    return userTotalCost - orderSurcharge;
+  }, [userTotalCost, orderSurcharge]);
 
   const onChangeQty = (breadId, next) =>
     setOrderQuantities(q => ({ ...q, [breadId]: next }));
@@ -266,6 +309,8 @@ export default function HomePage() {
             userClaims={userClaims}
             orderQuantities={orderQuantities}
             onChangeQty={onChangeQty}
+            userData={userData}
+            kibbutzim={kibbutzim}
           />
 
           {/* Section: Breads I ordered (render ONLY if any saved order exists) */}
@@ -278,9 +323,21 @@ export default function HomePage() {
                 userClaims={userClaims}
                 orderQuantities={orderQuantities}
                 onChangeQty={onChangeQty}
+                userData={userData}
+                kibbutzim={kibbutzim}
               />
-              <div className="total-revenue user-total-cost">
-                {t("userTotalCost")}: {userTotalCost.toFixed(2)}
+              <div className="order-summary">
+                <div className="subtotal-line">
+                  {t("subtotal")}: {subtotal.toFixed(2)} ₪
+                </div>
+                {orderSurcharge > 0 && (
+                  <div className="surcharge-line">
+                    {t("orderSurcharge")}: {orderSurcharge.toFixed(2)} ₪
+                  </div>
+                )}
+                <div className="total-line">
+                  {t("userTotalCost")}: {userTotalCost.toFixed(2)} ₪
+                </div>
               </div>
             </>
           )}

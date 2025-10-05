@@ -1,12 +1,12 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import "./BreadLoader.css";
 
-const letters = ["ו", "י", "נ", "ו"]; // Replace with your logo’s exact letters, right to left!
+const letters = ["ו", "י", "נ", "ו"];
 
 export default function BreadLoader() {
-  // Center point for the middle letter
+  const { t } = useTranslation();
   const centerX = 200;
-  // Letter spacing (in px)
   const spacing = 65;
 
   return (
@@ -15,7 +15,6 @@ export default function BreadLoader() {
         {letters.map((char, idx) => (
           <text
             key={idx}
-            // Position each letter right-to-left, so the first in the array is farthest right
             x={centerX + spacing * (letters.length / 2 - idx - 0.5)}
             y={100}
             fontSize="80"
@@ -47,7 +46,7 @@ export default function BreadLoader() {
           letterSpacing: 1,
         }}
       >
-        טוען...
+        {t("loading")}
       </div>    
     </div>
   );

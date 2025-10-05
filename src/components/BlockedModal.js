@@ -1,4 +1,3 @@
-// src/components/BlockedModal.js
 import React from "react";
 import "./BlockedModal.css";
 

@@ -1,4 +1,3 @@
-// Export all services from a single entry point
 export { breadsService } from './breads';
 export { usersService } from './users';
 export { saleConfigService } from './saleConfig';

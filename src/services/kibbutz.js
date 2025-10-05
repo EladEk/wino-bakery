@@ -1,21 +1,19 @@
 import { collections, docs, firestoreService } from './firestore';
 
 export const kibbutzService = {
-  // Get all kibbutzim
   getAll: () => firestoreService.getDocs(collections.kibbutzim()),
 
-  // Get kibbutz by ID
   getById: (id) => firestoreService.getDoc(docs.kibbutz(id)),
 
-  // Subscribe to kibbutzim changes
   subscribe: (callback) => firestoreService.subscribeToCollection(collections.kibbutzim(), callback),
 
-  // Create new kibbutz
   create: async (kibbutzData) => {
     const data = {
       name: kibbutzData.name,
       description: kibbutzData.description || '',
       discountPercentage: Number(kibbutzData.discountPercentage) || 0,
+      surchargeType: kibbutzData.surchargeType || 'none',
+      surchargeValue: Number(kibbutzData.surchargeValue) || 0,
       isActive: !!kibbutzData.isActive,
       createdAt: firestoreService.serverTimestamp(),
       updatedAt: firestoreService.serverTimestamp()
@@ -23,22 +21,21 @@ export const kibbutzService = {
     return await firestoreService.addDoc(collections.kibbutzim(), data);
   },
 
-  // Update kibbutz
   update: async (id, kibbutzData) => {
     const data = {
       name: kibbutzData.name,
       description: kibbutzData.description || '',
       discountPercentage: Number(kibbutzData.discountPercentage) || 0,
+      surchargeType: kibbutzData.surchargeType || 'none',
+      surchargeValue: Number(kibbutzData.surchargeValue) || 0,
       isActive: !!kibbutzData.isActive,
       updatedAt: firestoreService.serverTimestamp()
     };
     return await firestoreService.updateDoc(docs.kibbutz(id), data);
   },
 
-  // Delete kibbutz
   delete: (id) => firestoreService.deleteDoc(docs.kibbutz(id)),
 
-  // Toggle kibbutz active status
   toggleActive: async (id, currentStatus) => {
     return await firestoreService.updateDoc(docs.kibbutz(id), {
       isActive: !currentStatus,
@@ -46,7 +43,6 @@ export const kibbutzService = {
     });
   },
 
-  // Get orders by kibbutz
   getOrdersByKibbutz: async (kibbutzId) => {
     const allBreads = await firestoreService.getDocs(collections.breads());
     const kibbutzOrders = [];
@@ -69,7 +65,6 @@ export const kibbutzService = {
     return kibbutzOrders;
   },
 
-  // Calculate kibbutz total revenue
   calculateKibbutzRevenue: async (kibbutzId) => {
     const orders = await kibbutzService.getOrdersByKibbutz(kibbutzId);
     return orders.reduce((total, order) => {

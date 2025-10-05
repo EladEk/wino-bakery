@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
-// base modal for reuse
 function ModalBase({ open, onClose, children }) {
+  const { t } = useTranslation();
   if (!open) return null;
   return (
     <div style={{
@@ -23,7 +24,7 @@ function ModalBase({ open, onClose, children }) {
           style={{
             position: "absolute", top: 9, left: 12, fontSize: 24, background: "none", border: "none", color: "#444", cursor: "pointer"
           }}
-          aria-label="סגור"
+          aria-label={t("close")}
         >&times;</button>
       </div>
     </div>

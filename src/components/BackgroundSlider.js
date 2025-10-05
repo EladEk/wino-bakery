@@ -11,8 +11,8 @@ import bg9 from "../img/9.jpg";
 import "./BackgroundSlider.css";
 
 const images = [bg1, bg2, bg3, bg4, bg5, bg6, bg7, bg8, bg9];
-const FADE_DURATION = 1000;    // ms
-const VISIBLE_DURATION = 10000; // ms
+const FADE_DURATION = 1000;
+const VISIBLE_DURATION = 10000;
 
 export default function BackgroundSlider() {
   const [current, setCurrent] = useState(0);

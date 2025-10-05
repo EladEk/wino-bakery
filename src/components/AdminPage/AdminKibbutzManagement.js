@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useKibbutz } from '../../hooks/useKibbutz';
 import { useToast } from '../../contexts/ToastContext';
 import { useDirection } from '../../contexts/DirectionContext';
+import { breadsService } from '../../services';
 import './AdminKibbutzManagement.css';
 
 export default function AdminKibbutzManagement({ t }) {
@@ -11,19 +12,38 @@ export default function AdminKibbutzManagement({ t }) {
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showOrdersModal, setShowOrdersModal] = useState(false);
   const [showUsersModal, setShowUsersModal] = useState(false);
   const [selectedKibbutz, setSelectedKibbutz] = useState(null);
-  const [kibbutzOrders, setKibbutzOrders] = useState([]);
   const [kibbutzUsers, setKibbutzUsers] = useState([]);
-  const [ordersLoading, setOrdersLoading] = useState(false);
   const [usersLoading, setUsersLoading] = useState(false);
+  const [kibbutzOrdersData, setKibbutzOrdersData] = useState({});
 
-  // Form state
+  useEffect(() => {
+    const loadAllKibbutzOrders = async () => {
+      if (kibbutzim && kibbutzim.length > 0) {
+        for (const kibbutz of kibbutzim) {
+          try {
+            const orders = await getKibbutzOrders(kibbutz.id);
+            setKibbutzOrdersData(prev => ({
+              ...prev,
+              [kibbutz.id]: orders
+            }));
+          } catch (error) {
+            console.error('Error loading kibbutz orders:', error);
+          }
+        }
+      }
+    };
+    
+    loadAllKibbutzOrders();
+  }, [kibbutzim, getKibbutzOrders]);
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     discountPercentage: 0,
+    surchargeType: 'none',
+    surchargeValue: 0,
     isActive: true
   });
 
@@ -31,11 +51,11 @@ export default function AdminKibbutzManagement({ t }) {
     e.preventDefault();
     try {
       await createKibbutz(formData);
-      showSuccess('קיבוץ נוסף בהצלחה!');
+      showSuccess(t('kibbutzAddedSuccessfully'));
       setShowAddModal(false);
       setFormData({ name: '', description: '', discountPercentage: 0, isActive: true });
     } catch (error) {
-      showError('שגיאה בהוספת הקיבוץ');
+      showError(t('errorAddingKibbutz'));
     }
   };
 
@@ -43,22 +63,22 @@ export default function AdminKibbutzManagement({ t }) {
     e.preventDefault();
     try {
       await updateKibbutz(selectedKibbutz.id, formData);
-      showSuccess('קיבוץ עודכן בהצלחה!');
+      showSuccess(t('kibbutzUpdatedSuccessfully'));
       setShowEditModal(false);
       setSelectedKibbutz(null);
       setFormData({ name: '', description: '', discountPercentage: 0, isActive: true });
     } catch (error) {
-      showError('שגיאה בעדכון הקיבוץ');
+      showError(t('errorUpdatingKibbutz'));
     }
   };
 
   const handleDeleteKibbutz = async (kibbutz) => {
-    if (window.confirm(`האם אתה בטוח שברצונך למחוק את הקיבוץ "${kibbutz.name}"?`)) {
+    if (window.confirm(t('confirmDeleteKibbutz', { name: kibbutz.name }))) {
       try {
         await deleteKibbutz(kibbutz.id);
-        showSuccess('קיבוץ נמחק בהצלחה!');
+        showSuccess(t('kibbutzDeletedSuccessfully'));
       } catch (error) {
-        showError('שגיאה במחיקת הקיבוץ');
+        showError(t('errorDeletingKibbutz'));
       }
     }
   };
@@ -66,25 +86,56 @@ export default function AdminKibbutzManagement({ t }) {
   const handleToggleActive = async (kibbutz) => {
     try {
       await toggleKibbutzActive(kibbutz.id, kibbutz.isActive);
-      showSuccess(`קיבוץ ${kibbutz.isActive ? 'הושבת' : 'הופעל'} בהצלחה!`);
+      showSuccess(t('kibbutzStatusChanged', { status: kibbutz.isActive ? t('deactivate') : t('activate') }));
     } catch (error) {
-      showError('שגיאה בשינוי סטטוס הקיבוץ');
+      showError(t('errorChangingKibbutzStatus'));
     }
   };
 
-  const handleViewOrders = async (kibbutz) => {
-    setSelectedKibbutz(kibbutz);
-    setOrdersLoading(true);
+  const loadKibbutzOrders = async (kibbutzId) => {
     try {
-      const orders = await getKibbutzOrders(kibbutz.id);
-      setKibbutzOrders(orders);
-      setShowOrdersModal(true);
+      const orders = await getKibbutzOrders(kibbutzId);
+      setKibbutzOrdersData(prev => ({
+        ...prev,
+        [kibbutzId]: orders
+      }));
     } catch (error) {
-      showError('שגיאה בטעינת הזמנות הקיבוץ');
-    } finally {
-      setOrdersLoading(false);
+      console.error('Error loading kibbutz orders:', error);
     }
   };
+
+  const handleUpdateOrderStatus = async (orderData, field, value) => {
+    try {
+      await breadsService.updateOrderStatus(orderData.breadId, orderData.order.userId, field, value);
+      
+      setKibbutzOrdersData(prev => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach(kibbutzId => {
+          if (updated[kibbutzId]) {
+            updated[kibbutzId] = updated[kibbutzId].map(order => {
+              if (order.breadId === orderData.breadId && order.order.userId === orderData.order.userId) {
+                return {
+                  ...order,
+                  order: {
+                    ...order.order,
+                    [field]: value
+                  }
+                };
+              }
+              return order;
+            });
+          }
+        });
+        return updated;
+      });
+      
+      showSuccess(field === 'paid' ? t('paymentStatusUpdated') : t('supplyStatusUpdated'));
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      showError(`${t('errorUpdatingOrderStatus')}: ${error.message}`);
+    }
+  };
+
 
   const handleViewUsers = async (kibbutz) => {
     setSelectedKibbutz(kibbutz);
@@ -94,7 +145,7 @@ export default function AdminKibbutzManagement({ t }) {
       setKibbutzUsers(users);
       setShowUsersModal(true);
     } catch (error) {
-      showError('שגיאה בטעינת משתמשי הקיבוץ');
+      showError(t('errorLoadingKibbutzUsers'));
     } finally {
       setUsersLoading(false);
     }
@@ -105,7 +156,6 @@ export default function AdminKibbutzManagement({ t }) {
       try {
         await removeUserFromKibbutz(userId);
         showSuccess(t("kibbutzRemovalSuccess"));
-        // Refresh users list
         const users = await getKibbutzUsers(selectedKibbutz.id);
         setKibbutzUsers(users);
       } catch (error) {
@@ -120,6 +170,8 @@ export default function AdminKibbutzManagement({ t }) {
       name: kibbutz.name,
       description: kibbutz.description || '',
       discountPercentage: kibbutz.discountPercentage || 0,
+      surchargeType: kibbutz.surchargeType || 'none',
+      surchargeValue: kibbutz.surchargeValue || 0,
       isActive: kibbutz.isActive
     });
     setShowEditModal(true);
@@ -128,91 +180,151 @@ export default function AdminKibbutzManagement({ t }) {
   const closeModals = () => {
     setShowAddModal(false);
     setShowEditModal(false);
-    setShowOrdersModal(false);
     setShowUsersModal(false);
     setSelectedKibbutz(null);
     setFormData({ name: '', description: '', discountPercentage: 0, isActive: true });
   };
 
   if (loading) {
-    return <div className="loading">טוען קיבוצים...</div>;
+    return <div className="loading">{t("loadingKibbutzim")}</div>;
   }
 
   return (
     <div className={`admin-kibbutz-management ${isRTL ? 'rtl' : 'ltr'}`}>
       <div className="kibbutz-header">
-        <h2>ניהול קיבוצים</h2>
+        <h2>{t("kibbutzManagement")}</h2>
         <button 
           className="add-kibbutz-btn"
           onClick={() => setShowAddModal(true)}
         >
-          + הוסף קיבוץ חדש
+          + {t("addNewKibbutz")}
         </button>
       </div>
 
       <div className="kibbutz-stats">
         <div className="stat-card">
           <div className="stat-number">{kibbutzim.length}</div>
-          <div className="stat-label">סה"כ קיבוצים</div>
+          <div className="stat-label">{t("totalKibbutzim")}</div>
         </div>
         <div className="stat-card">
           <div className="stat-number">{kibbutzim.filter(k => k.isActive).length}</div>
-          <div className="stat-label">קיבוצים פעילים</div>
+          <div className="stat-label">{t("activeKibbutzim")}</div>
         </div>
       </div>
 
       <div className="kibbutz-list">
         {kibbutzim.length === 0 ? (
           <div className="no-kibbutzim">
-            אין קיבוצים רשומים במערכת
+            {t("noKibbutzimInSystem")}
           </div>
         ) : (
           kibbutzim.map(kibbutz => (
             <div key={kibbutz.id} className={`kibbutz-card ${!kibbutz.isActive ? 'inactive' : ''}`}>
-              <div className="kibbutz-info">
-                <div className="kibbutz-name">
-                  🏘️ {kibbutz.name}
-                  {!kibbutz.isActive && <span className="inactive-badge">לא פעיל</span>}
+              <div className="kibbutz-main-content">
+                <div className="kibbutz-info">
+                  <div className="kibbutz-name">
+                    🏘️ {kibbutz.name}
+                    {!kibbutz.isActive && <span className="inactive-badge">{t("inactive")}</span>}
+                  </div>
+                  {kibbutz.description && (
+                    <div className="kibbutz-description">{kibbutz.description}</div>
+                  )}
+                  <div className="kibbutz-discount">
+                    {t("discountPercentage")}: {kibbutz.discountPercentage}%
+                  </div>
+                  {kibbutz.surchargeType && kibbutz.surchargeType !== 'none' && (
+                    <div className="kibbutz-surcharge">
+                      {t("surcharge")}: {kibbutz.surchargeValue}
+                      {kibbutz.surchargeType === 'percentage' ? '%' : '₪'}
+                      {kibbutz.surchargeType === 'fixedPerBread' && ` (${t("perBread")})`}
+                      {kibbutz.surchargeType === 'fixedPerOrder' && ` (${t("perOrder")})`}
+                    </div>
+                  )}
                 </div>
-                {kibbutz.description && (
-                  <div className="kibbutz-description">{kibbutz.description}</div>
-                )}
-                <div className="kibbutz-discount">
-                  הנחה: {kibbutz.discountPercentage}%
+                
+                <div className="kibbutz-actions">
+                  <button 
+                    className="view-users-btn"
+                    onClick={() => handleViewUsers(kibbutz)}
+                  >
+                    {t("viewKibbutzUsers")}
+                  </button>
+                  <button 
+                    className="edit-btn"
+                    onClick={() => openEditModal(kibbutz)}
+                  >
+                    {t("Edit")}
+                  </button>
+                  <button 
+                    className={`toggle-btn ${kibbutz.isActive ? 'deactivate' : 'activate'}`}
+                    onClick={() => handleToggleActive(kibbutz)}
+                  >
+                    {kibbutz.isActive ? t('deactivate') : t('activate')}
+                  </button>
+                  <button 
+                    className="delete-btn"
+                    onClick={() => handleDeleteKibbutz(kibbutz)}
+                  >
+                    {t("Delete")}
+                  </button>
                 </div>
               </div>
               
-              <div className="kibbutz-actions">
-                <button 
-                  className="view-orders-btn"
-                  onClick={() => handleViewOrders(kibbutz)}
-                >
-                  צפה בהזמנות
-                </button>
-        <button 
-          className="view-users-btn"
-          onClick={() => handleViewUsers(kibbutz)}
-        >
-          {t("viewKibbutzUsers")}
-        </button>
-                <button 
-                  className="edit-btn"
-                  onClick={() => openEditModal(kibbutz)}
-                >
-                  ערוך
-                </button>
-                <button 
-                  className={`toggle-btn ${kibbutz.isActive ? 'deactivate' : 'activate'}`}
-                  onClick={() => handleToggleActive(kibbutz)}
-                >
-                  {kibbutz.isActive ? 'השבת' : 'הפעל'}
-                </button>
-                <button 
-                  className="delete-btn"
-                  onClick={() => handleDeleteKibbutz(kibbutz)}
-                >
-                  מחק
-                </button>
+              {/* Orders section - always visible */}
+              <div className="kibbutz-orders-section">
+                <h4>{t("kibbutzOrders")}:</h4>
+                {kibbutzOrdersData[kibbutz.id] ? (
+                  kibbutzOrdersData[kibbutz.id].length > 0 ? (
+                    <div className="orders-list">
+                      {kibbutzOrdersData[kibbutz.id].map((orderData, index) => (
+                          <div key={index} className="order-item">
+                            <div className="order-info">
+                              <div className="order-customer">
+                                <strong>{orderData.order.name}</strong>
+                                <span className="customer-phone">📞 {orderData.order.phone}</span>
+                              </div>
+                              <div className="order-bread">
+                                <strong>{orderData.breadName}</strong>
+                                <span className="order-quantity">{t("quantity")}: {orderData.order.quantity}</span>
+                                <span className="order-price">{t("price")}: ₪{orderData.breadPrice}</span>
+                                {orderData.order.discountPercentage > 0 && (
+                                  <span className="discount">{t("discount")}: {orderData.order.discountPercentage}%</span>
+                                )}
+                              </div>
+                              <div className="order-status">
+                                <div className="status-controls">
+                                  <label className="status-checkbox">
+                                    <input
+                                      type="checkbox"
+                                      checked={orderData.order.supplied || false}
+                                      onChange={(e) => handleUpdateOrderStatus(orderData, 'supplied', e.target.checked)}
+                                    />
+                                    <span className={`status-badge ${orderData.order.supplied ? 'supplied' : 'pending'}`}>
+                                      {orderData.order.supplied ? t('supplied') : t('pending')}
+                                    </span>
+                                  </label>
+                                  <label className="status-checkbox">
+                                    <input
+                                      type="checkbox"
+                                      checked={orderData.order.paid || false}
+                                      onChange={(e) => handleUpdateOrderStatus(orderData, 'paid', e.target.checked)}
+                                    />
+                                    <span className={`status-badge ${orderData.order.paid ? 'paid' : 'unpaid'}`}>
+                                      {orderData.order.paid ? t('paid') : t('unpaid')}
+                                    </span>
+                                  </label>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="no-orders">{t("noOrdersForKibbutz")}</p>
+                  )
+                ) : (
+                  <p className="loading-orders">{t("loadingOrders")}</p>
+                )}
               </div>
             </div>
           ))
@@ -224,12 +336,12 @@ export default function AdminKibbutzManagement({ t }) {
         <div className="modal-overlay" onClick={closeModals}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>הוסף קיבוץ חדש</h3>
+              <h3>{t("addNewKibbutz")}</h3>
               <button className="close-btn" onClick={closeModals}>×</button>
             </div>
             <form onSubmit={handleAddKibbutz} className="kibbutz-form">
               <div className="form-group">
-                <label>שם הקיבוץ:</label>
+                <label>{t("kibbutzName")}:</label>
                 <input
                   type="text"
                   value={formData.name}
@@ -238,7 +350,7 @@ export default function AdminKibbutzManagement({ t }) {
                 />
               </div>
               <div className="form-group">
-                <label>תיאור:</label>
+                <label>{t("description")}:</label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
@@ -246,7 +358,7 @@ export default function AdminKibbutzManagement({ t }) {
                 />
               </div>
               <div className="form-group">
-                <label>אחוז הנחה:</label>
+                <label>{t("discountPercentage")}:</label>
                 <input
                   type="number"
                   min="0"
@@ -255,6 +367,36 @@ export default function AdminKibbutzManagement({ t }) {
                   onChange={(e) => setFormData({...formData, discountPercentage: Number(e.target.value)})}
                 />
               </div>
+              <div className="form-group">
+                <label>{t("surchargeType")}:</label>
+                <select
+                  value={formData.surchargeType}
+                  onChange={(e) => setFormData({...formData, surchargeType: e.target.value})}
+                >
+                  <option value="none">{t("none")}</option>
+                  <option value="percentage">{t("percentage")}</option>
+                  <option value="fixedPerBread">{t("fixedAmount")} - {t("perBread")}</option>
+                  <option value="fixedPerOrder">{t("fixedAmount")} - {t("perOrder")}</option>
+                </select>
+              </div>
+              {formData.surchargeType !== 'none' && (
+                <div className="form-group">
+                  <label>{t("surchargeValue")}:</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step={formData.surchargeType === 'percentage' ? '0.1' : '1'}
+                    value={formData.surchargeValue}
+                    onChange={(e) => setFormData({...formData, surchargeValue: Number(e.target.value)})}
+                    placeholder={formData.surchargeType === 'percentage' ? '5' : '5'}
+                  />
+                  <small className="form-help">
+                    {formData.surchargeType === 'percentage' ? '%' : '₪'}
+                    {formData.surchargeType === 'fixedPerBread' && ` (${t("perBread")})`}
+                    {formData.surchargeType === 'fixedPerOrder' && ` (${t("perOrder")})`}
+                  </small>
+                </div>
+              )}
               <div className="form-group checkbox-group">
                 <label>
                   <input
@@ -262,12 +404,12 @@ export default function AdminKibbutzManagement({ t }) {
                     checked={formData.isActive}
                     onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
                   />
-                  קיבוץ פעיל
+                  {t("activeKibbutz")}
                 </label>
               </div>
               <div className="form-actions">
-                <button type="button" onClick={closeModals}>ביטול</button>
-                <button type="submit">הוסף קיבוץ</button>
+                <button type="button" onClick={closeModals}>{t("cancel")}</button>
+                <button type="submit">{t("addKibbutz")}</button>
               </div>
             </form>
           </div>
@@ -279,12 +421,12 @@ export default function AdminKibbutzManagement({ t }) {
         <div className="modal-overlay" onClick={closeModals}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>ערוך קיבוץ</h3>
+              <h3>{t("editKibbutz")}</h3>
               <button className="close-btn" onClick={closeModals}>×</button>
             </div>
             <form onSubmit={handleEditKibbutz} className="kibbutz-form">
               <div className="form-group">
-                <label>שם הקיבוץ:</label>
+                <label>{t("kibbutzName")}:</label>
                 <input
                   type="text"
                   value={formData.name}
@@ -293,7 +435,7 @@ export default function AdminKibbutzManagement({ t }) {
                 />
               </div>
               <div className="form-group">
-                <label>תיאור:</label>
+                <label>{t("description")}:</label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
@@ -301,7 +443,7 @@ export default function AdminKibbutzManagement({ t }) {
                 />
               </div>
               <div className="form-group">
-                <label>אחוז הנחה:</label>
+                <label>{t("discountPercentage")}:</label>
                 <input
                   type="number"
                   min="0"
@@ -310,6 +452,36 @@ export default function AdminKibbutzManagement({ t }) {
                   onChange={(e) => setFormData({...formData, discountPercentage: Number(e.target.value)})}
                 />
               </div>
+              <div className="form-group">
+                <label>{t("surchargeType")}:</label>
+                <select
+                  value={formData.surchargeType}
+                  onChange={(e) => setFormData({...formData, surchargeType: e.target.value})}
+                >
+                  <option value="none">{t("none")}</option>
+                  <option value="percentage">{t("percentage")}</option>
+                  <option value="fixedPerBread">{t("fixedAmount")} - {t("perBread")}</option>
+                  <option value="fixedPerOrder">{t("fixedAmount")} - {t("perOrder")}</option>
+                </select>
+              </div>
+              {formData.surchargeType !== 'none' && (
+                <div className="form-group">
+                  <label>{t("surchargeValue")}:</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step={formData.surchargeType === 'percentage' ? '0.1' : '1'}
+                    value={formData.surchargeValue}
+                    onChange={(e) => setFormData({...formData, surchargeValue: Number(e.target.value)})}
+                    placeholder={formData.surchargeType === 'percentage' ? '5' : '5'}
+                  />
+                  <small className="form-help">
+                    {formData.surchargeType === 'percentage' ? '%' : '₪'}
+                    {formData.surchargeType === 'fixedPerBread' && ` (${t("perBread")})`}
+                    {formData.surchargeType === 'fixedPerOrder' && ` (${t("perOrder")})`}
+                  </small>
+                </div>
+              )}
               <div className="form-group checkbox-group">
                 <label>
                   <input
@@ -317,67 +489,18 @@ export default function AdminKibbutzManagement({ t }) {
                     checked={formData.isActive}
                     onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
                   />
-                  קיבוץ פעיל
+                  {t("activeKibbutz")}
                 </label>
               </div>
               <div className="form-actions">
-                <button type="button" onClick={closeModals}>ביטול</button>
-                <button type="submit">עדכן קיבוץ</button>
+                <button type="button" onClick={closeModals}>{t("cancel")}</button>
+                <button type="submit">{t("updateKibbutz")}</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* Orders Modal */}
-      {showOrdersModal && selectedKibbutz && (
-        <div className="modal-overlay" onClick={closeModals}>
-          <div className="modal-content orders-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>הזמנות קיבוץ {selectedKibbutz.name}</h3>
-              <button className="close-btn" onClick={closeModals}>×</button>
-            </div>
-            <div className="orders-content">
-              {ordersLoading ? (
-                <div className="loading">טוען הזמנות...</div>
-              ) : kibbutzOrders.length === 0 ? (
-                <div className="no-orders">אין הזמנות לקיבוץ זה</div>
-              ) : (
-                <div className="orders-list">
-                  {kibbutzOrders.map((order, index) => (
-                    <div key={index} className="order-item">
-                      <div className="order-info">
-                        <div className="order-customer">
-                          <strong>{order.order.name}</strong>
-                          <span className="customer-phone">📞 {order.order.phone}</span>
-                        </div>
-                        <div className="order-bread">🍞 {order.breadName}</div>
-                        <div className="order-quantity">כמות: {order.order.quantity}</div>
-                        <div className="order-price">
-                          מחיר: ₪{order.breadPrice.toFixed(2)}
-                          {order.order.discountPercentage > 0 && (
-                            <span className="discount">
-                              (הנחה: {order.order.discountPercentage}%)
-                            </span>
-                          )}
-                        </div>
-                        <div className="order-status">
-                          <span className={`status-badge ${order.order.supplied ? 'supplied' : 'pending'}`}>
-                            {order.order.supplied ? `✅ ${t("supplied")}` : `⏳ ${t("pending")}`}
-                          </span>
-                          <span className={`status-badge ${order.order.paid ? 'paid' : 'unpaid'}`}>
-                            {order.order.paid ? `💰 ${t("paid")}` : `💳 ${t("unpaid")}`}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Users Modal */}
       {showUsersModal && selectedKibbutz && (

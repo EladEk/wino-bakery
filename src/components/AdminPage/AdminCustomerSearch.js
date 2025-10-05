@@ -46,11 +46,11 @@ export default function AdminCustomerSearch({ t, breads, dir = "rtl", toggleSupp
           className="search-input"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder={t("searchCustomerPlaceholder") || "חיפוש לקוח (שם / טלפון / UID)"}
+          placeholder={t("searchCustomerPlaceholder")}
         />
         {searchTerm && (
           <button className="clear-btn" onClick={() => setSearchTerm("")}>
-            {t("Clear") || "נקה"}
+            {t("clear")}
           </button>
         )}
       </div>
@@ -58,7 +58,7 @@ export default function AdminCustomerSearch({ t, breads, dir = "rtl", toggleSupp
       {searchTerm && (
         <div className="customer-results">
           <h4 className="results-title">
-            {t("customerOrders") || "הזמנות הלקוח"}
+            {t("customerOrders")}
             {customerResults.length > 0 ? ` · ${customerResults.length}` : ""}
           </h4>
 
@@ -66,21 +66,21 @@ export default function AdminCustomerSearch({ t, breads, dir = "rtl", toggleSupp
             <table className="ordered-table customer-table">
               <thead>
                 <tr>
-                  <th>{t("customer") || "לקוח"}</th>
-                  <th>{t("phone") || "טלפון"}</th>
-                  <th>{t("bread") || "לחם"}</th>
-                  <th className="num-col">{t("quantity") || "כמות"}</th>
-                  <th className="num-col">{t("price") || "מחיר"}</th>
-                  <th className="num-col">{t("subtotal") || "סכום"}</th>
-                  <th>{t("supplied") || "סופק"}</th>
-                  <th>{t("paid") || "שולם"}</th>
+                  <th>{t("customer")}</th>
+                  <th>{t("phone")}</th>
+                  <th>{t("bread")}</th>
+                  <th className="num-col">{t("quantity")}</th>
+                  <th className="num-col">{t("price")}</th>
+                  <th className="num-col">{t("subtotal")}</th>
+                  <th>{t("supplied")}</th>
+                  <th>{t("paid")}</th>
                 </tr>
               </thead>
               <tbody>
                 {customerResults.length === 0 ? (
                   <tr>
                     <td colSpan={8} style={{ textAlign: "center", opacity: 0.7 }}>
-                      {t("noResults") || "לא נמצאו תוצאות"}
+                      {t("noResults")}
                     </td>
                   </tr>
                 ) : (

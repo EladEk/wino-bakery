@@ -7,6 +7,8 @@ export default function CustomerBreadsTable({
   userClaims,
   orderQuantities,
   onChangeQty,
+  userData,
+  kibbutzim,
 }) {
   return (
     <div className="table-responsive">
@@ -34,12 +36,57 @@ export default function CustomerBreadsTable({
             const step = b.isFocaccia ? 0.5 : 1;
             const max = Number(b.availablePieces) + savedQty;
 
+            const isKibbutzMember = userData?.kibbutzId;
+            let displayPrice = b.price?.toFixed(2) || "";
+            let originalPrice = null;
+            
+            if (isKibbutzMember && kibbutzim) {
+              const userKibbutz = kibbutzim.find(k => k.id === userData.kibbutzId);
+              if (userKibbutz) {
+                let finalPrice = b.price;
+                
+                // Apply discount
+                if (userKibbutz.discountPercentage > 0) {
+                  const discount = userKibbutz.discountPercentage / 100;
+                  finalPrice = finalPrice * (1 - discount);
+                }
+                
+                // Apply surcharge
+                if (userKibbutz.surchargeType && userKibbutz.surchargeType !== 'none' && userKibbutz.surchargeValue > 0) {
+                  if (userKibbutz.surchargeType === 'percentage') {
+                    finalPrice = finalPrice * (1 + userKibbutz.surchargeValue / 100);
+                  } else if (userKibbutz.surchargeType === 'fixedPerBread') {
+                    finalPrice = finalPrice + userKibbutz.surchargeValue;
+                  }
+                  // Note: fixedPerOrder is handled in the total calculation, not per bread
+                }
+                
+                // Show original price crossed out only for discounts (not surcharges)
+                if (userKibbutz.discountPercentage > 0) {
+                  originalPrice = b.price?.toFixed(2);
+                  displayPrice = finalPrice.toFixed(2);
+                } else if ((userKibbutz.surchargeType === 'percentage' || userKibbutz.surchargeType === 'fixedPerBread') && userKibbutz.surchargeValue > 0) {
+                  // For per-bread surcharges, just show the final price without showing the original
+                  displayPrice = finalPrice.toFixed(2);
+                }
+              }
+            }
+
             return (
               <tr key={b.id}>
                 <td>{b.name}</td>
                 <td>{b.description}</td>
                 <td className="num-col">{b.availablePieces}</td>
-                <td className="num-col">{b.price?.toFixed(2) || ""}</td>
+                <td className="num-col">
+                  {isKibbutzMember && originalPrice ? (
+                    <div className="price-with-discount">
+                      <span className="discounted-price">{displayPrice} ₪</span>
+                      <span className="original-price">{originalPrice} ₪</span>
+                    </div>
+                  ) : (
+                    `${displayPrice} ₪`
+                  )}
+                </td>
                 <td>
                   <OrderQuantityControl
                     value={value}

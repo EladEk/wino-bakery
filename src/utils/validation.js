@@ -1,33 +1,27 @@
-// Phone number validation for Israeli numbers
 export const validateIsraeliPhone = (phone) => {
   const phoneRegex = /^05\d{8}$/;
   return phoneRegex.test(phone);
 };
 
-// Email validation
 export const validateEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 };
 
-// Name validation (non-empty, trimmed)
 export const validateName = (name) => {
   return name && name.trim().length > 0;
 };
 
-// Price validation (positive number)
 export const validatePrice = (price) => {
   const numPrice = Number(price);
   return !isNaN(numPrice) && numPrice >= 0;
 };
 
-// Quantity validation (positive integer)
 export const validateQuantity = (quantity) => {
   const numQuantity = Number(quantity);
   return !isNaN(numQuantity) && numQuantity > 0 && Number.isInteger(numQuantity);
 };
 
-// Form validation helpers
 export const validateBreadForm = (formData) => {
   const errors = {};
 
