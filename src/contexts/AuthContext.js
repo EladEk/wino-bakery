@@ -25,7 +25,16 @@ export function AuthProvider({ children }) {
         if (!snap.exists()) {
           await setDoc(
             ref,
-            { phone: user.phoneNumber, createdAt: serverTimestamp() },
+            { 
+              email: user.email,
+              phone: user.phoneNumber, 
+              name: user.displayName || '',
+              isAdmin: false,
+              isBlocked: false,
+              kibbutzId: null,
+              kibbutzName: null,
+              createdAt: serverTimestamp() 
+            },
             { merge: true }
           );
           snap = await getDoc(ref);

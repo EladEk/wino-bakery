@@ -23,9 +23,22 @@ export default function KibbutzModal({ isOpen, onClose }) {
     
     setIsJoining(true);
     try {
+      // First ensure user document exists with all required fields
+      const userDoc = await usersService.getById(userData.uid);
+      if (!userDoc) {
+        // Create user document if it doesn't exist
+        await usersService.create(userData.uid, {
+          email: userData.email,
+          name: userData.name || '',
+          phone: userData.phone || '',
+          isAdmin: false,
+          isBlocked: false
+        });
+      }
+
       await usersService.updateProfile(userData.uid, {
-        name: userData.name,
-        phone: userData.phone,
+        name: userData.name || '',
+        phone: userData.phone || '',
         kibbutzId: selectedKibbutz.id,
         kibbutzName: selectedKibbutz.name
       });
@@ -40,7 +53,7 @@ export default function KibbutzModal({ isOpen, onClose }) {
       showSuccess(`הצטרפת לקיבוץ ${selectedKibbutz.name}!`);
       onClose();
     } catch (error) {
-      showError('שגיאה בהצטרפות לקיבוץ');
+      showError(`שגיאה בהצטרפות לקיבוץ: ${error.message}`);
       console.error('Error joining kibbutz:', error);
     } finally {
       setIsJoining(false);
@@ -51,8 +64,8 @@ export default function KibbutzModal({ isOpen, onClose }) {
     setIsLeaving(true);
     try {
       await usersService.updateProfile(userData.uid, {
-        name: userData.name,
-        phone: userData.phone,
+        name: userData.name || '',
+        phone: userData.phone || '',
         kibbutzId: null,
         kibbutzName: null
       });
@@ -67,7 +80,7 @@ export default function KibbutzModal({ isOpen, onClose }) {
       showSuccess('עזבת את הקיבוץ בהצלחה');
       onClose();
     } catch (error) {
-      showError('שגיאה בעזיבת הקיבוץ');
+      showError(`שגיאה בעזיבת הקיבוץ: ${error.message}`);
       console.error('Error leaving kibbutz:', error);
     } finally {
       setIsLeaving(false);
@@ -99,9 +112,6 @@ export default function KibbutzModal({ isOpen, onClose }) {
                 <h4>הקיבוץ הנוכחי שלך:</h4>
                 <div className="kibbutz-card current">
                   <div className="kibbutz-name">🏘️ {userData.kibbutzName}</div>
-                  <div className="kibbutz-discount">
-                    הנחה: {kibbutzim.find(k => k.id === userData.kibbutzId)?.discountPercentage || 0}%
-                  </div>
                 </div>
               </div>
               
@@ -138,9 +148,6 @@ export default function KibbutzModal({ isOpen, onClose }) {
                       {kibbutz.description && (
                         <div className="kibbutz-description">{kibbutz.description}</div>
                       )}
-                      <div className="kibbutz-discount">
-                        הנחה: {kibbutz.discountPercentage}%
-                      </div>
                     </div>
                   ))}
                 </div>
