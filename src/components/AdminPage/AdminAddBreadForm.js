@@ -1,27 +1,29 @@
 import React, { useState } from "react";
-import { db } from "../../firebase";
-import { addDoc, collection } from "firebase/firestore";
+import { useKibbutz } from "../../hooks/useKibbutz";
+import { breadsService } from "../../services/breads";
 
 export default function AdminAddBreadForm({ t }) {
+  const { kibbutzim } = useKibbutz();
   const [breadName, setBreadName] = useState("");
   const [breadPieces, setBreadPieces] = useState(1);
   const [breadDescription, setBreadDescription] = useState("");
   const [breadPrice, setBreadPrice] = useState("");
   const [breadShow, setBreadShow] = useState(true);
   const [breadIsFocaccia, setBreadIsFocaccia] = useState(false);
+  const [kibbutzQuantities, setKibbutzQuantities] = useState({});
 
   const handleAddBread = async (e) => {
     e.preventDefault();
     if (!breadName || breadPieces < 1 || breadPrice === "") return;
 
-    await addDoc(collection(db, "breads"), {
+    await breadsService.create({
       name: breadName,
       availablePieces: Number(breadPieces),
       description: breadDescription,
       price: Number(breadPrice),
-      claimedBy: [],
       show: !!breadShow,
       isFocaccia: !!breadIsFocaccia,
+      kibbutzQuantities: kibbutzQuantities,
     });
 
     setBreadName("");
@@ -30,6 +32,7 @@ export default function AdminAddBreadForm({ t }) {
     setBreadPrice("");
     setBreadShow(true);
     setBreadIsFocaccia(false);
+    setKibbutzQuantities({});
   };
 
   const dir = document.dir || "rtl";
@@ -104,6 +107,40 @@ export default function AdminAddBreadForm({ t }) {
           />
           {t("foccia")}
         </label>
+
+        {/* Kibbutz Quantity Allocation */}
+        {kibbutzim && kibbutzim.length > 0 ? (
+          <div className="kibbutz-quantities-section">
+            <h4>{t("kibbutzQuantityAllocation")}</h4>
+            <p className="allocation-help">{t("kibbutzAllocationHelp")}</p>
+            {kibbutzim.map(kibbutz => (
+              <div key={kibbutz.id} className="kibbutz-quantity-row">
+                <label>
+                  {kibbutz.name}:
+                  <input
+                    type="number"
+                    min="0"
+                    max={breadPieces}
+                    value={kibbutzQuantities[kibbutz.id] || 0}
+                    onChange={(e) => setKibbutzQuantities(prev => ({
+                      ...prev,
+                      [kibbutz.id]: Number(e.target.value) || 0
+                    }))}
+                    className="bread-input"
+                    placeholder="0"
+                  />
+                </label>
+              </div>
+            ))}
+            <div className="allocation-summary">
+              {t("totalAllocated")}: {Object.values(kibbutzQuantities).reduce((sum, qty) => sum + (qty || 0), 0)} / {breadPieces}
+            </div>
+          </div>
+        ) : (
+          <div style={{padding: '10px', background: '#f0f0f0', margin: '10px 0', borderRadius: '5px'}}>
+            <small>No kibbutzim found. Create kibbutzim first to allocate quantities.</small>
+          </div>
+        )}
 
         <button type="submit" className="add-bread-btn">
           {t("Add Bread")}

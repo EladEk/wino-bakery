@@ -15,6 +15,8 @@ export const kibbutzService = {
       surchargeType: kibbutzData.surchargeType || 'none',
       surchargeValue: Number(kibbutzData.surchargeValue) || 0,
       isActive: !!kibbutzData.isActive,
+      isClub: !!kibbutzData.isClub,
+      password: kibbutzData.password || '',
       createdAt: firestoreService.serverTimestamp(),
       updatedAt: firestoreService.serverTimestamp()
     };
@@ -29,6 +31,8 @@ export const kibbutzService = {
       surchargeType: kibbutzData.surchargeType || 'none',
       surchargeValue: Number(kibbutzData.surchargeValue) || 0,
       isActive: !!kibbutzData.isActive,
+      isClub: !!kibbutzData.isClub,
+      password: kibbutzData.password || '',
       updatedAt: firestoreService.serverTimestamp()
     };
     return await firestoreService.updateDoc(docs.kibbutz(id), data);
@@ -70,5 +74,11 @@ export const kibbutzService = {
     return orders.reduce((total, order) => {
       return total + (order.order.quantity * order.breadPrice);
     }, 0);
+  },
+
+  verifyPassword: async (kibbutzId, password) => {
+    const kibbutz = await kibbutzService.getById(kibbutzId);
+    if (!kibbutz) return false;
+    return kibbutz.password === password;
   }
 };

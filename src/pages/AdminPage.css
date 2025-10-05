@@ -25,6 +25,56 @@
   background-color: #f7f7ee;
 }
 
+.kibbutz-quantities-section {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f0f8ff;
+  border: 1px solid #b0d4f1;
+  border-radius: 8px;
+}
+
+.kibbutz-quantities-section h4 {
+  margin: 0 0 10px 0;
+  color: #2c5aa0;
+  font-size: 1.1rem;
+}
+
+.allocation-help {
+  margin: 0 0 15px 0;
+  color: #666;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.kibbutz-quantity-row {
+  margin-bottom: 10px;
+}
+
+.kibbutz-quantity-row label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 500;
+}
+
+.kibbutz-quantity-row input {
+  width: 80px;
+  padding: 5px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.allocation-summary {
+  margin-top: 15px;
+  padding: 10px;
+  background-color: #e8f4fd;
+  border-radius: 4px;
+  font-weight: bold;
+  color: #2c5aa0;
+  text-align: center;
+}
+
 .add-bread {
   color: #222;
   border: none;

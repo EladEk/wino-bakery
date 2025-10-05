@@ -105,7 +105,7 @@ export default function OrderHistoryPage() {
                   <th>{t("Pieces")}</th>
                   <th>{t("name")}</th>
                   <th>{t("phone")}</th>
-                  <th>{t("kibbutzManagement")}</th>
+                  <th>{t("kibbutz")}</th>
                   <th>{t("description")}</th>
                   <th>{t("supplied")}</th>
                   <th>{t("paid")}</th>

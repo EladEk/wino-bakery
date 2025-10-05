@@ -15,6 +15,7 @@ export const breadsService = {
       price: Number(breadData.price),
       show: !!breadData.show,
       isFocaccia: !!breadData.isFocaccia,
+      kibbutzQuantities: breadData.kibbutzQuantities || {},
       claimedBy: [],
       createdAt: firestoreService.serverTimestamp()
     };
@@ -29,6 +30,7 @@ export const breadsService = {
       price: Number(breadData.price),
       show: !!breadData.show,
       isFocaccia: !!breadData.isFocaccia,
+      kibbutzQuantities: breadData.kibbutzQuantities || {},
       updatedAt: firestoreService.serverTimestamp()
     };
     return await firestoreService.updateDoc(docs.bread(id), data);
@@ -63,11 +65,9 @@ export const breadsService = {
     };
 
     const updatedClaimedBy = [...(bread.claimedBy || []), newOrder];
-    const newAvailablePieces = bread.availablePieces - newOrder.quantity;
 
     return await firestoreService.updateDoc(docs.bread(breadId), {
       claimedBy: updatedClaimedBy,
-      availablePieces: newAvailablePieces,
       updatedAt: firestoreService.serverTimestamp()
     });
   },
@@ -76,16 +76,12 @@ export const breadsService = {
     const bread = await breadsService.getById(breadId);
     if (!bread || !bread.claimedBy[orderIndex]) throw new Error('Order not found');
 
-    const oldQuantity = bread.claimedBy[orderIndex].quantity;
-    const diff = newQuantity - oldQuantity;
-
     const updatedClaimedBy = bread.claimedBy.map((order, index) => 
       index === orderIndex ? { ...order, quantity: newQuantity } : order
     );
 
     return await firestoreService.updateDoc(docs.bread(breadId), {
       claimedBy: updatedClaimedBy,
-      availablePieces: bread.availablePieces - diff,
       updatedAt: firestoreService.serverTimestamp()
     });
   },
@@ -94,12 +90,10 @@ export const breadsService = {
     const bread = await breadsService.getById(breadId);
     if (!bread || !bread.claimedBy[orderIndex]) throw new Error('Order not found');
 
-    const removedOrder = bread.claimedBy[orderIndex];
     const updatedClaimedBy = bread.claimedBy.filter((_, index) => index !== orderIndex);
 
     return await firestoreService.updateDoc(docs.bread(breadId), {
       claimedBy: updatedClaimedBy,
-      availablePieces: bread.availablePieces + removedOrder.quantity,
       updatedAt: firestoreService.serverTimestamp()
     });
   },
@@ -180,5 +174,28 @@ export const breadsService = {
       claimedBy: updatedClaimedBy,
       updatedAt: firestoreService.serverTimestamp()
     });
+  },
+
+  getAvailableQuantityForKibbutz: (bread, kibbutzId) => {
+    if (!bread.kibbutzQuantities || !bread.kibbutzQuantities[kibbutzId]) {
+      // If no allocation for this kibbutz, they can't order
+      return 0;
+    }
+    
+    const allocatedQuantity = bread.kibbutzQuantities[kibbutzId];
+    const claimedByKibbutz = (bread.claimedBy || []).filter(claim => claim.kibbutzId === kibbutzId);
+    const claimedQuantity = claimedByKibbutz.reduce((sum, claim) => sum + (claim.quantity || 0), 0);
+    
+    return Math.max(0, allocatedQuantity - claimedQuantity);
+  },
+
+  getAvailableQuantityForGeneral: (bread) => {
+    // Use the same logic as admin page: total - allocated to kibbutzim
+    const totalAllocated = Object.values(bread.kibbutzQuantities || {}).reduce((sum, qty) => sum + (qty || 0), 0);
+    const generalAvailable = bread.availablePieces - totalAllocated;
+    
+    console.log(`General quantity for ${bread.name}: total=${bread.availablePieces}, allocated=${totalAllocated}, available=${generalAvailable}`);
+    
+    return Math.max(0, generalAvailable);
   }
 };

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { useKibbutz } from "../../hooks/useKibbutz";
 
 function ModalBase({ open, onClose, children }) {
   const { t } = useTranslation();
@@ -32,6 +33,7 @@ function ModalBase({ open, onClose, children }) {
 }
 
 export default function BreadEditModal({ open, bread, t, onSave, onDelete, onCancel }) {
+  const { kibbutzim } = useKibbutz();
   const [form, setForm] = useState({
     name: "",
     description: "",
@@ -39,6 +41,7 @@ export default function BreadEditModal({ open, bread, t, onSave, onDelete, onCan
     price: "",
     show: true,
     isFocaccia: false,
+    kibbutzQuantities: {},
   });
 
   useEffect(() => {
@@ -49,7 +52,8 @@ export default function BreadEditModal({ open, bread, t, onSave, onDelete, onCan
         availablePieces: bread.availablePieces ?? "",
         price: bread.price ?? "",
         show: bread.show !== false,
-        isFocaccia: bread.isFocaccia ?? false
+        isFocaccia: bread.isFocaccia ?? false,
+        kibbutzQuantities: bread.kibbutzQuantities ?? {}
       });
     }
   }, [bread]);
@@ -129,6 +133,44 @@ export default function BreadEditModal({ open, bread, t, onSave, onDelete, onCan
           />
           {t("foccia")}
         </label>
+
+        {/* Kibbutz Quantity Allocation */}
+        {kibbutzim && kibbutzim.length > 0 ? (
+          <div className="kibbutz-quantities-section">
+            <h4>{t("kibbutzQuantityAllocation")}</h4>
+            <p className="allocation-help">{t("kibbutzAllocationHelp")}</p>
+            {kibbutzim.map(kibbutz => (
+              <div key={kibbutz.id} className="kibbutz-quantity-row">
+                <label>
+                  {kibbutz.name}:
+                  <input
+                    type="number"
+                    min="0"
+                    max={form.availablePieces}
+                    value={form.kibbutzQuantities[kibbutz.id] || 0}
+                    onChange={(e) => {
+                      const newQuantities = {
+                        ...form.kibbutzQuantities,
+                        [kibbutz.id]: Number(e.target.value) || 0
+                      };
+                      handleChange("kibbutzQuantities", newQuantities);
+                    }}
+                    className="bread-input"
+                    placeholder="0"
+                  />
+                </label>
+              </div>
+            ))}
+            <div className="allocation-summary">
+              {t("totalAllocated")}: {Object.values(form.kibbutzQuantities).reduce((sum, qty) => sum + (qty || 0), 0)} / {form.availablePieces}
+            </div>
+          </div>
+        ) : (
+          <div style={{padding: '10px', background: '#f0f0f0', margin: '10px 0', borderRadius: '5px'}}>
+            <small>No kibbutzim found. Create kibbutzim first to allocate quantities.</small>
+          </div>
+        )}
+
         <div style={{ display: "flex", gap: 14, marginTop: 10, justifyContent: "center" }}>
           <button type="submit" className="edit-bread-btn" style={{ fontWeight: "bold" }}>{t("Save")}</button>
           <button type="button" className="edit-bread-btn" onClick={onCancel}>{t("Cancel")}</button>

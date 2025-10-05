@@ -10,7 +10,7 @@ export default function OrdersTable({ bread, t, editingOrder, startEditingOrder,
             <tr>
               <th>{t("name")}</th>
               <th>{t("phone")}</th>
-              <th>{t("kibbutzManagement")}</th>
+              <th>{t("kibbutz")}</th>
               <th>{t("quantity")}</th>
               <th>{t("supplied")}</th>
               <th>{t("paid")}</th>

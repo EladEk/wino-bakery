@@ -1,5 +1,6 @@
 import React from "react";
 import OrderQuantityControl from "./OrderQuantityControl";
+import { breadsService } from "../../services/breads";
 
 export default function CustomerBreadsTable({
   breads,
@@ -30,11 +31,45 @@ export default function CustomerBreadsTable({
           </tr>
         </thead>
         <tbody>
-          {breads.map(b => {
-            const savedQty = Number(userClaims[b.id]?.quantity || 0);
-            const value = Number(orderQuantities[b.id] || 0);
-            const step = b.isFocaccia ? 0.5 : 1;
-            const max = Number(b.availablePieces) + savedQty;
+          {breads
+            .map(b => {
+              const savedQty = Number(userClaims[b.id]?.quantity || 0);
+              const value = Number(orderQuantities[b.id] || 0);
+              const step = b.isFocaccia ? 0.5 : 1;
+              
+              // Calculate available quantity based on kibbutz membership
+              let availableQuantity;
+              let isClubMember = false;
+              
+              if (userData?.kibbutzId) {
+                const userKibbutz = kibbutzim?.find(k => k.id === userData.kibbutzId);
+                isClubMember = userKibbutz?.isClub || false;
+                // If user is a club member, they can see all available breads (general quantity)
+                // Otherwise, they can ONLY see breads allocated to their kibbutz
+                if (isClubMember) {
+                  availableQuantity = breadsService.getAvailableQuantityForGeneral(b);
+                } else {
+                  availableQuantity = breadsService.getAvailableQuantityForKibbutz(b, userData.kibbutzId);
+                }
+              } else {
+                availableQuantity = breadsService.getAvailableQuantityForGeneral(b);
+              }
+              
+              // Debug logging
+              if (b.name && availableQuantity > 0) {
+                console.log(`Bread: ${b.name}, Available: ${availableQuantity}, User: ${userData?.kibbutzId ? 'Kibbutz member' : 'General user'}, IsClub: ${isClubMember}`);
+              }
+              
+              const max = availableQuantity + savedQty;
+              
+              return { ...b, availableQuantity, savedQty, value, step, max, isClubMember };
+            })
+            .filter(b => {
+              // Show breads that have available quantity
+              return b.availableQuantity > 0;
+            })
+            .map(b => {
+              const { availableQuantity, savedQty, value, step, max } = b;
 
             const isKibbutzMember = userData?.kibbutzId;
             let displayPrice = b.price?.toFixed(2) || "";
@@ -76,7 +111,14 @@ export default function CustomerBreadsTable({
               <tr key={b.id}>
                 <td>{b.name}</td>
                 <td>{b.description}</td>
-                <td className="num-col">{b.availablePieces}</td>
+                <td className="num-col">
+                  {availableQuantity}
+                  {userData?.kibbutzId && b.kibbutzQuantities?.[userData.kibbutzId] && (
+                    <div className="kibbutz-allocation-info">
+                      <small>({t("kibbutzAllocated")}: {b.kibbutzQuantities[userData.kibbutzId]})</small>
+                    </div>
+                  )}
+                </td>
                 <td className="num-col">
                   {isKibbutzMember && originalPrice ? (
                     <div className="price-with-discount">

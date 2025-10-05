@@ -107,6 +107,7 @@ export default function AdminPage() {
       price: Number(updatedBread.price),
       show: !!updatedBread.show,
       isFocaccia: !!updatedBread.isFocaccia,
+      kibbutzQuantities: updatedBread.kibbutzQuantities || {},
     });
     closeEditModal();
   };

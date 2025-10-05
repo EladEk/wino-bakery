@@ -238,7 +238,7 @@ export default function UserManagementPage() {
                 <th>{t("Phone")}</th>
                 <th>{t("Name")}</th>
                 <th>{t("Email")}</th>
-                <th>{t("kibbutzManagement")}</th>
+                <th>{t("kibbutz")}</th>
                 <th>{t("Admin")}</th>
                 <th>{t("Blocked")}</th>
                 <th>{t("Actions")}</th>

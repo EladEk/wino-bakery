@@ -5,7 +5,9 @@ import { useToast } from '../contexts/ToastContext';
 import { useDirection } from '../contexts/DirectionContext';
 import { useTranslation } from 'react-i18next';
 import { usersService } from '../services/users';
+import { kibbutzService } from '../services/kibbutz';
 import { db } from '../firebase';
+import KibbutzPasswordModal from './KibbutzPasswordModal';
 import './KibbutzModal.css';
 
 export default function KibbutzModal({ isOpen, onClose }) {
@@ -19,6 +21,8 @@ export default function KibbutzModal({ isOpen, onClose }) {
   const [isJoining, setIsJoining] = useState(false);
   const [isLeaving, setIsLeaving] = useState(false);
   const [isUpdatingOrders, setIsUpdatingOrders] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [pendingKibbutz, setPendingKibbutz] = useState(null);
 
   const isKibbutzMember = userData?.kibbutzId;
 
@@ -26,10 +30,28 @@ export default function KibbutzModal({ isOpen, onClose }) {
     console.error('Kibbutz loading error:', kibbutzError);
   }
 
-  const handleJoinKibbutz = async () => {
+  const handleJoinKibbutz = async (kibbutz) => {
     const userId = currentUser?.uid;
     
-    if (!selectedKibbutz || !userId) {
+    if (!kibbutz || !userId) {
+      return;
+    }
+    
+    // Check if kibbutz has password protection
+    if (kibbutz.password) {
+      setPendingKibbutz(kibbutz);
+      setShowPasswordModal(true);
+      return;
+    }
+    
+    // Proceed with joining if no password
+    await joinKibbutz(kibbutz);
+  };
+
+  const joinKibbutz = async (kibbutz) => {
+    const userId = currentUser?.uid;
+    
+    if (!kibbutz || !userId) {
       return;
     }
     
@@ -57,8 +79,8 @@ export default function KibbutzModal({ isOpen, onClose }) {
       await usersService.updateProfile(userId, {
         name: safeUserData.name,
         phone: safeUserData.phone,
-        kibbutzId: selectedKibbutz.id,
-        kibbutzName: selectedKibbutz.name
+        kibbutzId: kibbutz.id,
+        kibbutzName: kibbutz.name
       });
 
       const { collection, getDocs, updateDoc, doc } = await import('firebase/firestore');
@@ -73,11 +95,11 @@ export default function KibbutzModal({ isOpen, onClose }) {
               updated = true;
               return {
                 ...claim,
-                kibbutzId: selectedKibbutz.id,
-                kibbutzName: selectedKibbutz.name,
-                discountPercentage: selectedKibbutz.discountPercentage || 0,
-                surchargeType: selectedKibbutz.surchargeType || 'none',
-                surchargeValue: selectedKibbutz.surchargeValue || 0
+                kibbutzId: kibbutz.id,
+                kibbutzName: kibbutz.name,
+                discountPercentage: kibbutz.discountPercentage || 0,
+                surchargeType: kibbutz.surchargeType || 'none',
+                surchargeValue: kibbutz.surchargeValue || 0
               };
             }
             return claim;
@@ -93,11 +115,11 @@ export default function KibbutzModal({ isOpen, onClose }) {
 
       setUserData(prev => ({
         ...prev,
-        kibbutzId: selectedKibbutz.id,
-        kibbutzName: selectedKibbutz.name
+        kibbutzId: kibbutz.id,
+        kibbutzName: kibbutz.name
       }));
 
-      showSuccess(t('joinedKibbutzSuccessfully', { name: selectedKibbutz.name }));
+      showSuccess(t('joinedKibbutzSuccessfully', { name: kibbutz.name }));
       onClose();
     } catch (error) {
       showError(`${t('errorJoiningKibbutz')}: ${error.message}`);
@@ -105,6 +127,28 @@ export default function KibbutzModal({ isOpen, onClose }) {
     } finally {
       setIsJoining(false);
     }
+  };
+
+  const handlePasswordSubmit = async (password) => {
+    if (!pendingKibbutz) return;
+    
+    try {
+      const isValid = await kibbutzService.verifyPassword(pendingKibbutz.id, password);
+      if (isValid) {
+        setShowPasswordModal(false);
+        await joinKibbutz(pendingKibbutz);
+        setPendingKibbutz(null);
+      } else {
+        showError(t('incorrectPassword'));
+      }
+    } catch (error) {
+      showError(t('passwordVerificationError'));
+    }
+  };
+
+  const handlePasswordModalClose = () => {
+    setShowPasswordModal(false);
+    setPendingKibbutz(null);
   };
 
   const handleUpdateExistingOrders = async () => {
@@ -289,7 +333,10 @@ export default function KibbutzModal({ isOpen, onClose }) {
                       className={`kibbutz-card ${selectedKibbutz?.id === kibbutz.id ? 'selected' : ''}`}
                       onClick={() => setSelectedKibbutz(kibbutz)}
                     >
-                      <div className="kibbutz-name">🏘️ {kibbutz.name}</div>
+                      <div className="kibbutz-name">
+                        🏘️ {kibbutz.name}
+                        {kibbutz.password && <span className="password-indicator"> 🔒</span>}
+                      </div>
                       {kibbutz.description && (
                         <div className="kibbutz-description">{kibbutz.description}</div>
                       )}
@@ -302,7 +349,7 @@ export default function KibbutzModal({ isOpen, onClose }) {
                 <div className="kibbutz-actions">
                   <button 
                     className="join-kibbutz-btn"
-                    onClick={handleJoinKibbutz}
+                    onClick={() => handleJoinKibbutz(selectedKibbutz)}
                     disabled={isJoining}
                   >
                     {isJoining ? t('joining') : t('joinKibbutzName', { name: selectedKibbutz.name })}
@@ -313,6 +360,13 @@ export default function KibbutzModal({ isOpen, onClose }) {
           )}
         </div>
       </div>
+      
+      <KibbutzPasswordModal
+        isOpen={showPasswordModal}
+        onClose={handlePasswordModalClose}
+        kibbutzName={pendingKibbutz?.name}
+        onPasswordSubmit={handlePasswordSubmit}
+      />
     </div>
   );
 }

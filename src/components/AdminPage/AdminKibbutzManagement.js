@@ -44,7 +44,9 @@ export default function AdminKibbutzManagement({ t }) {
     discountPercentage: 0,
     surchargeType: 'none',
     surchargeValue: 0,
-    isActive: true
+    isActive: true,
+    isClub: false,
+    password: ''
   });
 
   const handleAddKibbutz = async (e) => {
@@ -53,7 +55,7 @@ export default function AdminKibbutzManagement({ t }) {
       await createKibbutz(formData);
       showSuccess(t('kibbutzAddedSuccessfully'));
       setShowAddModal(false);
-      setFormData({ name: '', description: '', discountPercentage: 0, isActive: true });
+      setFormData({ name: '', description: '', discountPercentage: 0, surchargeType: 'none', surchargeValue: 0, isActive: true, isClub: false, password: '' });
     } catch (error) {
       showError(t('errorAddingKibbutz'));
     }
@@ -66,7 +68,7 @@ export default function AdminKibbutzManagement({ t }) {
       showSuccess(t('kibbutzUpdatedSuccessfully'));
       setShowEditModal(false);
       setSelectedKibbutz(null);
-      setFormData({ name: '', description: '', discountPercentage: 0, isActive: true });
+      setFormData({ name: '', description: '', discountPercentage: 0, surchargeType: 'none', surchargeValue: 0, isActive: true, isClub: false, password: '' });
     } catch (error) {
       showError(t('errorUpdatingKibbutz'));
     }
@@ -92,17 +94,6 @@ export default function AdminKibbutzManagement({ t }) {
     }
   };
 
-  const loadKibbutzOrders = async (kibbutzId) => {
-    try {
-      const orders = await getKibbutzOrders(kibbutzId);
-      setKibbutzOrdersData(prev => ({
-        ...prev,
-        [kibbutzId]: orders
-      }));
-    } catch (error) {
-      console.error('Error loading kibbutz orders:', error);
-    }
-  };
 
   const handleUpdateOrderStatus = async (orderData, field, value) => {
     try {
@@ -172,7 +163,9 @@ export default function AdminKibbutzManagement({ t }) {
       discountPercentage: kibbutz.discountPercentage || 0,
       surchargeType: kibbutz.surchargeType || 'none',
       surchargeValue: kibbutz.surchargeValue || 0,
-      isActive: kibbutz.isActive
+      isActive: kibbutz.isActive,
+      isClub: kibbutz.isClub || false,
+      password: kibbutz.password || ''
     });
     setShowEditModal(true);
   };
@@ -182,7 +175,7 @@ export default function AdminKibbutzManagement({ t }) {
     setShowEditModal(false);
     setShowUsersModal(false);
     setSelectedKibbutz(null);
-    setFormData({ name: '', description: '', discountPercentage: 0, isActive: true });
+    setFormData({ name: '', description: '', discountPercentage: 0, isActive: true, isClub: false });
   };
 
   if (loading) {
@@ -238,6 +231,11 @@ export default function AdminKibbutzManagement({ t }) {
                       {kibbutz.surchargeType === 'percentage' ? '%' : '₪'}
                       {kibbutz.surchargeType === 'fixedPerBread' && ` (${t("perBread")})`}
                       {kibbutz.surchargeType === 'fixedPerOrder' && ` (${t("perOrder")})`}
+                    </div>
+                  )}
+                  {kibbutz.password && (
+                    <div className="kibbutz-password">
+                      🔒 {t("passwordProtected")}
                     </div>
                   )}
                 </div>
@@ -407,6 +405,51 @@ export default function AdminKibbutzManagement({ t }) {
                   {t("activeKibbutz")}
                 </label>
               </div>
+              <div className="form-group checkbox-group">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={formData.isClub}
+                    onChange={(e) => setFormData({...formData, isClub: e.target.checked})}
+                  />
+                  {t("isClub")}
+                </label>
+                <small className="form-help">
+                  {t("isClubHelp")}
+                </small>
+              </div>
+              <div className="form-group">
+                <label>
+                  {t("kibbutzPassword")}:
+                  {selectedKibbutz?.password && !formData.password && (
+                    <span className="current-password-indicator">
+                      🔒 {t("currentlyProtected")}
+                    </span>
+                  )}
+                </label>
+                <div className="password-input-group">
+                  <input
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                    placeholder={formData.password ? t("newPassword") : t("kibbutzPasswordPlaceholder")}
+                    className="password-input"
+                  />
+                  {formData.password && (
+                    <button
+                      type="button"
+                      className="clear-password-btn"
+                      onClick={() => setFormData({...formData, password: ''})}
+                      title={t("clearPassword")}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+                <small className="form-help">
+                  {formData.password ? t("passwordWillBeSet") : t("kibbutzPasswordHelp")}
+                </small>
+              </div>
               <div className="form-actions">
                 <button type="button" onClick={closeModals}>{t("cancel")}</button>
                 <button type="submit">{t("addKibbutz")}</button>
@@ -491,6 +534,51 @@ export default function AdminKibbutzManagement({ t }) {
                   />
                   {t("activeKibbutz")}
                 </label>
+              </div>
+              <div className="form-group checkbox-group">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={formData.isClub}
+                    onChange={(e) => setFormData({...formData, isClub: e.target.checked})}
+                  />
+                  {t("isClub")}
+                </label>
+                <small className="form-help">
+                  {t("isClubHelp")}
+                </small>
+              </div>
+              <div className="form-group">
+                <label>
+                  {t("kibbutzPassword")}:
+                  {selectedKibbutz?.password && !formData.password && (
+                    <span className="current-password-indicator">
+                      🔒 {t("currentlyProtected")}
+                    </span>
+                  )}
+                </label>
+                <div className="password-input-group">
+                  <input
+                    type="password"
+                    value={formData.password}
+                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                    placeholder={formData.password ? t("newPassword") : t("kibbutzPasswordPlaceholder")}
+                    className="password-input"
+                  />
+                  {formData.password && (
+                    <button
+                      type="button"
+                      className="clear-password-btn"
+                      onClick={() => setFormData({...formData, password: ''})}
+                      title={t("clearPassword")}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+                <small className="form-help">
+                  {formData.password ? t("passwordWillBeSet") : t("kibbutzPasswordHelp")}
+                </small>
               </div>
               <div className="form-actions">
                 <button type="button" onClick={closeModals}>{t("cancel")}</button>

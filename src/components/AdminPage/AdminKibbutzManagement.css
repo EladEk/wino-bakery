@@ -159,6 +159,72 @@
   margin-top: 4px;
 }
 
+.kibbutz-password {
+  color: #ff9800;
+  font-weight: bold;
+  background: rgba(255, 152, 0, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: inline-block;
+  margin-top: 4px;
+}
+
+.password-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-input {
+  flex: 1;
+  padding-right: 40px;
+}
+
+.clear-password-btn {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.clear-password-btn:hover {
+  background-color: #f0f0f0;
+  color: #666;
+}
+
+[dir="rtl"] .clear-password-btn {
+  right: auto;
+  left: 8px;
+}
+
+[dir="rtl"] .password-input {
+  padding-right: 12px;
+  padding-left: 40px;
+}
+
+.current-password-indicator {
+  color: #ff9800;
+  font-size: 0.8rem;
+  font-weight: normal;
+  margin-left: 8px;
+}
+
+[dir="rtl"] .current-password-indicator {
+  margin-left: 0;
+  margin-right: 8px;
+}
+
 .kibbutz-actions {
   display: flex;
   gap: 10px;
@@ -246,7 +312,7 @@
   border-radius: 12px;
   max-width: 500px;
   width: 100%;
-  max-height: 80vh;
+  max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
