@@ -8,7 +8,7 @@ import './KibbutzModal.css';
 
 export default function KibbutzModal({ isOpen, onClose }) {
   const { userData, setUserData } = useAuth();
-  const { kibbutzim, loading } = useKibbutz();
+  const { kibbutzim, loading, error: kibbutzError } = useKibbutz();
   const { showSuccess, showError } = useToast();
   const { isRTL } = useDirection();
   
@@ -18,31 +18,55 @@ export default function KibbutzModal({ isOpen, onClose }) {
 
   const isKibbutzMember = userData?.kibbutzId;
 
+  // Handle kibbutz loading errors
+  if (kibbutzError) {
+    console.error('Kibbutz loading error:', kibbutzError);
+  }
+
   const handleJoinKibbutz = async () => {
-    if (!selectedKibbutz) return;
+    if (!selectedKibbutz || !userData?.uid) return;
     
     setIsJoining(true);
     try {
+      console.log('Starting kibbutz join process...', { selectedKibbutz, userData });
+      
+      // Ensure userData has required fields
+      const safeUserData = {
+        uid: userData.uid,
+        email: userData.email || '',
+        name: userData.name || '',
+        phone: userData.phone || ''
+      };
+
+      console.log('Safe user data:', safeUserData);
+
       // First ensure user document exists with all required fields
-      const userDoc = await usersService.getById(userData.uid);
+      console.log('Getting user document...');
+      const userDoc = await usersService.getById(safeUserData.uid);
+      console.log('User document:', userDoc);
+      
       if (!userDoc) {
+        console.log('Creating new user document...');
         // Create user document if it doesn't exist
-        await usersService.create(userData.uid, {
-          email: userData.email,
-          name: userData.name || '',
-          phone: userData.phone || '',
+        await usersService.create(safeUserData.uid, {
+          email: safeUserData.email,
+          name: safeUserData.name,
+          phone: safeUserData.phone,
           isAdmin: false,
           isBlocked: false
         });
+        console.log('User document created successfully');
       }
 
-      await usersService.updateProfile(userData.uid, {
-        name: userData.name || '',
-        phone: userData.phone || '',
+      console.log('Updating user profile...');
+      await usersService.updateProfile(safeUserData.uid, {
+        name: safeUserData.name,
+        phone: safeUserData.phone,
         kibbutzId: selectedKibbutz.id,
         kibbutzName: selectedKibbutz.name
       });
 
+      console.log('Updating local user data...');
       // Update local user data
       setUserData(prev => ({
         ...prev,
@@ -55,17 +79,27 @@ export default function KibbutzModal({ isOpen, onClose }) {
     } catch (error) {
       showError(`שגיאה בהצטרפות לקיבוץ: ${error.message}`);
       console.error('Error joining kibbutz:', error);
+      console.error('Error stack:', error.stack);
     } finally {
       setIsJoining(false);
     }
   };
 
   const handleLeaveKibbutz = async () => {
+    if (!userData?.uid) return;
+    
     setIsLeaving(true);
     try {
-      await usersService.updateProfile(userData.uid, {
+      // Ensure userData has required fields
+      const safeUserData = {
+        uid: userData.uid,
         name: userData.name || '',
-        phone: userData.phone || '',
+        phone: userData.phone || ''
+      };
+
+      await usersService.updateProfile(safeUserData.uid, {
+        name: safeUserData.name,
+        phone: safeUserData.phone,
         kibbutzId: null,
         kibbutzName: null
       });
@@ -89,7 +123,7 @@ export default function KibbutzModal({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
-  const activeKibbutzim = kibbutzim.filter(k => k.isActive);
+  const activeKibbutzim = (kibbutzim || []).filter(k => k && k.isActive);
 
   return (
     <div className="modal-overlay" onClick={onClose}>

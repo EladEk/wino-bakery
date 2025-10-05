@@ -75,7 +75,7 @@ export const usersService = {
     
     return allUsers.filter(user => 
       (user.name && user.name.toLowerCase().includes(term)) ||
-      (user.phone && user.phone.includes(term)) ||
+      (user.phone && user.phone.toString().includes(term)) ||
       (user.email && user.email.toLowerCase().includes(term)) ||
       user.id.includes(term)
     );
