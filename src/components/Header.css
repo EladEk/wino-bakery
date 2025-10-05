@@ -76,3 +76,41 @@ button:hover {
 .install-btn:hover {
   background: #ffdb74;
 }
+
+/* Kibbutz Button Styles */
+.kibbutz-btn {
+  background: linear-gradient(135deg, #FF9800, #F57C00);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: 8px;
+  font-weight: 500;
+}
+
+.kibbutz-btn:hover {
+  background: linear-gradient(135deg, #F57C00, #EF6C00);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+}
+
+.kibbutz-btn.kibbutz-member {
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+}
+
+.kibbutz-btn.kibbutz-member:hover {
+  background: linear-gradient(135deg, #45a049, #3d8b40);
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.kibbutz-btn.kibbutz-join {
+  background: linear-gradient(135deg, #FF9800, #F57C00);
+}
+
+.kibbutz-btn.kibbutz-join:hover {
+  background: linear-gradient(135deg, #F57C00, #EF6C00);
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+}

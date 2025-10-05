@@ -46,7 +46,25 @@ export default function AdminPage() {
   const [endSaleLoading, setEndSaleLoading] = useState(false);
   const [popup, setPopup] = useState({ show: false, message: "", error: false });
 
+  // Add Bread popup (modal)
+  const [addBreadOpen, setAddBreadOpen] = useState(false);
+
   const dir = i18n.dir();
+
+  // Close Add Bread modal on Esc
+  useEffect(() => {
+    if (!addBreadOpen) return;
+    const onKey = (e) => e.key === "Escape" && setAddBreadOpen(false);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [addBreadOpen]);
+
+  // Lock background scroll when Add Bread modal is open
+  useEffect(() => {
+    if (!addBreadOpen) return;
+    document.body.classList.add("modal-open");
+    return () => document.body.classList.remove("modal-open");
+  }, [addBreadOpen]);
 
   // Live breads + config
   useEffect(() => {
@@ -80,7 +98,7 @@ export default function AdminPage() {
     alert(t("updated"));
   };
 
-  // Modal open/close
+  // Modal open/close (edit bread)
   const openEditModal = (bread) => {
     setModalBread(bread);
     setModalOpen(true);
@@ -90,7 +108,7 @@ export default function AdminPage() {
     setModalBread(null);
   };
 
-  // Save & delete bread (from modal)
+  // Save & delete bread (from edit modal)
   const handleModalSave = async (updatedBread) => {
     await updateDoc(doc(db, "breads", updatedBread.id), {
       name: updatedBread.name,
@@ -239,7 +257,7 @@ export default function AdminPage() {
       {/* Management buttons bar just under the header */}
       <AdminNavigation />
 
-      <h2>{t("Admin Dashboard")}</h2>
+      <h2 className="admin-panel-title">{t("Admin Dashboard")}</h2>
 
       {/* Centered red End Sale button */}
       <div className="end-sale-bar">
@@ -267,11 +285,51 @@ export default function AdminPage() {
         setBitNumber={setBitNumber}
         onSave={saveSaleDate}
       />
+   <  h2 className="bread-list">{t("breadList")}</h2>
+      {/* ---- Add Bread: popup trigger ---- */}
+      <div className="add-bread-bar" dir={dir}>
+        <button
+          className="add-bread-btn"
+          onClick={() => setAddBreadOpen(true)}
+        >
+          {t("addBread", { defaultValue: "Add Bread" })}
+        </button>
+      </div>
 
-      {/* Add new bread */}
-      <AdminAddBreadForm t={t} />
+      {/* ---- Add Bread: modal popup ---- */}
+      {addBreadOpen && (
+        <div
+          className="modal-root"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="add-bread-title"
+        >
+          <div
+            className="modal-backdrop"
+            onClick={() => setAddBreadOpen(false)}
+          />
+          <div className="modal-card" dir={dir}>
+            <div className="modal-header">
+              <h3 id="add-bread-title">
+                {t("addNewBread", { defaultValue: "Add New Bread" })}
+              </h3>
+              <button
+                className="close-btn"
+                onClick={() => setAddBreadOpen(false)}
+                aria-label={t("close", { defaultValue: "Close" })}
+                title={t("close", { defaultValue: "Close" })}
+              >
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <AdminAddBreadForm t={t} />
+            </div>
+          </div>
+        </div>
+      )}
 
-      <h3 className="bread-list">{t("breadList")}</h3>
+     
 
       {/* Search customer orders */}
       <AdminCustomerSearch

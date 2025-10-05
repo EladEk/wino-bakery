@@ -10,6 +10,7 @@ export default function OrdersTable({ bread, t, editingOrder, startEditingOrder,
             <tr>
               <th>{t("name")}</th>
               <th>{t("phone")}</th>
+              <th>{t("kibbutzManagement")}</th>
               <th>{t("quantity")}</th>
               <th>{t("supplied")}</th>
               <th>{t("paid")}</th>
@@ -23,16 +24,25 @@ export default function OrdersTable({ bread, t, editingOrder, startEditingOrder,
               const key = `${bread.id}_${i}`;
               const isEditing = editingOrder[key];
 
+              const isKibbutzMember = claim.kibbutzId;
+              const rowStyle = isKibbutzMember ? { backgroundColor: '#e3f2fd', color: '#1976d2' } : {};
+
               return (
-                <tr key={i}>
+                <tr key={i} style={rowStyle}>
                   <td>
                     <span style={{ paddingLeft: 6, display: "inline-block", width: 120 }}>
                       {claim.name}
+                      {isKibbutzMember && <span style={{ marginLeft: 5 }}>🏘️</span>}
                     </span>
                   </td>
                   <td>
                     <span style={{ paddingLeft: 6, display: "inline-block", width: 120 }}>
                       {claim.phone}
+                    </span>
+                  </td>
+                  <td>
+                    <span style={{ paddingLeft: 6, display: "inline-block", width: 120 }}>
+                      {claim.kibbutzName || t("notAssignedToKibbutz")}
                     </span>
                   </td>
                   <td>

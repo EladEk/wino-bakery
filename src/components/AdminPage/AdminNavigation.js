@@ -10,6 +10,7 @@ export default function AdminNavigation({ className = "" }) {
 
   const items = [
     { key: "users",  label: t("ManageUsers"),  to: "/users" },
+    { key: "kibbutz", label: t("kibbutzManagement"), to: "/admin/kibbutz" },
     { key: "orders", label: t("OrderSummary"), to: "/orders" },
     { key: "hist",   label: t("OrderHistory"), to: "/order-history" },
   ];

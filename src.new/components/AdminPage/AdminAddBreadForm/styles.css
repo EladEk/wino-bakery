@@ -1,4 +1,0 @@
-.bread-form{display:flex;flex-direction:column;gap:8px;background:#f7f7ee;padding:10px;border-radius:8px;margin:12px 0}
-.bread-form input{padding:6px;border:1px solid #ccc;border-radius:6px}
-.add-bread{background:#ffcc00;color:#222;border:none;border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer}
-.add-bread:disabled{opacity:.6;cursor:not-allowed}

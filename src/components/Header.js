@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useKibbutz } from "../hooks/useKibbutz";
+import KibbutzModal from "./KibbutzModal";
 import logo from "../img/LOGO.jpg";
 import "./Header.css";
 
@@ -10,9 +12,11 @@ export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
+  const { kibbutzim } = useKibbutz();
 
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstall, setShowInstall] = useState(false);
+  const [showKibbutzModal, setShowKibbutzModal] = useState(false);
 
   useEffect(() => {
     const handler = (e) => {
@@ -47,7 +51,9 @@ export default function Header() {
   const atUsers = location.pathname === "/users";
   const atOrders = location.pathname === "/orders";
   const atOrderHistory = location.pathname === "/order-history";
+  const atKibbutzManagement = location.pathname === "/admin/kibbutz";
   const isAdmin = userData?.isAdmin;
+  const isKibbutzMember = userData?.kibbutzId;
 
   return (
     <header className="app-header">
@@ -63,6 +69,16 @@ export default function Header() {
       </div>
 
       <div className="right-buttons">
+        {/* כפתור קיבוץ - רק למשתמשים רגילים בדף הבית */}
+        {atHome && !isAdmin && userData && (
+          <button 
+            onClick={() => setShowKibbutzModal(true)}
+            className={`kibbutz-btn ${isKibbutzMember ? 'kibbutz-member' : 'kibbutz-join'}`}
+          >
+            {isKibbutzMember ? '🏘️ ' + userData.kibbutzName : '🏘️ שייך לקיבוץ'}
+          </button>
+        )}
+
         {showInstall && (
           <button onClick={handleInstallClick} className="install-btn">
             📱 {t("installApp") || "Install App"}
@@ -91,7 +107,17 @@ export default function Header() {
         {atUsers && isAdmin && (
           <button onClick={() => navigate("/admin")}>{t("back") || "Back to Admin"}</button>
         )}
+
+        {atKibbutzManagement && isAdmin && (
+          <button onClick={() => navigate("/admin")}>{t("BackToAdmin")}</button>
+        )}
       </div>
+
+      {/* Kibbutz Modal */}
+      <KibbutzModal 
+        isOpen={showKibbutzModal} 
+        onClose={() => setShowKibbutzModal(false)} 
+      />
     </header>
   );
 }

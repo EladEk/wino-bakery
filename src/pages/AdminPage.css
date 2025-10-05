@@ -86,7 +86,7 @@
   border-bottom: none;
 }
 
-/* Results actions cell (no longer used for buttons, but keep for consistency) */
+/* Results actions cell (kept for consistency) */
 .ordered-table .actions-cell {
   display: flex;
   gap: 6px;
@@ -197,6 +197,15 @@
   color: #333;
 }
 
+.admin-panel-title
+{
+  display: flex;
+  justify-content: center;
+  margin: 12px 0 8px 0;
+  font-size: 3.4rem;
+  color: #222;
+  text-align: center;
+}
 .customer-table .num-col {
   text-align: right !important;
   direction: ltr;
@@ -206,7 +215,7 @@
 /* Center the End Sale button bar */
 .end-sale-bar {
   display: flex;
-  justify-content: center;
+  justify-content: right;
   margin: 10px 0 16px;
 }
 
@@ -230,4 +239,245 @@
   color: #fff;
   cursor: not-allowed;
   box-shadow: none;
+}
+
+/* ----------- Add Bread trigger ----------- */
+.add-bread-bar {
+  display: flex;
+  justify-content: flex-start;
+  gap: 8px;
+  margin: 12px 0 16px;
+}
+
+/* Keep your old .add-bread usable + add a dedicated class */
+.add-bread-btn,
+.add-bread {
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid #bbb;
+  background: #f7f7ee;
+  color: navy;
+  font-weight: 600;
+  font-size: large;
+  cursor: pointer;
+  margin-top: 0;
+  margin-bottom: 0;
+  transition: background 0.15s ease, transform 0.05s ease;
+}
+.add-bread-btn:hover,
+.add-bread:hover { background: #eceadf; }
+.add-bread-btn:active,
+.add-bread:active { transform: translateY(1px); }
+
+/* ----------- Modal (popup) for Add Bread ----------- */
+/* Lock background scroll when a modal is open */
+body.modal-open { overflow: hidden; }
+
+/* Modal root & backdrop */
+.modal-root {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+}
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+}
+
+/* Centered modal card */
+.modal-card {
+  position: relative;
+  width: min(760px, calc(100vw - 32px));
+  max-height: 85vh;
+  overflow: auto;
+  border-radius: 14px;
+  border: 1px solid #e0e0e0;
+  background: #fff;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.25);
+  padding: 14px;
+}
+
+/* Header with close button */
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 2px 0 10px;
+}
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: #222;
+}
+
+.modal-body {}
+
+/* Close button (shared) */
+.close-btn {
+  border: none;
+  background: transparent;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #444;
+}
+.close-btn:hover { color: #000; }
+
+/* Dark mode tweaks */
+.bread-list {
+  margin-bottom: 0px;
+  margin-top: 0px;
+  font-size: 2.3em;
+  color: red;  
+}
+
+/* Kibbutz Management Styles */
+.kibbutz-badge {
+  background: linear-gradient(135deg, #4CAF50, #45a049);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  display: inline-block;
+}
+
+.no-kibbutz {
+  color: #666;
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+.kibbutz-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  background: #f9f9f9;
+}
+
+.kibbutz-option:hover {
+  background: #f0f0f0;
+}
+
+.kibbutz-option .kibbutz-info {
+  flex: 1;
+}
+
+.kibbutz-option .kibbutz-name {
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.kibbutz-option .kibbutz-discount {
+  color: #4CAF50;
+  font-size: 0.9rem;
+}
+
+.assign-btn {
+  background: #4CAF50;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.assign-btn:hover {
+  background: #45a049;
+}
+
+/* Modal styles for kibbutz selection */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #666;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.close-btn:hover {
+  background-color: #f0f0f0;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.kibbutz-list {
+  margin-top: 15px;
+}
+
+/* Responsive Design for Kibbutz */
+@media (max-width: 768px) {
+  .kibbutz-option {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .assign-btn {
+    width: 100%;
+  }
+
+  .modal-content {
+    margin: 10px;
+    max-height: 90vh;
+  }
 }

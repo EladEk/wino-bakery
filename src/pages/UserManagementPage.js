@@ -2,13 +2,20 @@ import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
 import { collection, onSnapshot, updateDoc, doc, deleteDoc, getDocs } from "firebase/firestore";
 import { useTranslation } from "react-i18next";
+import { useKibbutz } from "../hooks/useKibbutz";
+import { usersService } from "../services/users";
+import { useToast } from "../contexts/ToastContext";
 import "../pages/AdminPage.css"; // reuse same styles
 
 export default function UserManagementPage() {
   const { t } = useTranslation();
+  const { kibbutzim } = useKibbutz();
+  const { showSuccess, showError } = useToast();
   const [users, setUsers] = useState([]);
   const [editingUserId, setEditingUserId] = useState(null);
   const [editData, setEditData] = useState({ name: "", email: "", phone: "" });
+  const [showKibbutzModal, setShowKibbutzModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "users"), snapshot => {
@@ -121,6 +128,33 @@ export default function UserManagementPage() {
     }
   };
 
+  const handleAssignToKibbutz = async (userId, kibbutzId, kibbutzName) => {
+    try {
+      await usersService.assignToKibbutz(userId, kibbutzId, kibbutzName);
+      showSuccess(`${t("kibbutzAssignmentSuccess")} ${kibbutzName}`);
+      setShowKibbutzModal(false);
+      setSelectedUser(null);
+    } catch (error) {
+      showError(t("kibbutzAssignmentError"));
+    }
+  };
+
+  const handleRemoveFromKibbutz = async (userId, userName) => {
+    if (window.confirm(`${t("removeUserFromKibbutz")} ${userName}?`)) {
+      try {
+        await usersService.removeFromKibbutz(userId);
+        showSuccess(t("kibbutzRemovalSuccess"));
+      } catch (error) {
+        showError(t("kibbutzRemovalError"));
+      }
+    }
+  };
+
+  const openKibbutzModal = (user) => {
+    setSelectedUser(user);
+    setShowKibbutzModal(true);
+  };
+
   return (
     <div className="admin-container">
       <h2>{t("Users")}</h2>
@@ -131,6 +165,7 @@ export default function UserManagementPage() {
               <th>{t("Phone")}</th>
               <th>{t("Name")}</th>
               <th>{t("Email")}</th>
+              <th>{t("kibbutzManagement")}</th>
               <th>{t("Admin")}</th>
               <th>{t("Blocked")}</th>
               <th>{t("Actions")}</th>
@@ -162,7 +197,10 @@ export default function UserManagementPage() {
                       className="bread-input"
                     />
                   ) : (
-                    u.name || "-"
+                    <span>
+                      {u.name || "-"}
+                      {u.kibbutzId && <span style={{ marginLeft: 5 }}>🏘️</span>}
+                    </span>
                   )}
                 </td>
                 <td>
@@ -176,6 +214,13 @@ export default function UserManagementPage() {
                     />
                   ) : (
                     u.email || "-"
+                  )}
+                </td>
+                <td>
+                  {u.kibbutzName ? (
+                    <span className="kibbutz-badge">🏘️ {u.kibbutzName}</span>
+                  ) : (
+                    <span className="no-kibbutz">{t("notAssignedToKibbutz")}</span>
                   )}
                 </td>
                 <td>{u.isAdmin ? t("Yes") : t("No")}</td>
@@ -194,6 +239,21 @@ export default function UserManagementPage() {
                       <button onClick={() => toggleBlockUser(u)} style={{ marginLeft: 6 }}>
                         {u.isBlocked ? t("Unblock") : t("Block")}
                       </button>
+                      {u.kibbutzId ? (
+                        <button 
+                          onClick={() => handleRemoveFromKibbutz(u.id, u.name)}
+                          style={{ marginLeft: 6, backgroundColor: "#ff6b6b" }}
+                        >
+                          {t("removeFromKibbutz")}
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => openKibbutzModal(u)}
+                          style={{ marginLeft: 6, backgroundColor: "#4ecdc4" }}
+                        >
+                          {t("assignToKibbutz")}
+                        </button>
+                      )}
                       <button onClick={() => startEditing(u)} style={{ marginLeft: 6 }}>
                         {t("Edit")}
                       </button>
@@ -211,6 +271,40 @@ export default function UserManagementPage() {
           </tbody>
         </table>
       </div>
+
+      {/* Kibbutz Selection Modal */}
+      {showKibbutzModal && selectedUser && (
+        <div className="modal-overlay" onClick={() => {setShowKibbutzModal(false); setSelectedUser(null);}}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{t("assignUserToKibbutz")}</h3>
+              <button className="close-btn" onClick={() => {setShowKibbutzModal(false); setSelectedUser(null);}}>×</button>
+            </div>
+            <div className="modal-body">
+              <p>{t("User")}: <strong>{selectedUser.name || selectedUser.email}</strong></p>
+              <div className="kibbutz-list">
+                {kibbutzim.filter(k => k.isActive).map(kibbutz => (
+                  <div key={kibbutz.id} className="kibbutz-option">
+                    <div className="kibbutz-info">
+                      <div className="kibbutz-name">🏘️ {kibbutz.name}</div>
+                      <div className="kibbutz-discount">{t("discountPercentage")}: {kibbutz.discountPercentage}%</div>
+                    </div>
+                    <button 
+                      className="assign-btn"
+                      onClick={() => handleAssignToKibbutz(selectedUser.id, kibbutz.id, kibbutz.name)}
+                    >
+                      {t("assignToKibbutz")}
+                    </button>
+                  </div>
+                ))}
+              </div>
+              {kibbutzim.filter(k => k.isActive).length === 0 && (
+                <p>{t("noActiveKibbutzim")}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

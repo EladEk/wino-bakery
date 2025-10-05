@@ -2,14 +2,17 @@ import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
 import { collection, getDocs, doc, getDoc, updateDoc } from "firebase/firestore";
 import { useTranslation } from "react-i18next";
+import { useKibbutz } from "../hooks/useKibbutz";
 import BreadLoader from "../components/BreadLoader";
 import "./OrderSummary.css";
 
 export default function OrderSummary() {
   const { t } = useTranslation();
+  const { kibbutzim } = useKibbutz();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showSupplied, setShowSupplied] = useState(false);
+  const [selectedKibbutz, setSelectedKibbutz] = useState("all");
 
   useEffect(() => {
     fetchOrders();
@@ -24,7 +27,12 @@ export default function OrderSummary() {
     const usersMap = {};
     usersSnapshot.forEach(doc => {
       const data = doc.data();
-      usersMap[data.id] = { name: data.name || data.email, phone: data.phone || "" };
+      usersMap[data.id] = { 
+        name: data.name || data.email, 
+        phone: data.phone || "",
+        kibbutzId: data.kibbutzId,
+        kibbutzName: data.kibbutzName
+      };
     });
 
     const userOrders = {};
@@ -35,6 +43,8 @@ export default function OrderSummary() {
           userOrders[claim.userId] = {
             name: usersMap[claim.userId]?.name || claim.name || "Unknown",
             phone: usersMap[claim.userId]?.phone || claim.phone || "",
+            kibbutzId: usersMap[claim.userId]?.kibbutzId || claim.kibbutzId,
+            kibbutzName: usersMap[claim.userId]?.kibbutzName || claim.kibbutzName,
             items: [],
           };
         }
@@ -45,6 +55,9 @@ export default function OrderSummary() {
           paid: !!claim.paid,
           supplied: !!claim.supplied,
           claimIndex: idx,
+          kibbutzId: claim.kibbutzId,
+          kibbutzName: claim.kibbutzName,
+          discountPercentage: claim.discountPercentage,
         });
       });
     });
@@ -86,35 +99,82 @@ export default function OrderSummary() {
 
   return (
     <div className="order-summary">
-      <h2>{t("Order Summary")}</h2>
-      <div style={{ textAlign: "right", marginBottom: 16 }}>
-        <label style={{ cursor: "pointer", fontSize: "1.05em" }}>
+      <h2>{t("OrderSummary")}</h2>
+      <div style={{ textAlign: "right", marginBottom: 16, display: "flex", gap: "16px", justifyContent: "flex-end", flexWrap: "wrap" }}>
+        <label style={{ 
+          cursor: "pointer", 
+          fontSize: "1.05em",
+          backgroundColor: "white",
+          padding: "8px 12px",
+          borderRadius: "6px",
+          border: "1px solid #ddd",
+          display: "inline-block"
+        }}>
           <input
             type="checkbox"
             checked={showSupplied}
             onChange={e => setShowSupplied(e.target.checked)}
             style={{ marginLeft: 6 }}
           />
-          {t("showSupplied", "Show Supplied")}
+          {t("showSupplied")}
         </label>
+        
+        <select
+          value={selectedKibbutz}
+          onChange={e => setSelectedKibbutz(e.target.value)}
+          style={{
+            padding: "8px 12px",
+            borderRadius: "6px",
+            border: "1px solid #ddd",
+            backgroundColor: "white",
+            fontSize: "1.05em",
+            cursor: "pointer"
+          }}
+        >
+          <option value="all">{t("allKibbutzim")}</option>
+          <option value="no-kibbutz">{t("noKibbutz")}</option>
+          {kibbutzim.filter(k => k.isActive).map(kibbutz => (
+            <option key={kibbutz.id} value={kibbutz.id}>
+              🏘️ {kibbutz.name}
+            </option>
+          ))}
+        </select>
       </div>
       {loading ? (
         <BreadLoader />
       ) : orders.length === 0 ? (
         <p>{t("No pending orders")}</p>
       ) : (
-        orders.map(order => {
-          // Filter items by showSupplied flag
-          const visibleItems = showSupplied
-            ? order.items
-            : order.items.filter(item => !item.supplied);
+        orders
+          .filter(order => {
+            // Filter by kibbutz
+            if (selectedKibbutz === "all") return true;
+            if (selectedKibbutz === "no-kibbutz") return !order.kibbutzId;
+            return order.kibbutzId === selectedKibbutz;
+          })
+          .map(order => {
+            // Filter items by showSupplied flag
+            const visibleItems = showSupplied
+              ? order.items
+              : order.items.filter(item => !item.supplied);
 
-          if (visibleItems.length === 0) return null;
+            if (visibleItems.length === 0) return null;
 
-          return (
-            <div key={order.userId} className="order-card">
-              <h3>{order.name}</h3>
-              <p>{order.phone}</p>
+            const isKibbutzMember = order.kibbutzId;
+            const orderCardStyle = isKibbutzMember ? { backgroundColor: '#e3f2fd', borderColor: '#1976d2' } : {};
+
+            return (
+              <div key={order.userId} className="order-card" style={orderCardStyle}>
+                <h3 style={{ color: isKibbutzMember ? '#1976d2' : 'inherit' }}>
+                  {order.name}
+                  {isKibbutzMember && <span style={{ marginLeft: 5 }}>🏘️</span>}
+                </h3>
+                <p>{order.phone}</p>
+                {isKibbutzMember && (
+                  <p style={{ color: '#1976d2', fontWeight: 'bold' }}>
+                    {t("kibbutzMember")}: {order.kibbutzName}
+                  </p>
+                )}
               <ul>
                 {visibleItems.map((item, idx) => (
                   <li key={idx} style={{ display: "flex", alignItems: "center", gap: 16 }}>

@@ -37,7 +37,6 @@ export default function AdminAddBreadForm({ t }) {
 
   return (
     <>
-      <h3 className="add-bread">{t("Add Bread")}</h3>
       <form onSubmit={handleAddBread} className="bread-form">
         <label>
           {t("Name")}:{" "}

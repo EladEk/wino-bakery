@@ -107,8 +107,8 @@ export default function OrderHistoryPage() {
                   <th>{t("Pieces")}</th>
                   <th>{t("name")}</th>
                   <th>{t("phone")}</th>
+                  <th>{t("kibbutzManagement")}</th>
                   <th>{t("description")}</th>
-                  
                   <th>{t("supplied")}</th>
                   <th>{t("paid")}</th>
                 </tr>
@@ -120,18 +120,27 @@ export default function OrderHistoryPage() {
                       !filterName ||
                       (order.name && order.name.toLowerCase().includes(filterName.toLowerCase()))
                     )
-                    .map(order => (
-                      <tr key={bread.breadId + "-" + (order.userId || order.name)}>
-                        <td>{bread.breadName}</td>
-                        <td>{bread.breadPrice}</td>
-                        <td>{order.quantity}</td>
-                        <td>{order.name}</td>
-                        <td>{order.phone}</td>
-                        <td>{bread.breadDescription}</td>
-                        <td>{order.supplied ? t("Yes") : t("No")}</td>
-                        <td>{order.paid ? t("Yes") : t("No")}</td>
-                      </tr>
-                    ))
+                    .map(order => {
+                      const isKibbutzMember = order.kibbutzId;
+                      const rowStyle = isKibbutzMember ? { backgroundColor: '#e3f2fd', color: '#1976d2' } : {};
+                      
+                      return (
+                        <tr key={bread.breadId + "-" + (order.userId || order.name)} style={rowStyle}>
+                          <td>{bread.breadName}</td>
+                          <td>{bread.breadPrice}</td>
+                          <td>{order.quantity}</td>
+                          <td>
+                            {order.name}
+                            {isKibbutzMember && <span style={{ marginLeft: 5 }}>🏘️</span>}
+                          </td>
+                          <td>{order.phone}</td>
+                          <td>{order.kibbutzName || t("notAssignedToKibbutz")}</td>
+                          <td>{bread.breadDescription}</td>
+                          <td>{order.supplied ? t("Yes") : t("No")}</td>
+                          <td>{order.paid ? t("Yes") : t("No")}</td>
+                        </tr>
+                      );
+                    })
                 )}
               </tbody>
             </table>

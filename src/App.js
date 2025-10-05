@@ -7,23 +7,23 @@ import HomePage from "./pages/HomePage";
 import AdminPage from "./pages/AdminPage";
 import UserManagementPage from "./pages/UserManagementPage";
 import OrderSummary from "./pages/OrderSummary";
-import OrderHistoryPage from "./pages/OrderHistoryPage"; 
+import OrderHistoryPage from "./pages/OrderHistoryPage";
+import KibbutzManagementPage from "./pages/KibbutzManagementPage"; 
 
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { ToastProvider } from "./contexts/ToastContext";
+import { DirectionProvider } from "./contexts/DirectionContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
 
 import Header from "./components/Header";
 import BackgroundSlider from "./components/BackgroundSlider";
 import NamePrompt from "./components/HomePage/NamePrompt";
+import ToastContainer from "./components/common/ToastContainer";
 
 function AppShell() {
-  const { i18n } = useTranslation();
   const { loading, needsProfile } = useAuth();
-
-  useEffect(() => {
-    document.dir = i18n.language === "he" ? "rtl" : "ltr";
-  }, [i18n.language]);
 
   if (loading) return null;
 
@@ -58,6 +58,14 @@ function AppShell() {
             </AdminRoute>
           }
         />
+        <Route
+          path="/admin/kibbutz"
+          element={
+            <AdminRoute>
+              <KibbutzManagementPage />
+            </AdminRoute>
+          }
+        />
         <Route path="/orders" element={<OrderSummary />} />
         <Route
           path="/order-history"
@@ -68,14 +76,21 @@ function AppShell() {
           }
         />
       </Routes>
+      <ToastContainer />
     </Router>
   );
 }
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppShell />
-    </AuthProvider>
+    <ThemeProvider>
+      <DirectionProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <AppShell />
+          </AuthProvider>
+        </ToastProvider>
+      </DirectionProvider>
+    </ThemeProvider>
   );
 }

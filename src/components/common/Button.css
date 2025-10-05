@@ -1,0 +1,156 @@
+/* Button Component Styles */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+}
+
+/* Button Variants */
+.btn--primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn--primary:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.btn--secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn--secondary:hover:not(:disabled) {
+  background-color: #545b62;
+}
+
+.btn--success {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn--success:hover:not(:disabled) {
+  background-color: #1e7e34;
+}
+
+.btn--danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn--danger:hover:not(:disabled) {
+  background-color: #c82333;
+}
+
+.btn--warning {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.btn--warning:hover:not(:disabled) {
+  background-color: #e0a800;
+}
+
+.btn--info {
+  background-color: #17a2b8;
+  color: white;
+}
+
+.btn--info:hover:not(:disabled) {
+  background-color: #138496;
+}
+
+.btn--outline {
+  background-color: transparent;
+  border: 2px solid #007bff;
+  color: #007bff;
+}
+
+.btn--outline:hover:not(:disabled) {
+  background-color: #007bff;
+  color: white;
+}
+
+/* Button Sizes */
+.btn--small {
+  padding: 6px 12px;
+  font-size: 0.875rem;
+  min-height: 32px;
+}
+
+.btn--medium {
+  padding: 8px 16px;
+  font-size: 1rem;
+  min-height: 40px;
+}
+
+.btn--large {
+  padding: 12px 24px;
+  font-size: 1.125rem;
+  min-height: 48px;
+}
+
+/* Button States */
+.btn--disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn--loading {
+  cursor: wait;
+}
+
+.btn--full-width {
+  width: 100%;
+}
+
+/* Loading Spinner */
+.btn__spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Content States */
+.btn__content--loading {
+  opacity: 0.7;
+}
+
+/* RTL Support */
+[dir="rtl"] .btn {
+  text-align: right;
+}
+
+/* Dark Theme Support */
+[data-theme="dark"] .btn--outline {
+  border-color: #4dabf7;
+  color: #4dabf7;
+}
+
+[data-theme="dark"] .btn--outline:hover:not(:disabled) {
+  background-color: #4dabf7;
+  color: #1a1a1a;
+}
