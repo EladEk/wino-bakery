@@ -108,12 +108,11 @@ export default function AdminAddBreadForm({ t }) {
           {t("foccia")}
         </label>
 
-        {/* Kibbutz Quantity Allocation */}
-        {kibbutzim && kibbutzim.length > 0 ? (
+        {kibbutzim && kibbutzim.filter(kibbutz => !kibbutz.isClub).length > 0 ? (
           <div className="kibbutz-quantities-section">
             <h4>{t("kibbutzQuantityAllocation")}</h4>
             <p className="allocation-help">{t("kibbutzAllocationHelp")}</p>
-            {kibbutzim.map(kibbutz => (
+            {kibbutzim.filter(kibbutz => !kibbutz.isClub).map(kibbutz => (
               <div key={kibbutz.id} className="kibbutz-quantity-row">
                 <label>
                   {kibbutz.name}:

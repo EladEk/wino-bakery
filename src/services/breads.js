@@ -178,7 +178,6 @@ export const breadsService = {
 
   getAvailableQuantityForKibbutz: (bread, kibbutzId) => {
     if (!bread.kibbutzQuantities || !bread.kibbutzQuantities[kibbutzId]) {
-      // If no allocation for this kibbutz, they can't order
       return 0;
     }
     
@@ -189,12 +188,17 @@ export const breadsService = {
     return Math.max(0, allocatedQuantity - claimedQuantity);
   },
 
-  getAvailableQuantityForGeneral: (bread) => {
-    // Use the same logic as admin page: total - allocated to kibbutzim
-    const totalAllocated = Object.values(bread.kibbutzQuantities || {}).reduce((sum, qty) => sum + (qty || 0), 0);
+  getAvailableQuantityForGeneral: (bread, kibbutzim = []) => {
+    const totalAllocated = Object.entries(bread.kibbutzQuantities || {}).reduce((sum, [kibbutzId, qty]) => {
+      const kibbutz = kibbutzim.find(k => k.id === kibbutzId);
+      if (kibbutz?.isClub) {
+        return sum;
+      }
+      return sum + (qty || 0);
+    }, 0);
+    
     const generalAvailable = bread.availablePieces - totalAllocated;
     
-    console.log(`General quantity for ${bread.name}: total=${bread.availablePieces}, allocated=${totalAllocated}, available=${generalAvailable}`);
     
     return Math.max(0, generalAvailable);
   }

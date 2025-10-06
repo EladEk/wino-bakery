@@ -1,6 +1,3 @@
-/* src/App.css */
-
-/* ========== Base Styles ========== */
 @font-face {
   font-family: 'GveretLevin';
 src: url('./assets/fonts/font.ttf') format('truetype'); 
@@ -19,8 +16,8 @@ input,
 button {
   padding: 8px;
   margin: 5px;
-  font-family: inherit;      /* inherit from parent (usually <body>) */
-  font-size: inherit;        /* optional – keeps size consistent too */
+  font-family: inherit;
+  font-size: inherit;
   font-weight: inherit;
 }
 
@@ -32,17 +29,16 @@ form {
   direction: rtl;
 }
 
-/* ========== App Header & Logo ========== */
 .app-header {
-  position: relative;       /* allow absolute children */
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: center; /* center content horizontally */
+  justify-content: center;
   padding: 8px 16px;
   background: #fff;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-  min-height: 60px;         /* ensure enough height for logo */
-  overflow: visible;        /* allow logo to fully show */
+  min-height: 60px;
+  overflow: visible;
   z-index: 100;
 }
 
@@ -51,18 +47,16 @@ form {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  height: 50px;   /* increase if needed to match your design */
+  height: 50px;
   width: auto;
 }
 
-/* ========== Page Container ========== */
 .page-container {
   max-width: 1000px;
   margin: 30px auto;
   padding: 0 16px;
 }
 
-/* ========== Horizontal Scrolling Wrapper ========== */
 .table-responsive {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -72,7 +66,6 @@ form {
   min-width: 600px;
 }
 
-/* ========== Cream-White Tables ========== */
 .cream-table {
   width: 100%;
   background-color: #FFFDEA;
@@ -100,7 +93,6 @@ form {
   border-bottom: none;
 }
 
-/* ========== Home-Page Table Enhancements ========== */
 .home-table {
   font-size: 1.1em;
 }
@@ -113,7 +105,6 @@ form {
   background-color: #FFFCE6;
 }
 
-/* ========== Section & Page Headings ========== */
 h2,
 h3 {
   display: inline-block;
@@ -124,14 +115,12 @@ h3 {
   margin-bottom: 16px;
 }
 
-/* ========== Orders Heading Centered ========== */
 .orders-heading {
   display: block;
   text-align: center;
   margin: 16px 0;
 }
 
-/* ========== Bread-Section Grouping (Admin) ========== */
 .bread-section {
   background-color: rgba(255, 255, 255, 0.8);
   border-radius: 8px;
@@ -150,13 +139,11 @@ h3 {
   background-color: transparent;
 }
 
-/* ========== User Orders Container (Home Page) ========== */
 .home-orders-container {
   max-width: 700px;
   margin: 20px auto;
 }
 
-/* ========== Total Revenue Box ========== */
 .total-revenue {
   margin-top: 18px;
   background-color: #FFFDEA;
@@ -166,7 +153,6 @@ h3 {
   border-radius: 6px;
 }
 
-/* ========== Responsive Adjustments ========== */
 @media (max-width: 768px) {
   .app-header {
     min-height: 50px;
@@ -188,19 +174,17 @@ h3 {
 }
 
 
-/* space & align the two header buttons */
 .header-buttons {
   margin-left: auto;
   display: flex;
   gap: 8px;
 }
 
-/* ensure header is tall enough and allows overflow */
 .app-header {
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;  /* logo in middle */
+  justify-content: center;
   padding: 8px 16px;
   background: #fff;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
@@ -209,7 +193,6 @@ h3 {
   z-index: 100;
 }
 
-/* center logo absolutely */
 .app-logo {
   position: absolute;
   top: 50%;

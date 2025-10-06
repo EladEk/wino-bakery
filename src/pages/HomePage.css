@@ -14,7 +14,6 @@
   max-width: 90%;
   text-align: center;
 }
-/* Slightly smaller for subsection headings (e.g., "Breads I ordered") */
 .bread-heading.sub {
   font-size: 1.25em;
   margin-top: 20px;
@@ -290,10 +289,8 @@
   }
 }
 
-/* --- small extras for the two-section layout --- */
 .sections-wrapper { display: flex; flex-direction: column; gap: 8px; }
 
-/* --- Kibbutz discount price display --- */
 .price-with-discount {
   display: flex;
   flex-direction: column;

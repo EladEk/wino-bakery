@@ -37,14 +37,12 @@ export default function KibbutzModal({ isOpen, onClose }) {
       return;
     }
     
-    // Check if kibbutz has password protection
     if (kibbutz.password) {
       setPendingKibbutz(kibbutz);
       setShowPasswordModal(true);
       return;
     }
     
-    // Proceed with joining if no password
     await joinKibbutz(kibbutz);
   };
 

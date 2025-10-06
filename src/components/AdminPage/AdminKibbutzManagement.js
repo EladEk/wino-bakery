@@ -268,7 +268,6 @@ export default function AdminKibbutzManagement({ t }) {
                 </div>
               </div>
               
-              {/* Orders section - always visible */}
               <div className="kibbutz-orders-section">
                 <h4>{t("kibbutzOrders")}:</h4>
                 {kibbutzOrdersData[kibbutz.id] ? (
@@ -329,7 +328,6 @@ export default function AdminKibbutzManagement({ t }) {
         )}
       </div>
 
-      {/* Add Kibbutz Modal */}
       {showAddModal && (
         <div className="modal-overlay" onClick={closeModals}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -459,7 +457,6 @@ export default function AdminKibbutzManagement({ t }) {
         </div>
       )}
 
-      {/* Edit Kibbutz Modal */}
       {showEditModal && selectedKibbutz && (
         <div className="modal-overlay" onClick={closeModals}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -590,7 +587,6 @@ export default function AdminKibbutzManagement({ t }) {
       )}
 
 
-      {/* Users Modal */}
       {showUsersModal && selectedKibbutz && (
         <div className="modal-overlay" onClick={closeModals}>
           <div className="modal-content users-modal" onClick={(e) => e.stopPropagation()}>

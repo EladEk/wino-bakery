@@ -1,4 +1,3 @@
-/* Button Component Styles */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -20,7 +19,6 @@
   outline-offset: 2px;
 }
 
-/* Button Variants */
 .btn--primary {
   background-color: #007bff;
   color: white;
@@ -86,7 +84,6 @@
   color: white;
 }
 
-/* Button Sizes */
 .btn--small {
   padding: 6px 12px;
   font-size: 0.875rem;
@@ -105,7 +102,6 @@
   min-height: 48px;
 }
 
-/* Button States */
 .btn--disabled {
   opacity: 0.6;
   cursor: not-allowed;
@@ -119,7 +115,6 @@
   width: 100%;
 }
 
-/* Loading Spinner */
 .btn__spinner {
   width: 16px;
   height: 16px;
@@ -134,17 +129,14 @@
   100% { transform: rotate(360deg); }
 }
 
-/* Content States */
 .btn__content--loading {
   opacity: 0.7;
 }
 
-/* RTL Support */
 [dir="rtl"] .btn {
   text-align: right;
 }
 
-/* Dark Theme Support */
 [data-theme="dark"] .btn--outline {
   border-color: #4dabf7;
   color: #4dabf7;

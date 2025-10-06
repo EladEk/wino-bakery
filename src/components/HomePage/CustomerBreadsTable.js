@@ -37,39 +37,40 @@ export default function CustomerBreadsTable({
               const value = Number(orderQuantities[b.id] || 0);
               const step = b.isFocaccia ? 0.5 : 1;
               
-              // Calculate available quantity based on kibbutz membership
               let availableQuantity;
               let isClubMember = false;
               
               if (userData?.kibbutzId) {
                 const userKibbutz = kibbutzim?.find(k => k.id === userData.kibbutzId);
                 isClubMember = userKibbutz?.isClub || false;
-                // If user is a club member, they can see all available breads (general quantity)
-                // Otherwise, they can ONLY see breads allocated to their kibbutz
-                if (isClubMember) {
-                  availableQuantity = breadsService.getAvailableQuantityForGeneral(b);
-                } else {
+                
+                if (!isClubMember) {
                   availableQuantity = breadsService.getAvailableQuantityForKibbutz(b, userData.kibbutzId);
+                } else {
+                  availableQuantity = breadsService.getAvailableQuantityForGeneral(b, kibbutzim);
                 }
               } else {
-                availableQuantity = breadsService.getAvailableQuantityForGeneral(b);
+                availableQuantity = breadsService.getAvailableQuantityForGeneral(b, kibbutzim);
               }
               
-              // Debug logging
-              if (b.name && availableQuantity > 0) {
-                console.log(`Bread: ${b.name}, Available: ${availableQuantity}, User: ${userData?.kibbutzId ? 'Kibbutz member' : 'General user'}, IsClub: ${isClubMember}`);
-              }
+              
+              
+              
+              
+              
               
               const max = availableQuantity + savedQty;
               
               return { ...b, availableQuantity, savedQty, value, step, max, isClubMember };
             })
             .filter(b => {
-              // Show breads that have available quantity
               return b.availableQuantity > 0;
             })
             .map(b => {
-              const { availableQuantity, savedQty, value, step, max } = b;
+              const { availableQuantity, value, step, max } = b;
+              
+              // Get isClubMember from the original bread object
+              const isClubMember = b.isClubMember;
 
             const isKibbutzMember = userData?.kibbutzId;
             let displayPrice = b.price?.toFixed(2) || "";
@@ -80,28 +81,23 @@ export default function CustomerBreadsTable({
               if (userKibbutz) {
                 let finalPrice = b.price;
                 
-                // Apply discount
                 if (userKibbutz.discountPercentage > 0) {
                   const discount = userKibbutz.discountPercentage / 100;
                   finalPrice = finalPrice * (1 - discount);
                 }
                 
-                // Apply surcharge
                 if (userKibbutz.surchargeType && userKibbutz.surchargeType !== 'none' && userKibbutz.surchargeValue > 0) {
                   if (userKibbutz.surchargeType === 'percentage') {
                     finalPrice = finalPrice * (1 + userKibbutz.surchargeValue / 100);
                   } else if (userKibbutz.surchargeType === 'fixedPerBread') {
                     finalPrice = finalPrice + userKibbutz.surchargeValue;
                   }
-                  // Note: fixedPerOrder is handled in the total calculation, not per bread
                 }
                 
-                // Show original price crossed out only for discounts (not surcharges)
                 if (userKibbutz.discountPercentage > 0) {
                   originalPrice = b.price?.toFixed(2);
                   displayPrice = finalPrice.toFixed(2);
                 } else if ((userKibbutz.surchargeType === 'percentage' || userKibbutz.surchargeType === 'fixedPerBread') && userKibbutz.surchargeValue > 0) {
-                  // For per-bread surcharges, just show the final price without showing the original
                   displayPrice = finalPrice.toFixed(2);
                 }
               }
@@ -111,14 +107,14 @@ export default function CustomerBreadsTable({
               <tr key={b.id}>
                 <td>{b.name}</td>
                 <td>{b.description}</td>
-                <td className="num-col">
-                  {availableQuantity}
-                  {userData?.kibbutzId && b.kibbutzQuantities?.[userData.kibbutzId] && (
-                    <div className="kibbutz-allocation-info">
-                      <small>({t("kibbutzAllocated")}: {b.kibbutzQuantities[userData.kibbutzId]})</small>
-                    </div>
-                  )}
-                </td>
+                 <td className="num-col">
+                   {availableQuantity}
+                   {userData?.kibbutzId && !isClubMember && b.kibbutzQuantities?.[userData.kibbutzId] && (
+                     <div className="kibbutz-allocation-info">
+                       <small>({t("kibbutzAllocated")}: {b.kibbutzQuantities[userData.kibbutzId]})</small>
+                     </div>
+                   )}
+                 </td>
                 <td className="num-col">
                   {isKibbutzMember && originalPrice ? (
                     <div className="price-with-discount">

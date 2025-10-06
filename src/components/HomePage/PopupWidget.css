@@ -21,7 +21,6 @@
   animation: popup-bounce 0.25s cubic-bezier(.18,.89,.32,1.28);
 }
 
-/* Success (Thanks) */
 .popup-success {
   background: #f7f2ea;
   color: #219653;
@@ -45,7 +44,6 @@
   display: block;
 }
 
-/* Update */
 .popup-update-content {
   display: flex;
   flex-direction: column;
@@ -59,7 +57,6 @@
   text-shadow: 0 1px 8px #e3f2fd;
 }
 
-/* Cancel */
 .popup-cancel-content {
   display: flex;
   flex-direction: column;

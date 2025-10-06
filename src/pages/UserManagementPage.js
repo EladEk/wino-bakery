@@ -184,7 +184,6 @@ export default function UserManagementPage() {
     <div className="admin-container">
       <h2>{t("Users")}</h2>
       
-      {/* Search Input */}
       <div style={{ marginBottom: "20px", display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
         <input
           type="text"
@@ -346,7 +345,6 @@ export default function UserManagementPage() {
       </div>
       )}
 
-      {/* Kibbutz Selection Modal */}
       {showKibbutzModal && selectedUser && (
         <div className="modal-overlay" onClick={() => {setShowKibbutzModal(false); setSelectedUser(null);}}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>

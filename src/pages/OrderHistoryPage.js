@@ -54,7 +54,6 @@ export default function OrderHistoryPage() {
 
   return (
     <div className="order-history-page">
-      {/* פופאפ הודעה */}
       {popup.show && (
         <div className={`popup-message ${popup.error ? "error" : ""}`}>
           <span className="popup-text">{popup.message}</span>
@@ -95,7 +94,6 @@ export default function OrderHistoryPage() {
             </button>
           </div>
 
-          {/* Responsive scrollable table container */}
           <div className="sale-table-responsive">
             <table className="sale-table">
               <thead>
@@ -144,7 +142,6 @@ export default function OrderHistoryPage() {
             </table>
           </div>
 
-          {/* טבלת סיכום */}
           <div className="sale-table-responsive">
             <table className="sale-totals-table">
               <thead>
@@ -164,7 +161,6 @@ export default function OrderHistoryPage() {
             </table>
           </div>
 
-          {/* סך הכנסות */}
           <div className="sale-total-revenue">
             {t("totalRevenue")}: {getTotalRevenue(sale).toFixed(2)}
           </div>

@@ -4,8 +4,8 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: #000;           /* <--- SOLID BLACK BASE! */
-  z-index: -2;                /* just below the background image */
+  background: #000;
+  z-index: -2;
   pointer-events: none;
 }
 

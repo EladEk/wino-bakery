@@ -212,24 +212,20 @@ export default function HomePage() {
       
       let finalPrice = b.price;
       
-      // Apply kibbutz discount and surcharge if user is a kibbutz member
       if (userData?.kibbutzId && kibbutzim) {
         const userKibbutz = kibbutzim.find(k => k.id === userData.kibbutzId);
         if (userKibbutz) {
-          // Apply discount
           if (userKibbutz.discountPercentage > 0) {
             const discount = userKibbutz.discountPercentage / 100;
             finalPrice = finalPrice * (1 - discount);
           }
           
-          // Apply surcharge
           if (userKibbutz.surchargeType && userKibbutz.surchargeType !== 'none' && userKibbutz.surchargeValue > 0) {
             if (userKibbutz.surchargeType === 'percentage') {
               finalPrice = finalPrice * (1 + userKibbutz.surchargeValue / 100);
             } else if (userKibbutz.surchargeType === 'fixedPerBread') {
               finalPrice = finalPrice + userKibbutz.surchargeValue;
             }
-            // Note: fixedPerOrder is handled after the loop
           }
         }
       }
@@ -237,7 +233,6 @@ export default function HomePage() {
       return sum + (qty * finalPrice);
     }, 0);
     
-    // Add per-order surcharge if applicable
     if (userData?.kibbutzId && kibbutzim) {
       const userKibbutz = kibbutzim.find(k => k.id === userData.kibbutzId);
       if (userKibbutz && userKibbutz.surchargeType === 'fixedPerOrder' && userKibbutz.surchargeValue > 0) {
@@ -297,7 +292,6 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Section: Breads to order */}
       <h2 className="bread-heading">{t("breadsToOrder") || t("breadsList") || "Breads to order"}</h2>
       {loading ? (
         <div>{t("loading")}</div>
@@ -313,7 +307,6 @@ export default function HomePage() {
             kibbutzim={kibbutzim}
           />
 
-          {/* Section: Breads I ordered (render ONLY if any saved order exists) */}
           {breadsOrdered.length > 0 && (
             <>
               <h3 className="bread-heading sub">{t("breadsIOrdered") || "Breads I ordered"}</h3>

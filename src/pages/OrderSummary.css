@@ -1,10 +1,10 @@
 .order-summary {
   padding: 20px 4px 20px 4px;
-  direction: rtl; /* for Hebrew */
+  direction: rtl;
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: none; /* or your background, if you use one */
+  background: none;
 }
 
 .order-summary h2 {

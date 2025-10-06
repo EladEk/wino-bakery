@@ -39,7 +39,6 @@ export const usersService = {
     return await firestoreService.updateDoc(docs.user(userId), data);
   },
 
-  // Toggle admin status
   toggleAdmin: async (userId, currentStatus) => {
     return await firestoreService.updateDoc(docs.user(userId), {
       isAdmin: !currentStatus,
@@ -47,7 +46,6 @@ export const usersService = {
     });
   },
 
-  // Toggle blocked status
   toggleBlocked: async (userId, currentStatus) => {
     return await firestoreService.updateDoc(docs.user(userId), {
       isBlocked: !currentStatus,
@@ -55,14 +53,12 @@ export const usersService = {
     });
   },
 
-  // Check if name exists
   checkNameExists: async (name, excludeUserId = null) => {
     const constraints = [where('name', '==', name)];
     const users = await firestoreService.queryDocs(collections.users(), constraints);
     return users.some(user => user.id !== excludeUserId);
   },
 
-  // Search users by name, phone, or email
   searchUsers: async (searchTerm) => {
     const allUsers = await usersService.getAll();
     const term = searchTerm.toLowerCase();
@@ -75,7 +71,6 @@ export const usersService = {
     );
   },
 
-  // Assign user to kibbutz
   assignToKibbutz: async (userId, kibbutzId, kibbutzName) => {
     return await firestoreService.updateDoc(docs.user(userId), {
       kibbutzId: kibbutzId,
@@ -84,7 +79,6 @@ export const usersService = {
     });
   },
 
-  // Remove user from kibbutz
   removeFromKibbutz: async (userId) => {
     return await firestoreService.updateDoc(docs.user(userId), {
       kibbutzId: null,
@@ -93,7 +87,6 @@ export const usersService = {
     });
   },
 
-  // Get users by kibbutz
   getUsersByKibbutz: async (kibbutzId) => {
     const constraints = [where('kibbutzId', '==', kibbutzId)];
     return await firestoreService.queryDocs(collections.users(), constraints);

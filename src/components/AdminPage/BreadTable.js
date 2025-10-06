@@ -7,13 +7,15 @@ export default function BreadTable({ bread, t, onEdit, onToggleShow }) {
   const alignEnd = dir === "rtl" ? "flex-start" : "flex-end";
   const labelMargin = dir === "rtl" ? { marginLeft: 8 } : { marginRight: 8 };
   
-  // Calculate general available quantity (total - allocated to kibbutzim)
-  const totalAllocated = Object.values(bread.kibbutzQuantities || {}).reduce((sum, qty) => sum + (qty || 0), 0);
+  const totalAllocated = Object.entries(bread.kibbutzQuantities || {}).reduce((sum, [kibbutzId, qty]) => {
+    const kibbutz = kibbutzim?.find(k => k.id === kibbutzId);
+    if (kibbutz?.isClub) return sum;
+    return sum + (qty || 0);
+  }, 0);
   const generalAvailable = bread.availablePieces - totalAllocated;
 
   return (
     <div>
-      {/* Show checkbox above table */}
       <div style={{ display: 'flex', flexDirection: 'row', justifyContent: alignEnd, alignItems: 'center', marginBottom: 6 }}>
         <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 500 }}>
           <input
@@ -68,10 +70,12 @@ export default function BreadTable({ bread, t, onEdit, onToggleShow }) {
         </table>
       </div>
 
-      {/* Kibbutz Allocations Table */}
       {bread.kibbutzQuantities && 
        Object.keys(bread.kibbutzQuantities).length > 0 && 
-       Object.values(bread.kibbutzQuantities).some(qty => qty > 0) && (
+       Object.entries(bread.kibbutzQuantities).some(([kibbutzId, qty]) => {
+         const kibbutz = kibbutzim?.find(k => k.id === kibbutzId);
+         return !kibbutz?.isClub && qty > 0;
+       }) && (
         <div style={{ marginTop: '10px' }}>
           <h4 style={{ margin: '0 0 8px 0', fontSize: '0.9em', color: '#2c5aa0' }}>
             {t("kibbutzAllocations")}
@@ -89,6 +93,8 @@ export default function BreadTable({ bread, t, onEdit, onToggleShow }) {
               <tbody>
                 {Object.entries(bread.kibbutzQuantities).map(([kibbutzId, allocatedQty]) => {
                   const kibbutz = kibbutzim?.find(k => k.id === kibbutzId);
+                  if (kibbutz?.isClub) return null;
+                  
                   const claimedByKibbutz = (bread.claimedBy || []).filter(claim => claim.kibbutzId === kibbutzId);
                   const claimedQty = claimedByKibbutz.reduce((sum, claim) => sum + (claim.quantity || 0), 0);
                   const availableQty = Math.max(0, allocatedQty - claimedQty);
@@ -103,7 +109,7 @@ export default function BreadTable({ bread, t, onEdit, onToggleShow }) {
                       </td>
                     </tr>
                   );
-                })}
+                }).filter(Boolean)}
               </tbody>
             </table>
           </div>

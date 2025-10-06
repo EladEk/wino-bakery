@@ -58,7 +58,6 @@ export default function Header() {
   return (
     <header className="app-header">
       <div className="left-buttons">
-        {/* Hide logout on login page */}
         {!atLogin && (
           <button onClick={logout}>{t("logout")}</button>
         )}
@@ -69,7 +68,6 @@ export default function Header() {
       </div>
 
       <div className="right-buttons">
-        {/* כפתור קיבוץ - רק למשתמשים רגילים בדף הבית */}
         {atHome && !isAdmin && userData && (
           <button 
             onClick={() => setShowKibbutzModal(true)}
@@ -85,7 +83,6 @@ export default function Header() {
           </button>
         )}
 
-        {/* כפתורי אדמין */}
         {atHome && isAdmin && (
           <button onClick={() => navigate("/admin")}>{t("adminPanel")}</button>
         )}
@@ -113,7 +110,6 @@ export default function Header() {
         )}
       </div>
 
-      {/* Kibbutz Modal */}
       <KibbutzModal 
         isOpen={showKibbutzModal} 
         onClose={() => setShowKibbutzModal(false)} 

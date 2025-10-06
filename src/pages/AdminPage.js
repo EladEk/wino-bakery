@@ -218,7 +218,6 @@ export default function AdminPage() {
 
   return (
     <div className="admin-container">
-      {/* Toast */}
       {popup.show && (
         <div className={`admin-toast ${popup.error ? "error" : ""}`}>
           <span className="toast-message">{popup.message}</span>
@@ -231,7 +230,6 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* End-sale dialog */}
       <EndSaleModal
         open={showEndSaleDialog}
         loading={endSaleLoading}
@@ -240,12 +238,10 @@ export default function AdminPage() {
         t={t}
       />
 
-      {/* Management buttons bar just under the header */}
       <AdminNavigation />
 
       <h2 className="admin-panel-title">{t("Admin Dashboard")}</h2>
 
-      {/* Centered red End Sale button */}
       <div className="end-sale-bar">
         <button
           className="end-sale-btn"
@@ -256,7 +252,6 @@ export default function AdminPage() {
         </button>
       </div>
 
-      {/* Delivery / pickup config */}
       <AdminDeliverySettings
         t={t}
         saleDate={saleDate}
@@ -272,7 +267,6 @@ export default function AdminPage() {
         onSave={saveSaleDate}
       />
    <  h2 className="bread-list">{t("breadList")}</h2>
-      {/* ---- Add Bread: popup trigger ---- */}
       <div className="add-bread-bar" dir={dir}>
         <button
           className="add-bread-btn"
@@ -282,7 +276,6 @@ export default function AdminPage() {
         </button>
       </div>
 
-      {/* ---- Add Bread: modal popup ---- */}
       {addBreadOpen && (
         <div
           className="modal-root"
@@ -317,7 +310,6 @@ export default function AdminPage() {
 
      
 
-      {/* Search customer orders */}
       <AdminCustomerSearch
         t={t}
         breads={breads}
@@ -326,7 +318,6 @@ export default function AdminPage() {
         togglePaid={togglePaid}
       />
 
-      {/* Main breads + per-bread orders table */}
       <BreadList
         breads={breads}
         t={t}
@@ -346,7 +337,6 @@ export default function AdminPage() {
         {t("totalRevenue")}: {totalRevenue.toFixed(2)}
       </div>
 
-      {/* Edit bread modal */}
       <BreadEditModal
         open={modalOpen}
         bread={modalBread}
