@@ -20,6 +20,9 @@ export default function BreadList({
     <div>
       {breads.map((bread) => (
         <div key={bread.id} className="bread-section" style={{ marginBottom: 24, position: 'relative' }}>
+          <div data-testid={`bread-section-${bread.id}`}>
+            <h2>{bread.name}</h2>
+          </div>
           <BreadTable
             bread={bread}
             t={t}
