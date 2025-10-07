@@ -224,6 +224,7 @@ export default function AdminPage() {
           <button
             className="toast-close"
             onClick={() => setPopup({ show: false, message: "", error: false })}
+            data-testid="toast-close-button"
           >
             ×
           </button>
@@ -247,6 +248,7 @@ export default function AdminPage() {
           className="end-sale-btn"
           onClick={() => setShowEndSaleDialog(true)}
           disabled={endSaleLoading}
+          data-testid="end-sale-button"
         >
           {t("EndSale")}
         </button>
@@ -271,6 +273,7 @@ export default function AdminPage() {
         <button
           className="add-bread-btn"
           onClick={() => setAddBreadOpen(true)}
+          data-testid="add-bread-button"
         >
           {t("addBread", { defaultValue: "Add Bread" })}
         </button>
@@ -297,6 +300,7 @@ export default function AdminPage() {
                 onClick={() => setAddBreadOpen(false)}
                 aria-label={t("close", { defaultValue: "Close" })}
                 title={t("close", { defaultValue: "Close" })}
+                data-testid="close-add-bread-button"
               >
                 ×
               </button>

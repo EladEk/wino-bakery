@@ -26,6 +26,7 @@ function ModalBase({ open, onClose, children }) {
             position: "absolute", top: 9, left: 12, fontSize: 24, background: "none", border: "none", color: "#444", cursor: "pointer"
           }}
           aria-label={t("close")}
+          data-testid="close-modal-button"
         >&times;</button>
       </div>
     </div>
@@ -171,9 +172,9 @@ export default function BreadEditModal({ open, bread, t, onSave, onDelete, onCan
         )}
 
         <div style={{ display: "flex", gap: 14, marginTop: 10, justifyContent: "center" }}>
-          <button type="submit" className="edit-bread-btn" style={{ fontWeight: "bold" }}>{t("Save")}</button>
-          <button type="button" className="edit-bread-btn" onClick={onCancel}>{t("Cancel")}</button>
-          <button type="button" className="edit-bread-btn" style={{ color: "red", fontWeight: "bold" }} onClick={() => onDelete(bread)}>
+          <button type="submit" className="edit-bread-btn" style={{ fontWeight: "bold" }} data-testid="save-bread-button">{t("Save")}</button>
+          <button type="button" className="edit-bread-btn" onClick={onCancel} data-testid="cancel-edit-bread-button">{t("Cancel")}</button>
+          <button type="button" className="edit-bread-btn" style={{ color: "red", fontWeight: "bold" }} onClick={() => onDelete(bread)} data-testid="delete-bread-button">
             {t("Delete")}
           </button>
         </div>

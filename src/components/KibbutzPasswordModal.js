@@ -46,6 +46,7 @@ export default function KibbutzPasswordModal({
             className="close-btn" 
             onClick={handleClose}
             aria-label={t('close')}
+            data-testid="close-password-modal-button"
           >
             ×
           </button>
@@ -74,10 +75,10 @@ export default function KibbutzPasswordModal({
             </div>
             
             <div className="form-actions">
-              <button type="submit" className="submit-btn">
+              <button type="submit" className="submit-btn" data-testid="submit-password-button">
                 {t('joinKibbutz')}
               </button>
-              <button type="button" className="cancel-btn" onClick={handleClose}>
+              <button type="button" className="cancel-btn" onClick={handleClose} data-testid="cancel-password-button">
                 {t('cancel')}
               </button>
             </div>

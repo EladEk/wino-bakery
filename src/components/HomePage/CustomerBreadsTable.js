@@ -13,7 +13,7 @@ export default function CustomerBreadsTable({
 }) {
   return (
     <div className="table-responsive">
-      <table className="cream-table home-table">
+      <table className="cream-table home-table" data-testid="bread-table">
         <colgroup>
           <col className="name-col" />
           <col className="desc-col" />
@@ -131,6 +131,7 @@ export default function CustomerBreadsTable({
                     step={step}
                     max={max}
                     onChange={(next) => onChangeQty(b.id, next)}
+                    data-testid={`quantity-control-${b.id}`}
                   />
                 </td>
               </tr>

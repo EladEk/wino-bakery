@@ -70,6 +70,7 @@ export default function NamePrompt() {
           className="np-btn"
           onClick={save}
           disabled={!name.trim() || !phone.trim() || saving}
+          data-testid="save-profile-button"
         >
           {saving ? t("saving", "Saving…") : t("save", "Save")}
         </button>

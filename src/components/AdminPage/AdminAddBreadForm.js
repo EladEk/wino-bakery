@@ -141,7 +141,7 @@ export default function AdminAddBreadForm({ t }) {
           </div>
         )}
 
-        <button type="submit" className="add-bread-btn">
+        <button type="submit" className="add-bread-btn" data-testid="submit-add-bread-button">
           {t("Add Bread")}
         </button>
       </form>

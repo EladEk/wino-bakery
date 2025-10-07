@@ -277,7 +277,7 @@ export default function KibbutzModal({ isOpen, onClose }) {
           <h3>
             {isKibbutzMember ? t('kibbutzManagement') : t('joinKibbutz')}
           </h3>
-          <button className="close-btn" onClick={onClose}>×</button>
+          <button className="close-btn" onClick={onClose} data-testid="close-kibbutz-modal-button">×</button>
         </div>
 
         <div className="modal-body">
@@ -301,6 +301,7 @@ export default function KibbutzModal({ isOpen, onClose }) {
                     marginBottom: '10px',
                     width: '100%'
                   }}
+                  data-testid="update-orders-button"
                 >
                   {isUpdatingOrders ? t('updating') : t('updateExistingOrders')}
                 </button>
@@ -308,6 +309,7 @@ export default function KibbutzModal({ isOpen, onClose }) {
                   className="leave-kibbutz-btn"
                   onClick={handleLeaveKibbutz}
                   disabled={isLeaving}
+                  data-testid="leave-kibbutz-button"
                 >
                   {isLeaving ? t('processing') : t('removeKibbutzAssociation')}
                 </button>
@@ -349,6 +351,7 @@ export default function KibbutzModal({ isOpen, onClose }) {
                     className="join-kibbutz-btn"
                     onClick={() => handleJoinKibbutz(selectedKibbutz)}
                     disabled={isJoining}
+                    data-testid="join-kibbutz-button"
                   >
                     {isJoining ? t('joining') : t('joinKibbutzName', { name: selectedKibbutz.name })}
                   </button>

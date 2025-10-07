@@ -341,6 +341,7 @@ export default function HomePage() {
                 onClick={handleOrder}
                 className={`order-btn${hasAnyInput ? " flash" : ""}`}
                 disabled={!hasAnyInput}
+                data-testid="order-button"
               >
                 {t("order")}
               </button>
@@ -350,6 +351,7 @@ export default function HomePage() {
                   onClick={handleUpdateOrder}
                   className={`updt-btn${hasChanges ? " flash" : ""}`}
                   disabled={!hasChanges}
+                  data-testid="update-order-button"
                 >
                   {t("updateOrder")}
                 </button>

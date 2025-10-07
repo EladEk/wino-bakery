@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function OrderQuantityControl({ value, step = 1, max = Infinity, onChange }) {
+export default function OrderQuantityControl({ value, step = 1, max = Infinity, onChange, ...props }) {
   const safeVal = Number(value || 0);
   const incDisabled = safeVal >= max;
   const decDisabled = safeVal <= 0;
@@ -9,7 +9,7 @@ export default function OrderQuantityControl({ value, step = 1, max = Infinity, 
   const dec = () => !decDisabled && onChange(Math.max(0, +(safeVal - step).toFixed(2)));
 
   return (
-    <div className="order-quantity-row">
+    <div className="order-quantity-row" {...props}>
       <button className="qty-btn" onClick={inc} disabled={incDisabled}>+</button>
       <input
         type="number"

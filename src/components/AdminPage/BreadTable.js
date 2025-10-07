@@ -61,7 +61,7 @@ export default function BreadTable({ bread, t, onEdit, onToggleShow }) {
               </td>
               <td>{bread.price?.toFixed(2)}</td>
               <td>
-                <button onClick={() => onEdit(bread)} className="edit-bread-btn">
+                <button onClick={() => onEdit(bread)} className="edit-bread-btn" data-testid={`edit-bread-button-${bread.id}`}>
                   {t("Edit")}
                 </button>
               </td>

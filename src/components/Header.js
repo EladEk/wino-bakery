@@ -59,7 +59,7 @@ export default function Header() {
     <header className="app-header">
       <div className="left-buttons">
         {!atLogin && (
-          <button onClick={logout}>{t("logout")}</button>
+          <button onClick={logout} data-testid="logout-button">{t("logout")}</button>
         )}
       </div>
 
@@ -72,41 +72,42 @@ export default function Header() {
           <button 
             onClick={() => setShowKibbutzModal(true)}
             className={`kibbutz-btn ${isKibbutzMember ? 'kibbutz-member' : 'kibbutz-join'}`}
+            data-testid="kibbutz-button"
           >
             {isKibbutzMember ? '🏘️ ' + userData.kibbutzName : '🏘️ ' + t('joinKibbutzButton')}
           </button>
         )}
 
         {showInstall && (
-          <button onClick={handleInstallClick} className="install-btn">
+          <button onClick={handleInstallClick} className="install-btn" data-testid="install-app-button">
             📱 {t("installApp") || "Install App"}
           </button>
         )}
 
         {atHome && isAdmin && (
-          <button onClick={() => navigate("/admin")}>{t("adminPanel")}</button>
+          <button onClick={() => navigate("/admin")} data-testid="admin-panel-button">{t("adminPanel")}</button>
         )}
 
         {atAdmin && (
           <>
-            <button onClick={() => navigate("/")}>{t("backHome")}</button>
+            <button onClick={() => navigate("/")} data-testid="back-home-button">{t("backHome")}</button>
           </>
         )}
 
         {atOrderHistory && isAdmin && (
-          <button onClick={() => navigate("/admin")}>{t("back") || "Back to Admin"}</button>
+          <button onClick={() => navigate("/admin")} data-testid="back-to-admin-button">{t("back") || "Back to Admin"}</button>
         )}
 
         {atOrders && isAdmin && (
-          <button onClick={() => navigate("/admin")}>{t("back") || "Back to Admin"}</button>
+          <button onClick={() => navigate("/admin")} data-testid="back-to-admin-button">{t("back") || "Back to Admin"}</button>
         )}
 
         {atUsers && isAdmin && (
-          <button onClick={() => navigate("/admin")}>{t("back") || "Back to Admin"}</button>
+          <button onClick={() => navigate("/admin")} data-testid="back-to-admin-button">{t("back") || "Back to Admin"}</button>
         )}
 
         {atKibbutzManagement && isAdmin && (
-          <button onClick={() => navigate("/admin")}>{t("BackToAdmin")}</button>
+          <button onClick={() => navigate("/admin")} data-testid="back-to-admin-button">{t("BackToAdmin")}</button>
         )}
       </div>
 

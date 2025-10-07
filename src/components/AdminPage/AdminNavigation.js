@@ -25,6 +25,7 @@ export default function AdminNavigation({ className = "" }) {
               key={it.key}
               className={`admin-nav-link ${active ? "active" : ""}`}
               onClick={() => navigate(it.to)}
+              data-testid={`admin-nav-${it.key}`}
             >
               {it.label}
             </button>
