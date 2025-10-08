@@ -224,5 +224,6 @@
   "errorUpdatingOrders": "שגיאה בעדכון הזמנות",
   "leftKibbutzSuccessfully": "עזבת את הקיבוץ בהצלחה",
   "errorLeavingKibbutz": "שגיאה ביציאה מהקיבוץ",
-  "processing": "מעבד..."
+  "processing": "מעבד...",
+  "outOfStock": "אזל מהמלאי"
 }

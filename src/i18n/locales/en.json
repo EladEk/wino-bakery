@@ -224,5 +224,6 @@
   "errorUpdatingOrders": "Error updating orders",
   "leftKibbutzSuccessfully": "Successfully left kibbutz",
   "errorLeavingKibbutz": "Error leaving kibbutz",
-  "processing": "Processing..."
+  "processing": "Processing...",
+  "outOfStock": "Out of stock"
 }

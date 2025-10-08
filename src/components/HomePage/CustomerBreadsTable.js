@@ -37,7 +37,7 @@ export default function CustomerBreadsTable({
               const value = Number(orderQuantities[b.id] || 0);
               const step = b.isFocaccia ? 0.5 : 1;
               
-              let availableQuantity;
+              let baseAvailableQuantity;
               let isClubMember = false;
               
               if (userData?.kibbutzId) {
@@ -45,13 +45,17 @@ export default function CustomerBreadsTable({
                 isClubMember = userKibbutz?.isClub || false;
                 
                 if (!isClubMember) {
-                  availableQuantity = breadsService.getAvailableQuantityForKibbutz(b, userData.kibbutzId);
+                  baseAvailableQuantity = breadsService.getAvailableQuantityForKibbutz(b, userData.kibbutzId);
                 } else {
-                  availableQuantity = breadsService.getAvailableQuantityForGeneral(b, kibbutzim);
+                  baseAvailableQuantity = breadsService.getAvailableQuantityForGeneral(b, kibbutzim);
                 }
               } else {
-                availableQuantity = breadsService.getAvailableQuantityForGeneral(b, kibbutzim);
+                baseAvailableQuantity = breadsService.getAvailableQuantityForGeneral(b, kibbutzim);
               }
+              
+              // Calculate temporary available quantity: base + (savedQty - current order)
+              // This means if user reduces their order, that quantity temporarily becomes available
+              const tempAvailableQuantity = baseAvailableQuantity + (savedQty - value);
               
               
               
@@ -60,10 +64,10 @@ export default function CustomerBreadsTable({
               
               
               // If bread is out of stock, user can only reduce their order (max = savedQty)
-              // If bread is available, user can order up to availableQuantity + their current order
-              const max = availableQuantity > 0 ? availableQuantity + savedQty : savedQty;
+              // If bread is available, user can order up to tempAvailableQuantity + their current order
+              const max = tempAvailableQuantity > 0 ? tempAvailableQuantity + value : savedQty;
               
-              return { ...b, availableQuantity, savedQty, value, step, max, isClubMember };
+              return { ...b, availableQuantity: tempAvailableQuantity, savedQty, value, step, max, isClubMember };
             })
             .filter(b => {
               // Show bread if it has available quantity OR if user has ordered some
