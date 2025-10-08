@@ -59,12 +59,16 @@ export default function CustomerBreadsTable({
               
               
               
-              const max = availableQuantity + savedQty;
+              // If bread is out of stock, user can only reduce their order (max = savedQty)
+              // If bread is available, user can order up to availableQuantity + their current order
+              const max = availableQuantity > 0 ? availableQuantity + savedQty : savedQty;
               
               return { ...b, availableQuantity, savedQty, value, step, max, isClubMember };
             })
             .filter(b => {
-              return b.availableQuantity > 0;
+              // Show bread if it has available quantity OR if user has ordered some
+              const userHasOrdered = Number(orderQuantities[b.id] || 0) > 0;
+              return b.availableQuantity > 0 || userHasOrdered;
             })
             .map(b => {
               const { availableQuantity, value, step, max } = b;
@@ -108,11 +112,19 @@ export default function CustomerBreadsTable({
                 <td>{b.name}</td>
                 <td>{b.description}</td>
                  <td className="num-col">
-                   {availableQuantity}
-                   {userData?.kibbutzId && !isClubMember && b.kibbutzQuantities?.[userData.kibbutzId] && (
-                     <div className="kibbutz-allocation-info">
-                       <small>({t("kibbutzAllocated")}: {b.kibbutzQuantities[userData.kibbutzId]})</small>
-                     </div>
+                   {availableQuantity > 0 ? (
+                     <>
+                       {availableQuantity}
+                       {userData?.kibbutzId && !isClubMember && b.kibbutzQuantities?.[userData.kibbutzId] && (
+                         <div className="kibbutz-allocation-info">
+                           <small>({t("kibbutzAllocated")}: {b.kibbutzQuantities[userData.kibbutzId]})</small>
+                         </div>
+                       )}
+                     </>
+                   ) : (
+                     <span style={{ color: '#999', fontStyle: 'italic' }}>
+                       {t("outOfStock") || "Out of stock"}
+                     </span>
                    )}
                  </td>
                 <td className="num-col">
