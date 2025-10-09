@@ -13,10 +13,14 @@
   width: fit-content;
   max-width: 90%;
   text-align: center;
+  direction: rtl;
+  unicode-bidi: bidi-override;
 }
 .bread-heading.sub {
   font-size: 1.25em;
   margin-top: 20px;
+  direction: rtl;
+  unicode-bidi: bidi-override;
 }
 
 .delivery-details-wrapper {
@@ -41,6 +45,8 @@
   color: #333;
   max-width: 360px;
   transition: background-color 0.2s;
+  direction: rtl;
+  text-align: right;
 }
 .delivery-card .icon { font-size: 1.4em; }
 .delivery-card.clickable { cursor: pointer; }
@@ -159,7 +165,11 @@
 .cream-table tbody td {
   background: rgba(255,255,255,0.65) !important;
 }
-.cream-table th { background: #f3e9dd; font-weight: 600; }
+.cream-table th { 
+  background: #f3e9dd; 
+  font-weight: 600; 
+  font-size: 1.1em;
+}
 
 .rtl .home-table { direction: rtl; }
 
@@ -319,4 +329,292 @@
   color: #2c5aa0;
   font-size: 0.8em;
   font-weight: 500;
+}
+
+/* Mobile-first responsive design */
+@media (max-width: 768px) {
+  .page-container {
+    padding: 0 8px;
+    margin: 15px auto;
+  }
+  
+  .bread-heading {
+    font-size: 1.3em;
+    margin: 16px auto 8px auto;
+    padding: 8px 12px;
+  }
+  
+  .delivery-details-wrapper {
+    flex-direction: column;
+    margin: 16px auto;
+    gap: 8px;
+  }
+  
+  .delivery-card {
+    flex: none;
+    padding: 12px 16px;
+    font-size: 0.9em;
+  }
+  
+  .cream-table th,
+  .cream-table td {
+    padding: 8px 4px;
+    font-size: 0.9em;
+  }
+  
+  .cream-table th {
+    font-size: 1.0em;
+  }
+  
+  .order-quantity-row { 
+    min-width: 80px; 
+    gap: 2px;
+  }
+  
+  .qty-btn {
+    width: 32px;
+    min-width: 28px;
+    height: 32px;
+    font-size: 1.2em;
+    margin: 0 1px;
+    border-radius: 8px;
+    touch-action: manipulation;
+  }
+  
+  .order-input {
+    width: 32px;
+    font-size: 1em;
+    margin: 0 2px;
+    text-align: center;
+    height: 32px;
+  }
+  
+  .action-buttons-wrapper {
+    max-width: 100%;
+    margin: 16px auto;
+    gap: 8px;
+  }
+  
+  .order-btn,
+  .updt-btn,
+  .cancel-btn {
+    font-size: 1.1em;
+    padding: 12px 0;
+    min-height: 48px;
+    touch-action: manipulation;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-container {
+    padding: 0 4px;
+    margin: 10px auto;
+  }
+  
+  .bread-heading {
+    font-size: 1.2em;
+    margin: 12px auto 6px auto;
+    padding: 6px 10px;
+  }
+  
+  .cream-table th,
+  .cream-table td {
+    padding: 6px 2px;
+    font-size: 0.85em;
+  }
+  
+  .cream-table th {
+    font-size: 0.95em;
+  }
+  
+  .order-quantity-row { 
+    min-width: 70px; 
+    gap: 1px;
+  }
+  
+  .qty-btn {
+    width: 28px;
+    min-width: 24px;
+    height: 28px;
+    font-size: 1.1em;
+    margin: 0 1px;
+  }
+  
+  .order-input {
+    width: 28px;
+    font-size: 0.9em;
+    margin: 0 1px;
+    height: 28px;
+  }
+  
+  .table-responsive {
+    overflow-x: visible;
+    margin-top: 16px;
+    margin-bottom: 0;
+  }
+  
+  /* Mobile card layout - each bread as a card */
+  .cream-table,
+  .cream-table thead,
+  .cream-table tbody,
+  .cream-table th,
+  .cream-table td,
+  .cream-table tr {
+    display: block;
+  }
+  
+  .cream-table thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+  
+  .cream-table tr {
+    border: 1px solid #ddd;
+    margin-bottom: 15px;
+    padding: 15px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    direction: rtl;
+  }
+  
+  .cream-table td {
+    border: none;
+    position: relative;
+    padding: 0;
+    text-align: right;
+    direction: rtl;
+    line-height: 1.4;
+  }
+  
+  /* Bread name as title */
+  .cream-table td:first-child {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #333;
+    text-align: center;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #eee;
+  }
+  
+  /* Second line container */
+  .cream-table td:nth-child(2) {
+    display: block;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  
+  /* Description */
+  .cream-table td:nth-child(2) {
+    color: #666;
+    font-size: 0.85em;
+  }
+  
+  /* Third line - availability, price, quantity, total price */
+  .cream-table td:nth-child(3),
+  .cream-table td:nth-child(4),
+  .cream-table td:nth-child(5),
+  .cream-table td:nth-child(6) {
+    display: inline-block;
+    margin: 0 6px;
+    font-size: 0.8em;
+    vertical-align: top;
+    text-align: center;
+  }
+  
+  /* Available quantity with label */
+  .cream-table td:nth-child(3) {
+    color: #2e7d32;
+    font-weight: bold;
+    min-width: 50px;
+  }
+  
+  .cream-table td:nth-child(3):before {
+    content: "זמין:";
+    display: block;
+    font-size: 0.7em;
+    color: #666;
+    font-weight: normal;
+    margin-bottom: 2px;
+  }
+  
+  /* Price with label */
+  .cream-table td:nth-child(4) {
+    color: #1976d2;
+    font-weight: bold;
+    min-width: 55px;
+  }
+  
+  .cream-table td:nth-child(4):before {
+    content: "מחיר:";
+    display: block;
+    font-size: 0.7em;
+    color: #666;
+    font-weight: normal;
+    margin-bottom: 2px;
+  }
+  
+  /* Quantity controls with label */
+  .cream-table td:nth-child(5) {
+    min-width: 80px;
+    margin: 0 8px;
+  }
+  
+  .cream-table td:nth-child(5):before {
+    content: "כמות:";
+    display: block;
+    font-size: 0.7em;
+    color: #666;
+    font-weight: normal;
+    margin-bottom: 2px;
+  }
+  
+  /* Total price with label */
+  .cream-table td:last-child {
+    color: #d32f2f;
+    font-weight: bold;
+    min-width: 60px;
+  }
+  
+  .cream-table td:last-child:before {
+    content: "סה״כ:";
+    display: block;
+    font-size: 0.7em;
+    color: #666;
+    font-weight: normal;
+    margin-bottom: 2px;
+  }
+  
+  .order-quantity-row {
+    min-width: 80px;
+    gap: 4px;
+    justify-content: center;
+    flex-wrap: nowrap;
+    width: 100%;
+    max-width: 100px;
+    margin: 0 auto;
+  }
+  
+  .qty-btn {
+    width: 24px;
+    min-width: 22px;
+    height: 24px;
+    font-size: 0.9em;
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
+  }
+  
+  .order-input {
+    width: 24px;
+    font-size: 0.9em;
+    margin: 0;
+    height: 24px;
+    flex-shrink: 0;
+    text-align: center;
+    font-weight: bold;
+  }
 }

@@ -20,6 +20,7 @@ export default function CustomerBreadsTable({
           <col className="avail-col" />
           <col className="price-col" />
           <col className="action-col" />
+          <col className="total-col" />
         </colgroup>
         <thead>
           <tr>
@@ -28,6 +29,7 @@ export default function CustomerBreadsTable({
             <th className="num-col">{t("available")}</th>
             <th className="num-col">{t("price")}</th>
             <th>{t("quantity")}</th>
+            <th className="num-col">{t("total") || "Total"}</th>
           </tr>
         </thead>
         <tbody>
@@ -150,12 +152,15 @@ export default function CustomerBreadsTable({
                     data-testid={`quantity-control-${b.id}`}
                   />
                 </td>
+                <td className="num-col">
+                  {(Number(displayPrice) * value).toFixed(2)} ₪
+                </td>
               </tr>
             );
           })}
           {breads.length === 0 && (
             <tr>
-              <td colSpan={5} style={{ textAlign: "center", opacity: 0.8 }}>
+              <td colSpan={6} style={{ textAlign: "center", opacity: 0.8 }}>
                 {t("notAvailable")}
               </td>
             </tr>
