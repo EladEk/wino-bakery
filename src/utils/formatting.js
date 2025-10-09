@@ -26,13 +26,6 @@ export const formatDateTime = (date, locale = 'he-IL') => {
   });
 };
 
-export const getHebrewDay = (dateString) => {
-  const daysHebrew = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  if (!dateString) return "";
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return "";
-  return daysHebrew[date.getDay()];
-};
 
 export const formatPrice = (price, locale = 'he-IL') => {
   const numPrice = Number(price);

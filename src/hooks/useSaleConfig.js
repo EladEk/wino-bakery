@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { saleConfigService } from '../services/saleConfig';
 
 export const useSaleConfig = () => {
+  const { t } = useTranslation();
   const [config, setConfig] = useState({
     saleDate: '',
     startHour: '',
@@ -41,7 +43,7 @@ export const useSaleConfig = () => {
   };
 
   const getHebrewDay = (dateString) => {
-    const daysHebrew = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const daysHebrew = [t("sunday"), t("monday"), t("tuesday"), t("wednesday"), t("thursday"), t("friday"), t("saturday")];
     if (!dateString) return "";
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return "";

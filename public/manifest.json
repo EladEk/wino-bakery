@@ -1,6 +1,7 @@
 {
-  "short_name": "Wino",
-  "name": "Wino – קמח מים מלח",
+  "short_name": "Wino Bakery",
+  "name": "Wino Bakery – קמח מים מלח",
+  "description": "Fresh bread ordering system",
   "icons": [
     {
       "src": "favicon.png",
@@ -10,16 +11,22 @@
     {
       "src": "logo192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "logo512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#8B4513",
+  "background_color": "#FFF8DC",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "he",
+  "categories": ["food", "shopping", "business"]
 }
