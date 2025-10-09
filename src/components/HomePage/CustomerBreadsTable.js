@@ -115,7 +115,7 @@ export default function CustomerBreadsTable({
 
             return (
               <tr key={b.id}>
-                <td>{b.name}</td>
+                <td className="bread-name-cell">{b.name}</td>
                 <td>{b.description}</td>
                  <td className="num-col">
                    {availableQuantity > 0 ? (

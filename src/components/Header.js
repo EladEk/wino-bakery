@@ -20,13 +20,15 @@ export default function Header() {
 
   useEffect(() => {
     const handler = (e) => {
-      e.preventDefault();
+      // Store the event for later use
       setDeferredPrompt(e);
       setShowInstall(true);
     };
+    
     window.addEventListener("beforeinstallprompt", handler);
     window.addEventListener("appinstalled", () => {
       setShowInstall(false);
+      setDeferredPrompt(null);
     });
 
     return () => {
@@ -37,7 +39,10 @@ export default function Header() {
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
+    
+    // Show the install prompt
     deferredPrompt.prompt();
+    
     const { outcome } = await deferredPrompt.userChoice;
     if (outcome === "accepted") {
       setShowInstall(false);
@@ -58,16 +63,17 @@ export default function Header() {
   return (
     <header className="app-header">
       <div className="left-buttons">
-        {!atLogin && (
-          <button onClick={logout} data-testid="logout-button">{t("logout")}</button>
+        {/* Show back to home only for admin main page */}
+        {isAdmin && atAdmin && (
+          <button onClick={() => navigate("/")} data-testid="back-home-button">{t("backHome")}</button>
         )}
-      </div>
-
-      <div className="app-logo" onClick={() => navigate("/")}>
-        <img src={logo} alt="Logo" className="logo-img" />
-      </div>
-
-      <div className="right-buttons">
+        
+        {/* Show admin panel button only on home page */}
+        {atHome && isAdmin && (
+          <button onClick={() => navigate("/admin")} data-testid="admin-panel-button">{t("adminPanel")}</button>
+        )}
+        
+        {/* Show kibbutz button only on home page for non-admin users */}
         {atHome && !isAdmin && userData && (
           <button 
             onClick={() => setShowKibbutzModal(true)}
@@ -78,36 +84,27 @@ export default function Header() {
           </button>
         )}
 
+        {/* Show back to admin for sub-pages */}
+        {(atOrderHistory || atOrders || atUsers || atKibbutzManagement) && isAdmin && (
+          <button onClick={() => navigate("/admin")} data-testid="back-to-admin-button">
+            {t("back") || "Back to Admin"}
+          </button>
+        )}
+      </div>
+
+      <div className="app-logo" onClick={() => navigate("/")}>
+        <img src={logo} alt="Logo" className="logo-img" />
+      </div>
+
+      <div className="right-buttons">
+        {!atLogin && (
+          <button onClick={logout} data-testid="logout-button">{t("logout")}</button>
+        )}
+
         {showInstall && (
           <button onClick={handleInstallClick} className="install-btn" data-testid="install-app-button">
             📱 {t("installApp") || "Install App"}
           </button>
-        )}
-
-        {atHome && isAdmin && (
-          <button onClick={() => navigate("/admin")} data-testid="admin-panel-button">{t("adminPanel")}</button>
-        )}
-
-        {atAdmin && (
-          <>
-            <button onClick={() => navigate("/")} data-testid="back-home-button">{t("backHome")}</button>
-          </>
-        )}
-
-        {atOrderHistory && isAdmin && (
-          <button onClick={() => navigate("/admin")} data-testid="back-to-admin-button">{t("back") || "Back to Admin"}</button>
-        )}
-
-        {atOrders && isAdmin && (
-          <button onClick={() => navigate("/admin")} data-testid="back-to-admin-button">{t("back") || "Back to Admin"}</button>
-        )}
-
-        {atUsers && isAdmin && (
-          <button onClick={() => navigate("/admin")} data-testid="back-to-admin-button">{t("back") || "Back to Admin"}</button>
-        )}
-
-        {atKibbutzManagement && isAdmin && (
-          <button onClick={() => navigate("/admin")} data-testid="back-to-admin-button">{t("BackToAdmin")}</button>
         )}
       </div>
 

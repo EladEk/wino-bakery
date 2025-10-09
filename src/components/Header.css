@@ -1,43 +1,45 @@
 .app-header {
   position: relative;
-  height: 50px;
+  min-height: 60px;
   background: #F6E5D3;
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 0 20px;
+  justify-content: space-between;
+  padding: 8px 16px;
   box-sizing: border-box;
   z-index: 100;
 }
 
 .app-logo {
   position: absolute;
-  left: 47%;
-  top: 35%;
+  left: 50%;
+  top: 50%;
   transform: translate(-50%, -50%);
   cursor: pointer;
+  z-index: 102;
 }
 
 .left-buttons {
-  position: absolute;
-  left: 16px;
   display: flex;
   align-items: center;
   z-index: 101;
+  flex-shrink: 0;
+  gap: 8px;
 }
 
 .right-buttons {
-  position: absolute;
-  right: 16px;
   display: flex;
-  gap: 12px;
+  gap: 8px;
   align-items: center;
   z-index: 101;
+  flex-shrink: 0;
+  max-width: 50%;
+  flex-wrap: wrap;
 }
 
 .logo-img {
-  height: 50px;
-  margin-top: 5px;
+  height: 60px;
+  margin-top: 0px;
   width: auto;
   display: block;
 }
@@ -48,6 +50,8 @@ button {
   background-color: #f0f0f0;
   border: 1px solid #ccc;
   border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 button:hover {
@@ -82,8 +86,18 @@ button:hover {
   font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  margin-left: 8px;
+  margin-right: 8px;
   font-weight: 500;
+  max-width: 200px;
+  white-space: normal;
+  word-wrap: break-word;
+  line-height: 1.2;
+  text-align: center;
+  flex-shrink: 1;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .kibbutz-btn:hover {
@@ -108,4 +122,56 @@ button:hover {
 .kibbutz-btn.kibbutz-join:hover {
   background: linear-gradient(135deg, #F57C00, #EF6C00);
   box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .app-header {
+    padding: 6px 12px;
+  }
+  
+  .kibbutz-btn {
+    max-width: 150px;
+    font-size: 0.8rem;
+    padding: 6px 12px;
+    min-height: 36px;
+  }
+  
+  .logo-img {
+    height: 50px;
+  }
+  
+  .right-buttons {
+    gap: 6px;
+    max-width: 60%;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-header {
+    padding: 4px 8px;
+  }
+  
+  .kibbutz-btn {
+    max-width: 120px;
+    font-size: 0.75rem;
+    padding: 5px 10px;
+    min-height: 32px;
+    line-height: 1.1;
+  }
+  
+  .logo-img {
+    height: 45px;
+  }
+  
+  .right-buttons {
+    max-width: 70%;
+    flex-wrap: wrap;
+  }
+  
+  button {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+  }
 }

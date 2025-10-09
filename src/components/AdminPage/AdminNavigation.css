@@ -6,20 +6,31 @@
 
 .admin-navigation__inner {
   display: flex;
-  gap: 6px;
+  gap: 3px;
   justify-content: center;
   flex-wrap: wrap;
+  max-height: 70px;
+  align-content: flex-start;
 }
 
 .admin-nav-link {
   border: 1px solid #bbb;
   background: #fff;
-  padding: 6px 10px;
-  border-radius: 8px;
+  padding: 3px 5px;
+  border-radius: 5px;
   cursor: pointer;
-  font-size: 0.95rem;
+  font-size: 0.75rem;
   transition: background 0.15s, border-color 0.15s;
-  white-space: nowrap;
+  white-space: normal;
+  line-height: 1.0;
+  text-align: center;
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-width: 90px;
+  max-width: 110px;
 }
 .admin-nav-link:hover { background: #f0f0f0; }
 
@@ -31,23 +42,24 @@
 
 @media (max-width: 560px) {
   .admin-navigation {
-    padding: 6px 8px;
+    padding: 3px 5px;
   }
 
   .admin-navigation__inner {
-    justify-content: flex-start;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    gap: 4px;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 2px;
+    max-height: 60px;
+    align-content: flex-start;
   }
 
-  .admin-navigation__inner::-webkit-scrollbar { height: 0; }
-  .admin-navigation__inner { scrollbar-width: none; }
-
   .admin-nav-link {
-    padding: 5px 8px;
-    font-size: 0.9rem;
-    border-radius: 7px;
+    padding: 2px 3px;
+    font-size: 0.7rem;
+    border-radius: 3px;
+    min-height: 24px;
+    flex: 1;
+    min-width: 70px;
+    max-width: 90px;
   }
 }

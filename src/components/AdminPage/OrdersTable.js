@@ -10,12 +10,12 @@ export default function OrdersTable({ bread, t, editingOrder, startEditingOrder,
             <tr>
               <th>{t("name")}</th>
               <th>{t("phone")}</th>
-              <th>{t("kibbutz")}</th>
               <th>{t("quantity")}</th>
               <th>{t("supplied")}</th>
               <th>{t("paid")}</th>
               <th>{t("cost")}</th>
               <th>{t("orderedAt")}</th>
+              <th>{t("kibbutz")}</th>
               <th>{t("Actions")}</th>
             </tr>
           </thead>
@@ -39,11 +39,6 @@ export default function OrdersTable({ bread, t, editingOrder, startEditingOrder,
                   <td>
                     <span style={{ paddingLeft: 6, display: "inline-block", width: 120 }}>
                       {claim.phone}
-                    </span>
-                  </td>
-                  <td>
-                    <span style={{ paddingLeft: 6, display: "inline-block", width: 120 }}>
-                      {claim.kibbutzId ? (claim.kibbutzName || t("unknownKibbutz")) : t("notAssignedToKibbutz")}
                     </span>
                   </td>
                   <td>
@@ -80,6 +75,11 @@ export default function OrdersTable({ bread, t, editingOrder, startEditingOrder,
                     {claim.timestamp?.seconds
                       ? new Date(claim.timestamp.seconds * 1000).toLocaleString()
                       : ""}
+                  </td>
+                  <td>
+                    <span style={{ paddingLeft: 6, display: "inline-block", width: 120 }}>
+                      {claim.kibbutzId ? (claim.kibbutzName || t("unknownKibbutz")) : t("notAssignedToKibbutz")}
+                    </span>
                   </td>
                   <td>
                     {isEditing ? (
