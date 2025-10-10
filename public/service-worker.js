@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wino-bakery-v4';
+const CACHE_NAME = 'wino-bakery-v5';
 const urlsToCache = [
   '/',
   '/manifest.json',
@@ -9,7 +9,7 @@ const urlsToCache = [
 
 // Install event - cache resources
 self.addEventListener('install', (event) => {
-  console.log('Service Worker installing...');
+  console.log('Service Worker installing...', CACHE_NAME);
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
@@ -30,6 +30,8 @@ self.addEventListener('install', (event) => {
         return self.skipWaiting();
       })
   );
+  // Force immediate activation
+  self.skipWaiting();
 });
 
 // Fetch event - serve from cache when offline
@@ -78,6 +80,7 @@ self.addEventListener('fetch', (event) => {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
+  console.log('Service Worker activating...', CACHE_NAME);
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
@@ -91,6 +94,13 @@ self.addEventListener('activate', (event) => {
     }).then(() => {
       // Take control of all clients immediately
       return self.clients.claim();
+    }).then(() => {
+      // Notify all clients about the update
+      return self.clients.matchAll().then(clients => {
+        clients.forEach(client => {
+          client.postMessage({ type: 'SW_UPDATED', version: CACHE_NAME });
+        });
+      });
     })
   );
 });

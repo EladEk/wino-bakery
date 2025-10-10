@@ -13,3 +13,14 @@ root.render(
 );
 
 serviceWorkerRegistration.register();
+
+// Listen for service worker updates
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SW_UPDATED') {
+      console.log('Service Worker updated:', event.data.version);
+      // Force reload to get the latest version
+      window.location.reload();
+    }
+  });
+}
