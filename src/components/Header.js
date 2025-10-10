@@ -57,6 +57,8 @@ export default function Header() {
   const atOrders = location.pathname === "/orders";
   const atOrderHistory = location.pathname === "/order-history";
   const atKibbutzManagement = location.pathname === "/admin/kibbutz";
+  const atWorkshops = location.pathname === "/workshops";
+  const atWorkshopManagement = location.pathname === "/workshop-management";
   const isAdmin = userData?.isAdmin;
   const isKibbutzMember = userData?.kibbutzId;
 
@@ -84,8 +86,15 @@ export default function Header() {
           </button>
         )}
 
+        {/* Show back to home for workshops page */}
+        {atWorkshops && (
+          <button onClick={() => navigate("/")} data-testid="back-home-button">
+            {t("backHome")}
+          </button>
+        )}
+
         {/* Show back to admin for sub-pages */}
-        {(atOrderHistory || atOrders || atUsers || atKibbutzManagement) && isAdmin && (
+        {(atOrderHistory || atOrders || atUsers || atKibbutzManagement || atWorkshopManagement) && isAdmin && (
           <button onClick={() => navigate("/admin")} data-testid="back-to-admin-button">
             {t("back") || "Back to Admin"}
           </button>
