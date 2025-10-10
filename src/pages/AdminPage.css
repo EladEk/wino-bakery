@@ -648,6 +648,7 @@ body.modal-open { overflow: hidden; }
   }
 }
 
+
 @media (max-width: 480px) {
   .admin-container {
     padding: 0 4px;
@@ -670,6 +671,304 @@ body.modal-open { overflow: hidden; }
   
   .admin-panel-title {
     font-size: 2.5rem;
+  }
+  
+}
+
+/* User Management Card Layout */
+.users-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.user-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.2s ease;
+}
+
+.user-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.user-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.user-name {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.kibbutz-icon {
+  font-size: 1rem;
+}
+
+.user-status {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-badge {
+  background: #4CAF50;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+.blocked-badge {
+  background: #f44336;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+.user-details {
+  margin-bottom: 16px;
+}
+
+.user-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 4px 0;
+}
+
+.detail-label {
+  font-weight: 500;
+  color: #666;
+  min-width: 80px;
+  text-align: right;
+}
+
+.detail-value {
+  color: #333;
+  text-align: left;
+  flex: 1;
+  margin-left: 12px;
+  word-break: break-word;
+}
+
+.user-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background: #f9f9f9;
+}
+
+.user-input:focus {
+  outline: none;
+  border-color: #4CAF50;
+  background: white;
+}
+
+.user-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.user-actions button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1;
+  min-width: 80px;
+}
+
+.save-btn {
+  background: #4CAF50;
+  color: white;
+}
+
+.save-btn:hover {
+  background: #45a049;
+}
+
+.cancel-btn {
+  background: #f44336;
+  color: white;
+}
+
+.cancel-btn:hover {
+  background: #d32f2f;
+}
+
+.admin-btn {
+  background: #2196F3;
+  color: white;
+}
+
+.admin-btn:hover {
+  background: #1976D2;
+}
+
+.block-btn {
+  background: #ff9800;
+  color: white;
+}
+
+.block-btn:hover {
+  background: #f57c00;
+}
+
+.assign-kibbutz-btn {
+  background: #4ecdc4;
+  color: white;
+}
+
+.assign-kibbutz-btn:hover {
+  background: #45b7b8;
+}
+
+.remove-kibbutz-btn {
+  background: #ff6b6b;
+  color: white;
+}
+
+.remove-kibbutz-btn:hover {
+  background: #ff5252;
+}
+
+.edit-btn {
+  background: #9c27b0;
+  color: white;
+}
+
+.edit-btn:hover {
+  background: #8e24aa;
+}
+
+.delete-btn {
+  background: #f44336;
+  color: white;
+}
+
+.delete-btn:hover {
+  background: #d32f2f;
+}
+
+.kibbutz-badge {
+  background: #e8f5e8;
+  color: #2e7d32;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.no-kibbutz {
+  color: #666;
+  font-style: italic;
+  font-size: 0.8rem;
+}
+
+/* Mobile responsiveness for user cards */
+@media (max-width: 768px) {
+  .users-container {
+    gap: 12px;
+    margin-top: 16px;
+  }
+  
+  .user-card {
+    padding: 12px;
+  }
+  
+  .user-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .user-status {
+    align-self: flex-end;
+  }
+  
+  .user-detail-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .detail-label {
+    min-width: auto;
+    text-align: left;
+  }
+  
+  .detail-value {
+    margin-left: 0;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+  }
+  
+  .user-actions button {
+    flex: none;
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .users-container {
+    gap: 8px;
+  }
+  
+  .user-card {
+    padding: 10px;
+  }
+  
+  .user-name {
+    font-size: 1rem;
+  }
+  
+  .user-actions button {
+    font-size: 0.8rem;
+    padding: 6px 10px;
+  }
+  
+  .admin-badge,
+  .blocked-badge {
+    font-size: 0.7rem;
+    padding: 3px 6px;
   }
 }
 

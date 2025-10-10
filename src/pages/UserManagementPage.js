@@ -230,119 +230,122 @@ export default function UserManagementPage() {
 {t("noUsersFound")} "{searchTerm}"
         </div>
       ) : (
-        <div className="table-responsive">
-          <table className="cream-table">
-            <thead>
-              <tr>
-                <th>{t("Phone")}</th>
-                <th>{t("Name")}</th>
-                <th>{t("Email")}</th>
-                <th>{t("kibbutz")}</th>
-                <th>{t("Admin")}</th>
-                <th>{t("Blocked")}</th>
-                <th>{t("Actions")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredUsers.map((u) => (
-              <tr key={u.id}>
-                <td>
-                  {editingUserId === u.id ? (
-                    <input
-                      type="text"
-                      name="phone"
-                      value={editData.phone}
-                      onChange={handleInputChange}
-                      className="bread-input"
-                    />
-                  ) : (
-                    u.phone || "-"
-                  )}
-                </td>
-                <td>
+        <div className="users-container">
+          {filteredUsers.map((u) => (
+            <div key={u.id} className="user-card">
+              <div className="user-header">
+                <div className="user-name">
                   {editingUserId === u.id ? (
                     <input
                       type="text"
                       name="name"
                       value={editData.name}
                       onChange={handleInputChange}
-                      className="bread-input"
+                      className="user-input"
+                      placeholder={t("Name")}
                     />
                   ) : (
                     <span>
                       {u.name || "-"}
-                      {u.kibbutzId && <span style={{ marginLeft: 5 }}>🏘️</span>}
+                      {u.kibbutzId && <span className="kibbutz-icon">🏘️</span>}
                     </span>
                   )}
-                </td>
-                <td>
+                </div>
+                <div className="user-status">
+                  {u.isAdmin && <span className="admin-badge">{t("Admin")}</span>}
+                  {u.isBlocked && <span className="blocked-badge">{t("Blocked")}</span>}
+                </div>
+              </div>
+              
+              <div className="user-details">
+                <div className="user-detail-row">
+                  <span className="detail-label">{t("Phone")}:</span>
+                  {editingUserId === u.id ? (
+                    <input
+                      type="text"
+                      name="phone"
+                      value={editData.phone}
+                      onChange={handleInputChange}
+                      className="user-input"
+                      placeholder={t("Phone")}
+                    />
+                  ) : (
+                    <span className="detail-value">{u.phone || "-"}</span>
+                  )}
+                </div>
+                
+                <div className="user-detail-row">
+                  <span className="detail-label">{t("Email")}:</span>
                   {editingUserId === u.id ? (
                     <input
                       type="text"
                       name="email"
                       value={editData.email}
                       onChange={handleInputChange}
-                      className="bread-input"
+                      className="user-input"
+                      placeholder={t("Email")}
                     />
                   ) : (
-                    u.email || "-"
+                    <span className="detail-value">{u.email || "-"}</span>
                   )}
-                </td>
-                <td>
-                  {u.kibbutzId ? (
-                    <span className="kibbutz-badge">🏘️ {u.kibbutzName || t("unknownKibbutz")}</span>
-                  ) : (
-                    <span className="no-kibbutz">{t("notAssignedToKibbutz")}</span>
-                  )}
-                </td>
-                <td>{u.isAdmin ? t("Yes") : t("No")}</td>
-                <td>{u.isBlocked ? t("Yes") : t("No")}</td>
-                <td>
-                  {editingUserId === u.id ? (
-                    <>
-                      <button onClick={() => saveEdit(u.id)}>{t("Save")}</button>
-                      <button onClick={cancelEditing} style={{ marginLeft: 6 }}>{t("Cancel")}</button>
-                    </>
-                  ) : (
-                    <>
-                      <button onClick={() => toggleAdmin(u)}>
-                        {u.isAdmin ? t("Remove Admin") : t("Make Admin")}
-                      </button>
-                      <button onClick={() => toggleBlockUser(u)} style={{ marginLeft: 6 }}>
-                        {u.isBlocked ? t("Unblock") : t("Block")}
-                      </button>
-                      {u.kibbutzId ? (
-                        <button 
-                          onClick={() => handleRemoveFromKibbutz(u.id, u.name)}
-                          style={{ marginLeft: 6, backgroundColor: "#ff6b6b" }}
-                        >
-                          {t("removeFromKibbutz")}
-                        </button>
-                      ) : (
-                        <button 
-                          onClick={() => openKibbutzModal(u)}
-                          style={{ marginLeft: 6, backgroundColor: "#4ecdc4" }}
-                        >
-                          {t("assignToKibbutz")}
-                        </button>
-                      )}
-                      <button onClick={() => startEditing(u)} style={{ marginLeft: 6 }}>
-                        {t("Edit")}
-                      </button>
-                      <button
-                        onClick={() => deleteUser(u.id, u.email)}
-                        style={{ color: "red", marginLeft: 6 }}
+                </div>
+                
+                <div className="user-detail-row">
+                  <span className="detail-label">{t("kibbutz")}:</span>
+                  <span className="detail-value">
+                    {u.kibbutzId ? (
+                      <span className="kibbutz-badge">🏘️ {u.kibbutzName || t("unknownKibbutz")}</span>
+                    ) : (
+                      <span className="no-kibbutz">{t("notAssignedToKibbutz")}</span>
+                    )}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="user-actions">
+                {editingUserId === u.id ? (
+                  <div className="edit-actions">
+                    <button onClick={() => saveEdit(u.id)} className="save-btn">{t("Save")}</button>
+                    <button onClick={cancelEditing} className="cancel-btn">{t("Cancel")}</button>
+                  </div>
+                ) : (
+                  <div className="action-buttons">
+                    <button onClick={() => toggleAdmin(u)} className="admin-btn">
+                      {u.isAdmin ? t("Remove Admin") : t("Make Admin")}
+                    </button>
+                    <button onClick={() => toggleBlockUser(u)} className="block-btn">
+                      {u.isBlocked ? t("Unblock") : t("Block")}
+                    </button>
+                    {u.kibbutzId ? (
+                      <button 
+                        onClick={() => handleRemoveFromKibbutz(u.id, u.name)}
+                        className="remove-kibbutz-btn"
                       >
-                        {t("Delete")}
+                        {t("removeFromKibbutz")}
                       </button>
-                    </>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                    ) : (
+                      <button 
+                        onClick={() => openKibbutzModal(u)}
+                        className="assign-kibbutz-btn"
+                      >
+                        {t("assignToKibbutz")}
+                      </button>
+                    )}
+                    <button onClick={() => startEditing(u)} className="edit-btn">
+                      {t("Edit")}
+                    </button>
+                    <button
+                      onClick={() => deleteUser(u.id, u.email)}
+                      className="delete-btn"
+                    >
+                      {t("Delete")}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
       )}
 
       {showKibbutzModal && selectedUser && (
