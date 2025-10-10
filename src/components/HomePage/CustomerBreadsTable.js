@@ -1,5 +1,6 @@
 import React from "react";
 import OrderQuantityControl from "./OrderQuantityControl";
+import { calculateDisplayPrice } from "../../utils/pricing";
 import { breadsService } from "../../services/breads";
 
 export default function CustomerBreadsTable({
@@ -46,10 +47,12 @@ export default function CustomerBreadsTable({
                 const userKibbutz = kibbutzim?.find(k => k.id === userData.kibbutzId);
                 isClubMember = userKibbutz?.isClub || false;
                 
-                if (!isClubMember) {
-                  baseAvailableQuantity = breadsService.getAvailableQuantityForKibbutz(b, userData.kibbutzId);
-                } else {
+                if (isClubMember) {
+                  // Clubs use general inventory system
                   baseAvailableQuantity = breadsService.getAvailableQuantityForGeneral(b, kibbutzim);
+                } else {
+                  // Regular kibbutzim use allocated quantity system
+                  baseAvailableQuantity = breadsService.getAvailableQuantityForKibbutz(b, userData.kibbutzId, kibbutzim);
                 }
               } else {
                 baseAvailableQuantity = breadsService.getAvailableQuantityForGeneral(b, kibbutzim);
@@ -82,6 +85,7 @@ export default function CustomerBreadsTable({
               // Get isClubMember from the original bread object
               const isClubMember = b.isClubMember;
 
+            // Check if customer is part of a kibbutz
             const isKibbutzMember = userData?.kibbutzId;
             let displayPrice = b.price?.toFixed(2) || "";
             let originalPrice = null;
@@ -89,27 +93,19 @@ export default function CustomerBreadsTable({
             if (isKibbutzMember && kibbutzim) {
               const userKibbutz = kibbutzim.find(k => k.id === userData.kibbutzId);
               if (userKibbutz) {
-                let finalPrice = b.price;
+                // Create order object with kibbutz pricing information
+                const orderWithPricing = {
+                  kibbutzId: userData.kibbutzId,
+                  kibbutzName: userData.kibbutzName,
+                  discountPercentage: userKibbutz.discountPercentage || 0,
+                  surchargeType: userKibbutz.surchargeType || 'none',
+                  surchargeValue: userKibbutz.surchargeValue || 0
+                };
                 
-                if (userKibbutz.discountPercentage > 0) {
-                  const discount = userKibbutz.discountPercentage / 100;
-                  finalPrice = finalPrice * (1 - discount);
-                }
-                
-                if (userKibbutz.surchargeType && userKibbutz.surchargeType !== 'none' && userKibbutz.surchargeValue > 0) {
-                  if (userKibbutz.surchargeType === 'percentage') {
-                    finalPrice = finalPrice * (1 + userKibbutz.surchargeValue / 100);
-                  } else if (userKibbutz.surchargeType === 'fixedPerBread') {
-                    finalPrice = finalPrice + userKibbutz.surchargeValue;
-                  }
-                }
-                
-                if (userKibbutz.discountPercentage > 0) {
-                  originalPrice = b.price?.toFixed(2);
-                  displayPrice = finalPrice.toFixed(2);
-                } else if ((userKibbutz.surchargeType === 'percentage' || userKibbutz.surchargeType === 'fixedPerBread') && userKibbutz.surchargeValue > 0) {
-                  displayPrice = finalPrice.toFixed(2);
-                }
+                // Calculate display price using the new pricing utility
+                const pricing = calculateDisplayPrice(b.price, orderWithPricing);
+                displayPrice = pricing.displayPrice.toFixed(2);
+                originalPrice = pricing.hasDiscount ? pricing.originalPrice.toFixed(2) : null;
               }
             }
 
@@ -153,7 +149,27 @@ export default function CustomerBreadsTable({
                   />
                 </td>
                 <td className="num-col">
-                  {(Number(displayPrice) * value).toFixed(2)} ₪
+                  {(() => {
+                    // Calculate total price for this bread (quantity × price per bread, no per-order surcharges)
+                    if (isKibbutzMember && kibbutzim) {
+                      const userKibbutz = kibbutzim.find(k => k.id === userData.kibbutzId);
+                      if (userKibbutz) {
+                        const orderWithPricing = {
+                          kibbutzId: userData.kibbutzId,
+                          kibbutzName: userData.kibbutzName,
+                          discountPercentage: userKibbutz.discountPercentage || 0,
+                          surchargeType: userKibbutz.surchargeType || 'none',
+                          surchargeValue: userKibbutz.surchargeValue || 0
+                        };
+                        
+                        // Use calculateDisplayPrice to get price per bread (no per-order surcharges)
+                        const pricing = calculateDisplayPrice(b.price, orderWithPricing);
+                        return (pricing.displayPrice * value).toFixed(2);
+                      }
+                    }
+                    // For non-kibbutz members, use simple multiplication since displayPrice already includes per-bread pricing
+                    return (Number(displayPrice) * value).toFixed(2);
+                  })()} ₪
                 </td>
               </tr>
             );

@@ -4,6 +4,7 @@ import { collection, onSnapshot, doc, updateDoc, getDoc } from "firebase/firesto
 import { useAuth } from "../contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import { useKibbutz } from "../hooks/useKibbutz";
+// import { calculateDisplayPrice } from "../utils/pricing";
 import "./HomePage.css";
 
 import PopupWidget from "../components/HomePage/PopupWidget";
@@ -109,10 +110,23 @@ export default function HomePage() {
           if (qty > 0 && !hasClaim) {
             const ref = doc(db, "breads", b.id);
             await updateDoc(ref, {
-              availablePieces: b.availablePieces - qty,
               claimedBy: [
                 ...(b.claimedBy || []),
-                { phone, name, quantity: qty, userId: currentUser.uid, timestamp: new Date() }
+                { 
+                  phone, 
+                  name, 
+                  quantity: qty, 
+                  userId: currentUser.uid, 
+                  timestamp: new Date(),
+                  kibbutzId: userData?.kibbutzId || null,
+                  kibbutzName: userData?.kibbutzName || null,
+                  discountPercentage: userData?.kibbutzId ? 
+                    (kibbutzim.find(k => k.id === userData.kibbutzId)?.discountPercentage || 0) : 0,
+                  surchargeType: userData?.kibbutzId ? 
+                    (kibbutzim.find(k => k.id === userData.kibbutzId)?.surchargeType || 'none') : 'none',
+                  surchargeValue: userData?.kibbutzId ? 
+                    (kibbutzim.find(k => k.id === userData.kibbutzId)?.surchargeValue || 0) : 0
+                }
               ]
             });
           }
@@ -137,16 +151,24 @@ export default function HomePage() {
             if (newQty === 0) {
               const ref = doc(db, "breads", b.id);
               await updateDoc(ref, {
-                availablePieces: b.availablePieces + prev.quantity,
                 claimedBy: (b.claimedBy || []).filter(c => c.userId !== currentUser.uid)
               });
             } else if (newQty !== prev.quantity) {
-              const diff = newQty - prev.quantity;
               const ref = doc(db, "breads", b.id);
               await updateDoc(ref, {
-                availablePieces: b.availablePieces - diff,
                 claimedBy: (b.claimedBy || []).map(c =>
-                  c.userId === currentUser.uid ? { ...c, quantity: newQty } : c
+                  c.userId === currentUser.uid ? { 
+                    ...c, 
+                    quantity: newQty,
+                    kibbutzId: userData?.kibbutzId || c.kibbutzId || null,
+                    kibbutzName: userData?.kibbutzName || c.kibbutzName || null,
+                    discountPercentage: userData?.kibbutzId ? 
+                      (kibbutzim.find(k => k.id === userData.kibbutzId)?.discountPercentage || 0) : (c.discountPercentage || 0),
+                    surchargeType: userData?.kibbutzId ? 
+                      (kibbutzim.find(k => k.id === userData.kibbutzId)?.surchargeType || 'none') : (c.surchargeType || 'none'),
+                    surchargeValue: userData?.kibbutzId ? 
+                      (kibbutzim.find(k => k.id === userData.kibbutzId)?.surchargeValue || 0) : (c.surchargeValue || 0)
+                  } : c
                 )
               });
             }
@@ -154,10 +176,23 @@ export default function HomePage() {
             const { name, phone } = await ensureProfile();
             const ref = doc(db, "breads", b.id);
             await updateDoc(ref, {
-              availablePieces: b.availablePieces - newQty,
               claimedBy: [
                 ...(b.claimedBy || []),
-                { phone, name, quantity: newQty, userId: currentUser.uid, timestamp: new Date() }
+                { 
+                  phone, 
+                  name, 
+                  quantity: newQty, 
+                  userId: currentUser.uid, 
+                  timestamp: new Date(),
+                  kibbutzId: userData?.kibbutzId || null,
+                  kibbutzName: userData?.kibbutzName || null,
+                  discountPercentage: userData?.kibbutzId ? 
+                    (kibbutzim.find(k => k.id === userData.kibbutzId)?.discountPercentage || 0) : 0,
+                  surchargeType: userData?.kibbutzId ? 
+                    (kibbutzim.find(k => k.id === userData.kibbutzId)?.surchargeType || 'none') : 'none',
+                  surchargeValue: userData?.kibbutzId ? 
+                    (kibbutzim.find(k => k.id === userData.kibbutzId)?.surchargeValue || 0) : 0
+                }
               ]
             });
           }
@@ -178,7 +213,6 @@ export default function HomePage() {
         if (!prev) return;
         const ref = doc(db, "breads", b.id);
         await updateDoc(ref, {
-          availablePieces: b.availablePieces + prev.quantity,
           claimedBy: (b.claimedBy || []).filter(c => c.userId !== currentUser.uid)
         });
       })

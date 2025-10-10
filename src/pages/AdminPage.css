@@ -338,6 +338,47 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* Customer table specific column widths */
+.customer-table th:first-child,
+.customer-table td:first-child {
+  width: 20%; /* Customer */
+}
+
+.customer-table th:nth-child(2),
+.customer-table td:nth-child(2) {
+  width: 15%; /* Phone */
+}
+
+.customer-table th:nth-child(3),
+.customer-table td:nth-child(3) {
+  width: 25%; /* Bread */
+}
+
+.customer-table th:nth-child(4),
+.customer-table td:nth-child(4) {
+  width: 8%; /* Quantity */
+}
+
+.customer-table th:nth-child(5),
+.customer-table td:nth-child(5) {
+  width: 10%; /* Price */
+}
+
+.customer-table th:nth-child(6),
+.customer-table td:nth-child(6) {
+  width: 10%; /* Subtotal */
+}
+
+.customer-table th:nth-child(7),
+.customer-table td:nth-child(7) {
+  width: 6%; /* Supplied */
+}
+
+.customer-table th:nth-child(8),
+.customer-table td:nth-child(8) {
+  width: 6%; /* Paid */
+}
+
 .end-sale-bar {
   display: flex;
   justify-content: right;
@@ -431,7 +472,6 @@ body.modal-open { overflow: hidden; }
   color: #222;
 }
 
-.modal-body {}
 
 .close-btn {
   border: none;
@@ -630,5 +670,250 @@ body.modal-open { overflow: hidden; }
   
   .admin-panel-title {
     font-size: 2.5rem;
+  }
+}
+
+/* Customer Order Totals Styles */
+.customer-order-totals {
+  margin: 20px 0;
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid #dee2e6;
+}
+
+.section-title {
+  margin: 0 0 16px 0;
+  font-size: 1.3em;
+  color: #2c5aa0;
+  font-weight: bold;
+}
+
+/* Search Container Styles */
+.search-container {
+  position: relative;
+  margin-bottom: 16px;
+  max-width: 100%;
+  width: 100%;
+}
+
+.search-input {
+  width: 100%;
+  max-width: 400px;
+  padding: 10px 40px 10px 12px;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  font-size: 1em;
+  background: white;
+  transition: border-color 0.2s ease;
+  box-sizing: border-box;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #2c5aa0;
+  box-shadow: 0 0 0 3px rgba(44, 90, 160, 0.1);
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.clear-search-btn:hover {
+  background: #c82333;
+}
+
+.customer-totals-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  table-layout: fixed; /* Better control over column widths */
+}
+
+.customer-totals-table th {
+  background: #2c5aa0;
+  color: white;
+  padding: 12px 8px;
+  text-align: right;
+  font-weight: 600;
+  font-size: 1.1em;
+}
+
+/* Column width controls for better mobile display */
+.customer-totals-table th:nth-child(1),
+.customer-totals-table td:nth-child(1) {
+  width: 25%; /* Customer */
+}
+
+.customer-totals-table th:nth-child(2),
+.customer-totals-table td:nth-child(2) {
+  width: 15%; /* Phone */
+}
+
+.customer-totals-table th:nth-child(3),
+.customer-totals-table td:nth-child(3) {
+  width: 15%; /* Kibbutz */
+}
+
+.customer-totals-table th:nth-child(4),
+.customer-totals-table td:nth-child(4) {
+  width: 15%; /* Subtotal */
+}
+
+.customer-totals-table th:nth-child(5),
+.customer-totals-table td:nth-child(5) {
+  width: 15%; /* Per-Order Surcharge */
+}
+
+.customer-totals-table th:nth-child(6),
+.customer-totals-table td:nth-child(6) {
+  width: 15%; /* Total */
+}
+
+.customer-totals-table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid #dee2e6;
+  text-align: right;
+  font-size: 1.05em;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.customer-totals-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.customer-totals-table .num-col {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.customer-totals-table .total-col {
+  font-weight: bold;
+  color: #2c5aa0;
+}
+
+.grand-total-row {
+  background: #e3f2fd !important;
+  border-top: 2px solid #2c5aa0;
+}
+
+.grand-total-row td {
+  font-weight: bold;
+  font-size: 1.2em;
+  padding: 12px 8px;
+}
+
+.grand-total-label {
+  text-align: left !important;
+  color: #2c5aa0;
+}
+
+.grand-total-row .total-col {
+  color: #1a4480;
+  font-size: 1.2em;
+}
+
+@media (max-width: 768px) {
+  .customer-order-totals {
+    margin: 16px 0;
+    padding: 12px;
+  }
+  
+  .customer-totals-table {
+    font-size: 1em;
+    min-width: 600px; /* Force horizontal scroll */
+  }
+  
+  .customer-totals-table th,
+  .customer-totals-table td {
+    padding: 8px 4px;
+    font-size: 1em;
+  }
+  
+  .section-title {
+    font-size: 1.2em;
+  }
+  
+  /* Search mobile styles */
+  .search-container {
+    max-width: 100%;
+    margin-bottom: 12px;
+    padding: 0 4px; /* Add some padding to prevent overflow */
+  }
+  
+  .search-input {
+    font-size: 0.9em;
+    padding: 8px 35px 8px 10px;
+    max-width: 100%;
+  }
+  
+  /* Make table responsive with horizontal scroll */
+  .table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 480px) {
+  .customer-order-totals {
+    margin: 12px 0;
+    padding: 8px;
+  }
+  
+  .customer-totals-table {
+    font-size: 0.95em;
+    min-width: 500px;
+  }
+  
+  .customer-totals-table th,
+  .customer-totals-table td {
+    padding: 6px 3px;
+    font-size: 0.95em;
+  }
+  
+  .section-title {
+    font-size: 1.1em;
+  }
+  
+  /* Hide less important columns on very small screens */
+  .customer-totals-table th:nth-child(2), /* Phone */
+  .customer-totals-table td:nth-child(2) {
+    display: none;
+  }
+  
+  .customer-totals-table th:nth-child(3), /* Kibbutz */
+  .customer-totals-table td:nth-child(3) {
+    display: none;
+  }
+  
+  /* Adjust grand total row for mobile */
+  .grand-total-row td {
+    font-size: 0.9em;
+    padding: 8px 4px;
+  }
+  
+  .grand-total-row .total-col {
+    font-size: 1.1em;
   }
 }

@@ -176,7 +176,14 @@ export const breadsService = {
     });
   },
 
-  getAvailableQuantityForKibbutz: (bread, kibbutzId) => {
+  getAvailableQuantityForKibbutz: (bread, kibbutzId, kibbutzim = []) => {
+    // If kibbutz is a club, use general inventory system
+    const kibbutz = kibbutzim.find(k => k.id === kibbutzId);
+    if (kibbutz?.isClub) {
+      return bread.availablePieces || 0;
+    }
+    
+    // For regular kibbutzim, use allocated quantity system
     if (!bread.kibbutzQuantities || !bread.kibbutzQuantities[kibbutzId]) {
       return 0;
     }

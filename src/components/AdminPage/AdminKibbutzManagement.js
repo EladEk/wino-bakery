@@ -283,7 +283,20 @@ export default function AdminKibbutzManagement({ t }) {
                               <div className="order-bread">
                                 <strong>{orderData.breadName}</strong>
                                 <span className="order-quantity">{t("quantity")}: {orderData.order.quantity}</span>
-                                <span className="order-price">{t("price")}: ₪{orderData.breadPrice}</span>
+                                <span className="order-price">
+                                  {orderData.order.discountPercentage > 0 ? (
+                                    <span>
+                                      <span style={{ textDecoration: 'line-through', color: '#999', marginRight: '8px' }}>
+                                        ₪{orderData.originalPrice.toFixed(2)}
+                                      </span>
+                                      <span style={{ color: '#2e7d32', fontWeight: 'bold' }}>
+                                        ₪{orderData.breadPrice.toFixed(2)}
+                                      </span>
+                                    </span>
+                                  ) : (
+                                    `₪${orderData.breadPrice.toFixed(2)}`
+                                  )}
+                                </span>
                                 {orderData.order.discountPercentage > 0 && (
                                   <span className="discount">{t("discount")}: {orderData.order.discountPercentage}%</span>
                                 )}

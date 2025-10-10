@@ -748,6 +748,12 @@
   color: #555;
 }
 
+.surcharge {
+  font-size: 0.9em;
+  color: #ff6b35;
+  font-weight: bold;
+}
+
 .discount {
   color: #28a745;
   font-weight: bold;

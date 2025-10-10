@@ -1,4 +1,5 @@
 import { collections, docs, firestoreService } from './firestore';
+import { calculateDisplayPrice, calculateOrderTotal } from '../utils/pricing';
 
 export const kibbutzService = {
   getAll: () => firestoreService.getDocs(collections.kibbutzim()),
@@ -55,10 +56,14 @@ export const kibbutzService = {
       if (bread.claimedBy) {
         bread.claimedBy.forEach(order => {
           if (order.kibbutzId === kibbutzId) {
+            // Calculate the display price (per-bread only, no per-order surcharges)
+            const pricing = calculateDisplayPrice(bread.price, order);
+            
             kibbutzOrders.push({
               breadId: bread.id,
               breadName: bread.name,
-              breadPrice: bread.price,
+              breadPrice: pricing.displayPrice, // Use display price (no per-order surcharges)
+              originalPrice: pricing.originalPrice, // Keep original price for reference
               order: order
             });
           }
@@ -72,7 +77,8 @@ export const kibbutzService = {
   calculateKibbutzRevenue: async (kibbutzId) => {
     const orders = await kibbutzService.getOrdersByKibbutz(kibbutzId);
     return orders.reduce((total, order) => {
-      return total + (order.order.quantity * order.breadPrice);
+      // Use calculateOrderTotal to include per-order surcharges in revenue calculation
+      return total + calculateOrderTotal(order.originalPrice, order.order);
     }, 0);
   },
 

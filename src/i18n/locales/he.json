@@ -102,6 +102,7 @@
   "total": "סך הכל",
   "totalKibbutzim": "סה\"כ קיבוצים",
   "totalRevenue": "סה\"כ הכנסות",
+  "totalIncome": "סה\"כ הכנסה",
   "tuesday": "יום שלישי",
   "unknownKibbutz": "קיבוץ לא ידוע",
   "updateKibbutz": "עדכן קיבוץ",
@@ -226,5 +227,10 @@
   "leftKibbutzSuccessfully": "עזבת את הקיבוץ בהצלחה",
   "errorLeavingKibbutz": "שגיאה ביציאה מהקיבוץ",
   "processing": "מעבד...",
-  "outOfStock": "אזל מהמלאי"
+  "outOfStock": "אזל מהמלאי",
+  "customerOrderTotals": "סיכום הזמנות לקוחות",
+  "perOrderSurcharge": "תוספת להזמנה",
+  "grandTotal": "סה\"כ כללי",
+  "searchByCustomerName": "חיפוש לפי שם לקוח, טלפון או קיבוץ...",
+  "clearSearch": "נקה חיפוש"
 }

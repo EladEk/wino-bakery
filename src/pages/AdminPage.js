@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
 import {
   collection,
@@ -24,9 +24,13 @@ import AdminDeliverySettings from "../components/AdminPage/AdminDeliverySettings
 import AdminAddBreadForm from "../components/AdminPage/AdminAddBreadForm";
 import AdminCustomerSearch from "../components/AdminPage/AdminCustomerSearch";
 import AdminNavigation from "../components/AdminPage/AdminNavigation";
+import CustomerOrderTotals from "../components/AdminPage/CustomerOrderTotals";
+import { useKibbutz } from "../hooks/useKibbutz";
 
 export default function AdminPage() {
   const { t, i18n } = useTranslation();
+  const { kibbutzim, loading: kibbutzLoading } = useKibbutz();
+  
 
   const [breads, setBreads] = useState([]);
   const [editingOrder, setEditingOrder] = useState({});
@@ -146,20 +150,65 @@ export default function AdminPage() {
     const updated = (bread.claimedBy || []).map((c, i) =>
       i === idx ? { ...c, quantity: newQty } : c
     );
-    await updateDoc(doc(db, "breads", breadId), {
-      claimedBy: updated,
-      availablePieces: bread.availablePieces - diff,
-    });
+    
+    // Check if the edited order is from a kibbutz member
+    if (claim.kibbutzId && kibbutzim) {
+      const kibbutz = kibbutzim.find(k => k.id === claim.kibbutzId);
+      
+      // If it's a regular kibbutz (not a club), just update claimedBy
+      // The available quantity will automatically adjust since claimedQuantity changes
+      if (kibbutz && !kibbutz.isClub) {
+        await updateDoc(doc(db, "breads", breadId), {
+          claimedBy: updated
+          // No need to modify kibbutzQuantities - it represents allocation, not availability
+        });
+      } else {
+        // For clubs, adjust general availability
+        await updateDoc(doc(db, "breads", breadId), {
+          claimedBy: updated,
+          availablePieces: bread.availablePieces - diff,
+        });
+      }
+    } else {
+      // For non-kibbutz members, adjust general availability
+      await updateDoc(doc(db, "breads", breadId), {
+        claimedBy: updated,
+        availablePieces: bread.availablePieces - diff,
+      });
+    }
+    
     setEditingOrder({});
   };
   const deleteOrder = async (breadId, idx) => {
     const bread = breads.find((b) => b.id === breadId);
     const claimToDelete = bread.claimedBy[idx];
     const updated = (bread.claimedBy || []).filter((_, i) => i !== idx);
-    await updateDoc(doc(db, "breads", breadId), {
-      claimedBy: updated,
-      availablePieces: bread.availablePieces + (claimToDelete.quantity || 0),
-    });
+    
+    // Check if the deleted order was from a kibbutz member
+    if (claimToDelete.kibbutzId && kibbutzim) {
+      const kibbutz = kibbutzim.find(k => k.id === claimToDelete.kibbutzId);
+      
+      // If it's a regular kibbutz (not a club), just remove from claimedBy
+      // The available quantity will automatically increase since claimedQuantity decreases
+      if (kibbutz && !kibbutz.isClub) {
+        await updateDoc(doc(db, "breads", breadId), {
+          claimedBy: updated
+          // No need to modify kibbutzQuantities - it represents allocation, not availability
+        });
+      } else {
+        // For clubs, add to general availability
+        await updateDoc(doc(db, "breads", breadId), {
+          claimedBy: updated,
+          availablePieces: bread.availablePieces + (claimToDelete.quantity || 0),
+        });
+      }
+    } else {
+      // For non-kibbutz members, add to general availability
+      await updateDoc(doc(db, "breads", breadId), {
+        claimedBy: updated,
+        availablePieces: bread.availablePieces + (claimToDelete.quantity || 0),
+      });
+    }
   };
 
   const toggleSupplied = async (breadId, idx) => {
@@ -206,15 +255,6 @@ export default function AdminPage() {
     setTimeout(() => setPopup({ show: false, message: "", error: false }), 2500);
   }
 
-  const totalRevenue = useMemo(
-    () =>
-      breads.reduce(
-        (sum, b) =>
-          sum + (b.claimedBy || []).reduce((s, c) => s + (c.quantity || 0) * (b.price || 0), 0),
-        0
-      ),
-    [breads]
-  );
 
   return (
     <div className="admin-container">
@@ -317,6 +357,7 @@ export default function AdminPage() {
       <AdminCustomerSearch
         t={t}
         breads={breads}
+        kibbutzim={kibbutzim}
         dir={dir}
         toggleSupplied={toggleSupplied}
         togglePaid={togglePaid}
@@ -325,6 +366,7 @@ export default function AdminPage() {
       <BreadList
         breads={breads}
         t={t}
+        kibbutzim={kibbutzim}
         onEditBread={openEditModal}
         onToggleShow={handleToggleShow}
         editingOrder={editingOrder}
@@ -337,9 +379,11 @@ export default function AdminPage() {
         togglePaid={togglePaid}
       />
 
-      <div className="total-revenue">
-        {t("totalRevenue")}: {totalRevenue.toFixed(2)}
-      </div>
+      <CustomerOrderTotals
+        breads={breads}
+        kibbutzim={kibbutzim}
+        t={t}
+      />
 
       <BreadEditModal
         open={modalOpen}

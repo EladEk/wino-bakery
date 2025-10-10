@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { kibbutzService } from '../services/kibbutz';
 import { usersService } from '../services/users';
 
@@ -17,7 +17,7 @@ export const useKibbutz = () => {
     return () => unsubscribe();
   }, []);
 
-  const createKibbutz = async (kibbutzData) => {
+  const createKibbutz = useCallback(async (kibbutzData) => {
     try {
       setError(null);
       return await kibbutzService.create(kibbutzData);
@@ -25,9 +25,9 @@ export const useKibbutz = () => {
       setError(err.message);
       throw err;
     }
-  };
+  }, []);
 
-  const updateKibbutz = async (id, kibbutzData) => {
+  const updateKibbutz = useCallback(async (id, kibbutzData) => {
     try {
       setError(null);
       return await kibbutzService.update(id, kibbutzData);
@@ -35,9 +35,9 @@ export const useKibbutz = () => {
       setError(err.message);
       throw err;
     }
-  };
+  }, []);
 
-  const deleteKibbutz = async (id) => {
+  const deleteKibbutz = useCallback(async (id) => {
     try {
       setError(null);
       return await kibbutzService.delete(id);
@@ -45,9 +45,9 @@ export const useKibbutz = () => {
       setError(err.message);
       throw err;
     }
-  };
+  }, []);
 
-  const toggleKibbutzActive = async (id, currentStatus) => {
+  const toggleKibbutzActive = useCallback(async (id, currentStatus) => {
     try {
       setError(null);
       return await kibbutzService.toggleActive(id, currentStatus);
@@ -55,9 +55,9 @@ export const useKibbutz = () => {
       setError(err.message);
       throw err;
     }
-  };
+  }, []);
 
-  const getKibbutzOrders = async (kibbutzId) => {
+  const getKibbutzOrders = useCallback(async (kibbutzId) => {
     try {
       setError(null);
       return await kibbutzService.getOrdersByKibbutz(kibbutzId);
@@ -65,9 +65,9 @@ export const useKibbutz = () => {
       setError(err.message);
       throw err;
     }
-  };
+  }, []);
 
-  const calculateKibbutzRevenue = async (kibbutzId) => {
+  const calculateKibbutzRevenue = useCallback(async (kibbutzId) => {
     try {
       setError(null);
       return await kibbutzService.calculateKibbutzRevenue(kibbutzId);
@@ -75,9 +75,9 @@ export const useKibbutz = () => {
       setError(err.message);
       throw err;
     }
-  };
+  }, []);
 
-  const getKibbutzUsers = async (kibbutzId) => {
+  const getKibbutzUsers = useCallback(async (kibbutzId) => {
     try {
       setError(null);
       return await usersService.getUsersByKibbutz(kibbutzId);
@@ -85,9 +85,9 @@ export const useKibbutz = () => {
       setError(err.message);
       throw err;
     }
-  };
+  }, []);
 
-  const removeUserFromKibbutz = async (userId) => {
+  const removeUserFromKibbutz = useCallback(async (userId) => {
     try {
       setError(null);
       return await usersService.removeFromKibbutz(userId);
@@ -95,7 +95,7 @@ export const useKibbutz = () => {
       setError(err.message);
       throw err;
     }
-  };
+  }, []);
 
   return {
     kibbutzim,

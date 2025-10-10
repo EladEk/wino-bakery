@@ -5,6 +5,7 @@ import OrdersTable from "./OrdersTable";
 export default function BreadList({
   breads,
   t,
+  kibbutzim,
   onEditBread,
   onToggleShow,
   editingOrder,
@@ -32,6 +33,7 @@ export default function BreadList({
           <OrdersTable
             bread={bread}
             t={t}
+            kibbutzim={kibbutzim}
             editingOrder={editingOrder}
             startEditingOrder={startEditingOrder}
             saveOrderEdit={saveOrderEdit}

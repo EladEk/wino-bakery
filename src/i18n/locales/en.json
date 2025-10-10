@@ -101,6 +101,7 @@
   "total": "Total",
   "totalKibbutzim": "Total Kibbutzim",
   "totalRevenue": "Total Revenue",
+  "totalIncome": "Total Income",
   "tuesday": "Tuesday",
   "unknownKibbutz": "Unknown kibbutz",
   "updateKibbutz": "Update Kibbutz",
@@ -225,5 +226,10 @@
   "leftKibbutzSuccessfully": "Successfully left kibbutz",
   "errorLeavingKibbutz": "Error leaving kibbutz",
   "processing": "Processing...",
-  "outOfStock": "Out of stock"
+  "outOfStock": "Out of stock",
+  "customerOrderTotals": "Customer Order Totals",
+  "perOrderSurcharge": "Per-Order Surcharge",
+  "grandTotal": "Grand Total",
+  "searchByCustomerName": "Search by customer name, phone, or kibbutz...",
+  "clearSearch": "Clear search"
 }
