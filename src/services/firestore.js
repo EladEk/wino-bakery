@@ -20,7 +20,10 @@ export const collections = {
   users: () => collection(db, 'users'),
   config: () => collection(db, 'config'),
   ordersHistory: () => collection(db, 'ordersHistory'),
-  kibbutzim: () => collection(db, 'kibbutzim')
+  kibbutzim: () => collection(db, 'kibbutzim'),
+  workshopTemplates: () => collection(db, 'workshopTemplates'),
+  activeWorkshops: () => collection(db, 'activeWorkshops'),
+  workshopHistory: () => collection(db, 'workshopHistory')
 };
 
 export const docs = {
@@ -28,7 +31,10 @@ export const docs = {
   user: (id) => doc(db, 'users', id),
   config: (id) => doc(db, 'config', id),
   ordersHistory: (id) => doc(db, 'ordersHistory', id),
-  kibbutz: (id) => doc(db, 'kibbutzim', id)
+  kibbutz: (id) => doc(db, 'kibbutzim', id),
+  workshopTemplate: (id) => doc(db, 'workshopTemplates', id),
+  activeWorkshop: (id) => doc(db, 'activeWorkshops', id),
+  workshopHistory: (id) => doc(db, 'workshopHistory', id)
 };
 
 export const firestoreService = {

@@ -8,7 +8,9 @@ import AdminPage from "./pages/AdminPage";
 import UserManagementPage from "./pages/UserManagementPage";
 import OrderSummary from "./pages/OrderSummary";
 import OrderHistoryPage from "./pages/OrderHistoryPage";
-import KibbutzManagementPage from "./pages/KibbutzManagementPage"; 
+import KibbutzManagementPage from "./pages/KibbutzManagementPage";
+import WorkshopRegistrationPage from "./pages/WorkshopRegistrationPage";
+import WorkshopManagementPage from "./pages/WorkshopManagementPage"; 
 
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ToastProvider } from "./contexts/ToastContext";
@@ -66,7 +68,23 @@ function AppShell() {
             </AdminRoute>
           }
         />
+        <Route
+          path="/admin/workshops"
+          element={
+            <AdminRoute>
+              <WorkshopManagementPage />
+            </AdminRoute>
+          }
+        />
         <Route path="/orders" element={<OrderSummary />} />
+        <Route
+          path="/workshops"
+          element={
+            <ProtectedRoute>
+              <WorkshopRegistrationPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/order-history"
           element={

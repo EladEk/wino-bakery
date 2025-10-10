@@ -4,6 +4,8 @@ import { collection, onSnapshot, doc, updateDoc, getDoc } from "firebase/firesto
 import { useAuth } from "../contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import { useKibbutz } from "../hooks/useKibbutz";
+import { useWorkshops } from "../hooks/useWorkshops";
+import { useNavigate } from "react-router-dom";
 // import { calculateDisplayPrice } from "../utils/pricing";
 import "./HomePage.css";
 
@@ -13,10 +15,13 @@ import CustomerBreadsTable from "../components/HomePage/CustomerBreadsTable";
 export default function HomePage() {
   const [breads, setBreads] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [userWorkshops, setUserWorkshops] = useState([]);
 
   const { userData, currentUser } = useAuth();
   const { t, i18n } = useTranslation();
   const { kibbutzim } = useKibbutz();
+  const { getAvailableWorkshops, activeWorkshops, unregisterUser } = useWorkshops();
+  const navigate = useNavigate();
 
   const getHebrewDay = (dateString) => {
     const daysHebrew = [t("sunday"), t("monday"), t("tuesday"), t("wednesday"), t("thursday"), t("friday"), t("saturday")];
@@ -24,6 +29,32 @@ export default function HomePage() {
     const date = new Date(dateString);
     if (isNaN(date.getTime())) return "";
     return daysHebrew[date.getDay()];
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('he-IL', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const handleUnregisterFromWorkshop = async (workshopId) => {
+    if (!window.confirm(t('confirmUnregisterFromWorkshop'))) {
+      return;
+    }
+
+    try {
+      await unregisterUser(workshopId, currentUser.uid);
+      // Update local state
+      setUserWorkshops(prev => prev.filter(workshop => workshop.id !== workshopId));
+    } catch (error) {
+      console.error('Error unregistering from workshop:', error);
+      alert(t('errorUnregisteringFromWorkshop'));
+    }
   };
 
   const [orderQuantities, setOrderQuantities] = useState({});
@@ -36,6 +67,7 @@ export default function HomePage() {
   const [bitNumber, setBitNumber] = useState("");
 
   const [popupType, setPopupType] = useState("");
+  const [availableWorkshops, setAvailableWorkshops] = useState([]);
 
   const saleDateDay = saleDate ? getHebrewDay(saleDate) : "";
   const dir = document.dir || i18n.dir();
@@ -69,6 +101,7 @@ export default function HomePage() {
       setLoading(false);
     });
 
+
     const saleDateRef = doc(db, "config", "saleDate");
     getDoc(saleDateRef).then(snap => {
       if (snap.exists) {
@@ -83,6 +116,32 @@ export default function HomePage() {
 
     return unsub;
   }, [currentUser.uid]);
+
+  // Update workshops when activeWorkshops changes
+  useEffect(() => {
+    const workshops = getAvailableWorkshops();
+    console.log('Available workshops updated:', workshops);
+    setAvailableWorkshops(workshops);
+  }, [getAvailableWorkshops]);
+
+  // Get workshops user is registered to
+  useEffect(() => {
+    if (!currentUser?.uid || !activeWorkshops.length) {
+      setUserWorkshops([]);
+      return;
+    }
+
+    const userRegisteredWorkshops = activeWorkshops.filter(workshop => {
+      return workshop.registeredUsers?.some(user => 
+        user.userId === currentUser.uid || 
+        user.email === currentUser.email ||
+        user.email === userData?.email
+      );
+    });
+
+    console.log('User registered workshops:', userRegisteredWorkshops);
+    setUserWorkshops(userRegisteredWorkshops);
+  }, [activeWorkshops, currentUser?.uid, currentUser?.email, userData?.email]);
 
   const ensureProfile = async () => {
     let name = userData?.name;
@@ -326,7 +385,51 @@ export default function HomePage() {
         </div>
       )}
 
-      <h2 className="bread-heading">{t("breadsToOrder") || t("breadsList") || "Breads to order"}</h2>
+      {userWorkshops.length > 0 && (
+        <div className="user-workshops-section">
+          <h3 className="user-workshops-title">🎯 {t('myWorkshops')}</h3>
+          <div className="user-workshops-list">
+            {userWorkshops.map(workshop => (
+              <div key={workshop.id} className="user-workshop-card">
+                <div className="workshop-info">
+                  <h4 className="workshop-name">{workshop.name}</h4>
+                  <p className="workshop-date">
+                    {t('workshopDate')}: {formatDate(workshop.date)}
+                  </p>
+                  <p className="workshop-price">
+                    {t('workshopPrice')}: ₪{workshop.price}
+                  </p>
+                  {workshop.location && (
+                    <p className="workshop-location">
+                      {t('workshopLocation')}: {workshop.location}
+                    </p>
+                  )}
+                </div>
+                <div className="workshop-actions">
+                  <button
+                    className="unregister-workshop-btn"
+                    onClick={() => handleUnregisterFromWorkshop(workshop.id)}
+                  >
+                    ❌ {t('unregisterFromWorkshop')}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="bread-heading-container">
+        <h2 className="bread-heading">{t("breadsToOrder") || t("breadsList") || "Breads to order"}</h2>
+        {availableWorkshops.length > 0 && (
+          <button
+            className="workshops-button"
+            onClick={() => navigate('/workshops')}
+          >
+            🎯 {t('registerToWorkshops')}
+          </button>
+        )}
+      </div>
       {loading ? (
         <div>{t("loading")}</div>
       ) : (
@@ -401,6 +504,7 @@ export default function HomePage() {
               {t("transferNumberLabel")}: <b>{bitNumber}</b>
             </div>
           )}
+
         </>
       )}
     </div>

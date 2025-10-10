@@ -1,9 +1,117 @@
+.user-workshops-section {
+  margin: 20px auto;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  max-width: 800px;
+}
+
+.user-workshops-title {
+  text-align: center;
+  color: #2c5aa0;
+  font-size: 1.4em;
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+
+.user-workshops-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.user-workshop-card {
+  background: white;
+  border: 2px solid #ff6b6b;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.user-workshop-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.workshop-info h4.workshop-name {
+  color: #2c5aa0;
+  font-size: 1.2em;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.workshop-info p {
+  margin: 5px 0;
+  color: #555;
+  font-size: 0.95em;
+}
+
+.workshop-info .workshop-date {
+  font-weight: 600;
+  color: #333;
+}
+
+.workshop-info .workshop-price {
+  font-weight: 600;
+  color: #ff6b6b;
+  font-size: 1.1em;
+}
+
+.workshop-info .workshop-location {
+  color: #666;
+  font-style: italic;
+}
+
+.workshop-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.unregister-workshop-btn {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(220, 53, 69, 0.3);
+}
+
+.unregister-workshop-btn:hover {
+  background: linear-gradient(135deg, #c82333, #dc3545);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(220, 53, 69, 0.4);
+}
+
+.unregister-workshop-btn:active {
+  transform: translateY(0);
+}
+
+.bread-heading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  margin: 24px auto 12px auto;
+  flex-wrap: wrap;
+}
+
 .bread-heading {
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 1.5em;
-  margin: 24px auto 12px auto;
+  margin: 0;
   color: #333;
   font-weight: bold;
   background-color: #fdf5e6;
@@ -642,5 +750,92 @@
     flex-shrink: 0;
     text-align: center;
     font-weight: bold;
+  }
+}
+
+/* Workshops Section */
+.workshops-section {
+  margin: 20px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.workshops-button {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 25px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.workshops-button:hover {
+  background: linear-gradient(135deg, #ee5a24, #ff6b6b);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+}
+
+.workshops-button:active {
+  transform: translateY(0);
+}
+
+/* Mobile responsiveness for workshops button */
+@media (max-width: 768px) {
+  .workshops-button {
+    padding: 12px 24px;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .workshops-button {
+    padding: 10px 20px;
+    font-size: 0.9rem;
+  }
+  
+  .user-workshops-section {
+    margin: 15px auto;
+    padding: 15px;
+  }
+  
+  .user-workshops-title {
+    font-size: 1.2em;
+    margin-bottom: 15px;
+  }
+  
+  .user-workshop-card {
+    padding: 15px;
+  }
+  
+  .workshop-info h4.workshop-name {
+    font-size: 1.1em;
+  }
+  
+  .workshop-info p {
+    font-size: 0.9em;
+  }
+  
+  .user-workshop-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .workshop-actions {
+    margin-top: 15px;
+    justify-content: center;
+  }
+  
+  .unregister-workshop-btn {
+    width: 100%;
+    padding: 10px 16px;
+    font-size: 0.85rem;
   }
 }

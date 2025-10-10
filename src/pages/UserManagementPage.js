@@ -3,6 +3,7 @@ import { db } from "../firebase";
 import { collection, onSnapshot, updateDoc, doc, deleteDoc, getDocs } from "firebase/firestore";
 import { useTranslation } from "react-i18next";
 import { useKibbutz } from "../hooks/useKibbutz";
+import { useWorkshops } from "../hooks/useWorkshops";
 import { usersService } from "../services/users";
 import { useToast } from "../contexts/ToastContext";
 import "../pages/AdminPage.css";
@@ -10,12 +11,14 @@ import "../pages/AdminPage.css";
 export default function UserManagementPage() {
   const { t } = useTranslation();
   const { kibbutzim } = useKibbutz();
+  const { activeWorkshops, registerUser } = useWorkshops();
   
   const { showSuccess, showError } = useToast();
   const [users, setUsers] = useState([]);
   const [editingUserId, setEditingUserId] = useState(null);
   const [editData, setEditData] = useState({ name: "", email: "", phone: "" });
   const [showKibbutzModal, setShowKibbutzModal] = useState(false);
+  const [showWorkshopModal, setShowWorkshopModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -167,6 +170,50 @@ export default function UserManagementPage() {
   const openKibbutzModal = (user) => {
     setSelectedUser(user);
     setShowKibbutzModal(true);
+  };
+
+  const openWorkshopModal = (user) => {
+    setSelectedUser(user);
+    setShowWorkshopModal(true);
+  };
+
+  const handleRegisterToWorkshop = async (workshopId) => {
+    if (!selectedUser) return;
+    
+    try {
+      await registerUser(workshopId, {
+        name: selectedUser.name,
+        email: selectedUser.email,
+        phone: selectedUser.phone
+      });
+      showSuccess(t('userRegisteredToWorkshop'));
+      setShowWorkshopModal(false);
+      setSelectedUser(null);
+    } catch (error) {
+      showError(t('workshopRegistrationError'));
+    }
+  };
+
+  const getAvailableWorkshops = () => {
+    const now = new Date();
+    return activeWorkshops.filter(workshop => {
+      const workshopDate = new Date(workshop.date);
+      const isFuture = workshopDate > now;
+      const hasSpots = workshop.registeredUsers.length < workshop.maxParticipants;
+      const isNotRegistered = !workshop.registeredUsers.some(user => user.userId === selectedUser?.id);
+      return isFuture && hasSpots && isNotRegistered;
+    });
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('he-IL', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   const filteredUsers = users.filter(user => {
@@ -331,6 +378,12 @@ export default function UserManagementPage() {
                         {t("assignToKibbutz")}
                       </button>
                     )}
+                    <button 
+                      onClick={() => openWorkshopModal(u)}
+                      className="workshop-btn"
+                    >
+                      {t("addToWorkshop")}
+                    </button>
                     <button onClick={() => startEditing(u)} className="edit-btn">
                       {t("Edit")}
                     </button>
@@ -376,6 +429,47 @@ export default function UserManagementPage() {
               {kibbutzim.filter(k => k.isActive).length === 0 && (
                 <p>{t("noActiveKibbutzim")}</p>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showWorkshopModal && selectedUser && (
+        <div className="modal-overlay" onClick={() => {setShowWorkshopModal(false); setSelectedUser(null);}}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{t('addUserToWorkshop')}</h3>
+              <button className="close-btn" onClick={() => {setShowWorkshopModal(false); setSelectedUser(null);}}>×</button>
+            </div>
+            <div className="modal-body">
+              <p>{t('User')}: <strong>{selectedUser.name || selectedUser.email}</strong></p>
+              <div className="workshop-list">
+                {getAvailableWorkshops().length === 0 ? (
+                  <p className="no-workshops">{t('noAvailableWorkshops')}</p>
+                ) : (
+                  getAvailableWorkshops().map(workshop => (
+                    <div key={workshop.id} className="workshop-option">
+                      <div className="workshop-info">
+                        <div className="workshop-name">🎯 {workshop.name}</div>
+                        <div className="workshop-date">{t('workshopDate')}: {formatDate(workshop.date)}</div>
+                        <div className="workshop-price">{t('workshopPrice')}: ₪{workshop.price}</div>
+                        <div className="workshop-spots">
+                          {t('availableSpots')}: {workshop.maxParticipants - workshop.registeredUsers.length}/{workshop.maxParticipants}
+                        </div>
+                        {workshop.location && (
+                          <div className="workshop-location">{t('workshopLocation')}: {workshop.location}</div>
+                        )}
+                      </div>
+                      <button 
+                        className="register-btn"
+                        onClick={() => handleRegisterToWorkshop(workshop.id)}
+                      >
+                        {t('registerToWorkshop')}
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
         </div>

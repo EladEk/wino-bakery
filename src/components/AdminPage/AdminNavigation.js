@@ -12,6 +12,7 @@ export default function AdminNavigation({ className = "" }) {
     { key: "users",  label: t("ManageUsers"),  to: "/users" },
     { key: "orders", label: t("OrderSummary"), to: "/orders" },
     { key: "kibbutz", label: t("kibbutzManagement"), to: "/admin/kibbutz" },
+    { key: "workshops", label: t("workshops"), to: "/admin/workshops" },
     { key: "hist",   label: t("OrderHistory"), to: "/order-history" },
   ];
 

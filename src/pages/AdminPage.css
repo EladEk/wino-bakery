@@ -859,6 +859,72 @@ body.modal-open { overflow: hidden; }
   background: #45b7b8;
 }
 
+.workshop-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  background: #f9f9f9;
+  transition: all 0.3s ease;
+}
+
+.workshop-option:hover {
+  background: #f0f0f0;
+  border-color: #ff6b6b;
+}
+
+.workshop-info {
+  flex: 1;
+}
+
+.workshop-name {
+  font-weight: bold;
+  color: #2c5aa0;
+  margin-bottom: 8px;
+  font-size: 1.1rem;
+}
+
+.workshop-date,
+.workshop-price,
+.workshop-spots,
+.workshop-location {
+  color: #555;
+  margin-bottom: 4px;
+  font-size: 0.9rem;
+}
+
+.register-btn {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.register-btn:hover {
+  background: linear-gradient(135deg, #ee5a24, #ff6b6b);
+  transform: translateY(-1px);
+}
+
+.no-workshops {
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+  margin: 40px 0;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 2px dashed #dee2e6;
+}
+
 .remove-kibbutz-btn {
   background: #ff6b6b;
   color: white;
@@ -866,6 +932,25 @@ body.modal-open { overflow: hidden; }
 
 .remove-kibbutz-btn:hover {
   background: #ff5252;
+}
+
+.workshop-btn {
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex: 1;
+  min-width: 120px;
+}
+
+.workshop-btn:hover {
+  background: linear-gradient(135deg, #ee5a24, #ff6b6b);
+  transform: translateY(-1px);
 }
 
 .edit-btn {
