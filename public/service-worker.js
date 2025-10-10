@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wino-bakery-v3';
+const CACHE_NAME = 'wino-bakery-v4';
 const urlsToCache = [
   '/',
   '/manifest.json',
@@ -9,6 +9,7 @@ const urlsToCache = [
 
 // Install event - cache resources
 self.addEventListener('install', (event) => {
+  console.log('Service Worker installing...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
@@ -98,5 +99,12 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
+  }
+});
+
+// Listen for updates and notify clients
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'GET_VERSION') {
+    event.ports[0].postMessage({ version: CACHE_NAME });
   }
 });

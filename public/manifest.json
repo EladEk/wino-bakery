@@ -2,6 +2,7 @@
   "short_name": "Wino Bakery",
   "name": "Wino Bakery – קמח מים מלח",
   "description": "Fresh bread ordering system",
+  "version": "0.2.0",
   "icons": [
     {
       "src": "favicon.png",
