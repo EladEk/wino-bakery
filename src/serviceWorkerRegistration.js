@@ -15,7 +15,9 @@ export function register(config) {
     }
 
     window.addEventListener('load', () => {
-      const swUrl = `${process.env.PUBLIC_URL}/service-worker.js`;
+      // Append a version to bust iOS/Android SW caching
+      const versionTag = 'v0.2.3';
+      const swUrl = `${process.env.PUBLIC_URL}/service-worker.js?${versionTag}`;
 
       if (isLocalhost) {
         checkValidServiceWorker(swUrl, config);
@@ -39,6 +41,11 @@ function registerValidSW(swUrl, config) {
         installingWorker.onstatechange = () => {
           if (installingWorker.state === 'installed') {
             if (navigator.serviceWorker.controller) {
+              // Ask the waiting SW to activate immediately
+              if (registration.waiting) {
+                registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+              }
+              // Optional callback
               if (config && config.onUpdate) {
                 config.onUpdate(registration);
               }
@@ -50,6 +57,13 @@ function registerValidSW(swUrl, config) {
           }
         };
       };
+      // Reload page when the new service worker takes control
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (refreshing) return;
+        refreshing = true;
+        window.location.reload();
+      });
     })
     .catch(error => {
       console.error('Error during service worker registration:', error);
