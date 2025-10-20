@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wino-bakery-v5';
+const CACHE_NAME = 'wino-bakery-v6-021';
 const urlsToCache = [
   '/',
   '/manifest.json',
