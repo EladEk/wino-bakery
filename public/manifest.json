@@ -17,7 +17,7 @@
       "purpose": "any maskable"
     }
   ],
-  "start_url": "./?v=0.2.1",
+  "start_url": "./?v=0.2.1&t=20241020",
   "display": "standalone",
   "theme_color": "#8B4513",
   "background_color": "#FFF8DC",
@@ -25,6 +25,6 @@
   "scope": "/",
   "lang": "he",
   "categories": ["food", "shopping", "business"],
-  "id": "wino-bakery-app-v021",
+  "id": "wino-bakery-app",
   "prefer_related_applications": false
 }
