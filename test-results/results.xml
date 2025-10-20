@@ -1,0 +1,92 @@
+<testsuites id="" name="" tests="5" failures="5" skipped="0" errors="0" time="13.993334999999998">
+<testsuite name="02-customer-ordering.spec.js" timestamp="2025-10-20T09:10:24.574Z" hostname="chromium" tests="1" failures="1" skipped="0" time="0.023" errors="0">
+<testcase name="Customer Ordering Flow › 2.5 - Customer sees total cost calculation" classname="02-customer-ordering.spec.js" time="0.023">
+<failure message="02-customer-ordering.spec.js:131:3 2.5 - Customer sees total cost calculation" type="FAILURE">
+<![CDATA[  [chromium] › 02-customer-ordering.spec.js:131:3 › Customer Ordering Flow › 2.5 - Customer sees total cost calculation 
+
+    Error: browserType.launch: Executable doesn't exist at C:\Users\elade\AppData\Local\ms-playwright\chromium_headless_shell-1193\chrome-win\headless_shell.exe
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+</testsuite>
+<testsuite name="02-customer-ordering.spec.js" timestamp="2025-10-20T09:10:24.574Z" hostname="firefox" tests="1" failures="1" skipped="0" time="0.018" errors="0">
+<testcase name="Customer Ordering Flow › 2.5 - Customer sees total cost calculation" classname="02-customer-ordering.spec.js" time="0.018">
+<failure message="02-customer-ordering.spec.js:131:3 2.5 - Customer sees total cost calculation" type="FAILURE">
+<![CDATA[  [firefox] › 02-customer-ordering.spec.js:131:3 › Customer Ordering Flow › 2.5 - Customer sees total cost calculation 
+
+    Error: browserType.launch: Executable doesn't exist at C:\Users\elade\AppData\Local\ms-playwright\firefox-1490\firefox\firefox.exe
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+</testsuite>
+<testsuite name="02-customer-ordering.spec.js" timestamp="2025-10-20T09:10:24.574Z" hostname="webkit" tests="1" failures="1" skipped="0" time="0.029" errors="0">
+<testcase name="Customer Ordering Flow › 2.5 - Customer sees total cost calculation" classname="02-customer-ordering.spec.js" time="0.029">
+<failure message="02-customer-ordering.spec.js:131:3 2.5 - Customer sees total cost calculation" type="FAILURE">
+<![CDATA[  [webkit] › 02-customer-ordering.spec.js:131:3 › Customer Ordering Flow › 2.5 - Customer sees total cost calculation 
+
+    Error: browserType.launch: Executable doesn't exist at C:\Users\elade\AppData\Local\ms-playwright\webkit-2203\Playwright.exe
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+</testsuite>
+<testsuite name="02-customer-ordering.spec.js" timestamp="2025-10-20T09:10:24.574Z" hostname="Mobile Chrome" tests="1" failures="1" skipped="0" time="0.019" errors="0">
+<testcase name="Customer Ordering Flow › 2.5 - Customer sees total cost calculation" classname="02-customer-ordering.spec.js" time="0.019">
+<failure message="02-customer-ordering.spec.js:131:3 2.5 - Customer sees total cost calculation" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › 02-customer-ordering.spec.js:131:3 › Customer Ordering Flow › 2.5 - Customer sees total cost calculation 
+
+    Error: browserType.launch: Executable doesn't exist at C:\Users\elade\AppData\Local\ms-playwright\chromium_headless_shell-1193\chrome-win\headless_shell.exe
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+</testsuite>
+<testsuite name="02-customer-ordering.spec.js" timestamp="2025-10-20T09:10:24.574Z" hostname="Mobile Safari" tests="1" failures="1" skipped="0" time="0.022" errors="0">
+<testcase name="Customer Ordering Flow › 2.5 - Customer sees total cost calculation" classname="02-customer-ordering.spec.js" time="0.022">
+<failure message="02-customer-ordering.spec.js:131:3 2.5 - Customer sees total cost calculation" type="FAILURE">
+<![CDATA[  [Mobile Safari] › 02-customer-ordering.spec.js:131:3 › Customer Ordering Flow › 2.5 - Customer sees total cost calculation 
+
+    Error: browserType.launch: Executable doesn't exist at C:\Users\elade\AppData\Local\ms-playwright\webkit-2203\Playwright.exe
+    ╔═════════════════════════════════════════════════════════════════════════╗
+    ║ Looks like Playwright Test or Playwright was just installed or updated. ║
+    ║ Please run the following command to download new browsers:              ║
+    ║                                                                         ║
+    ║     npx playwright install                                              ║
+    ║                                                                         ║
+    ║ <3 Playwright Team                                                      ║
+    ╚═════════════════════════════════════════════════════════════════════════╝
+]]>
+</failure>
+</testcase>
+</testsuite>
+</testsuites>
