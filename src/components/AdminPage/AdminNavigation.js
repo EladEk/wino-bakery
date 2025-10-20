@@ -8,13 +8,13 @@ export default function AdminNavigation({ className = "" }) {
   const location = useLocation();
   const { t } = useTranslation();
 
-  // Two rows of tabs
-  const row1 = [
+  // Two lines of navigation items
+  const line1 = [
     { key: "users",  label: t("ManageUsers"),  to: "/users" },
     { key: "orders", label: t("OrderSummary"), to: "/orders" },
     { key: "hist",   label: t("OrderHistory"), to: "/order-history" },
   ];
-  const row2 = [
+  const line2 = [
     { key: "kibbutz", label: t("kibbutzManagement"), to: "/admin/kibbutz" },
     { key: "workshops", label: t("workshops"), to: "/admin/workshops" },
   ];
@@ -22,8 +22,8 @@ export default function AdminNavigation({ className = "" }) {
   return (
     <nav className={`admin-navigation ${className}`}>
       <div className="admin-navigation__inner">
-        <div className="admin-navigation__row">
-        {row1.map((it) => {
+        <div className="admin-navigation__line">
+        {line1.map((it) => {
           const active = location.pathname === it.to;
           return (
             <button
@@ -37,8 +37,8 @@ export default function AdminNavigation({ className = "" }) {
           );
         })}
         </div>
-        <div className="admin-navigation__row">
-        {row2.map((it) => {
+        <div className="admin-navigation__line">
+        {line2.map((it) => {
           const active = location.pathname === it.to;
           return (
             <button

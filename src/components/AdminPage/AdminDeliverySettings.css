@@ -1,0 +1,159 @@
+/* Admin Delivery Settings Styles */
+.admin-delivery-settings {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 20px;
+  backdrop-filter: blur(0px);
+}
+
+.admin-delivery-settings h3 {
+  color: #000000;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.admin-delivery-settings .form-group {
+  margin-bottom: 20px;
+}
+
+.admin-delivery-settings label {
+  display: block;
+  color: #000000 !important;
+  font-weight: 600 !important;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.admin-delivery-settings input,
+.admin-delivery-settings select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #000000;
+  background: #ffffff;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  direction: rtl;
+  text-align: right;
+}
+
+/* RTL specific styling for date picker */
+.admin-delivery-settings input[type="date"] {
+  direction: ltr;
+  text-align: left;
+}
+
+.admin-delivery-settings input:focus,
+.admin-delivery-settings select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.admin-delivery-settings input:disabled,
+.admin-delivery-settings select:disabled {
+  background-color: #f7fafc;
+  color: #a0aec0;
+  cursor: not-allowed;
+}
+
+.admin-delivery-settings .time-inputs {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.admin-delivery-settings .time-inputs input {
+  flex: 1;
+}
+
+.admin-delivery-settings .time-separator {
+  color: #718096;
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.save-btn {
+  background: linear-gradient(135deg, #48bb78, #38a169);
+  color: #ffffff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+  min-width: 120px;
+}
+
+.save-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(72, 187, 120, 0.4);
+}
+
+.save-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.save-btn:disabled {
+  background: #e2e8f0;
+  color: #a0aec0;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .admin-delivery-settings {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  
+  .admin-delivery-settings h3 {
+    font-size: 16px;
+    margin-bottom: 16px;
+  }
+  
+  .admin-delivery-settings input {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  
+  .admin-delivery-settings .time-inputs {
+    gap: 8px;
+  }
+  
+  .save-btn {
+    padding: 10px 20px;
+    font-size: 13px;
+    min-width: 100px;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-delivery-settings {
+    padding: 12px;
+  }
+  
+  .admin-delivery-settings .time-inputs {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .admin-delivery-settings .time-separator {
+    display: none;
+  }
+  
+  .save-btn {
+    width: 100%;
+    padding: 12px;
+  }
+}
