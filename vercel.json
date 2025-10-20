@@ -1,11 +1,10 @@
 {
   "buildCommand": "CI=false npm run build",
-  "installCommand": "rm -rf node_modules package-lock.json && npm install --legacy-peer-deps --no-audit --no-fund",
+  "installCommand": "npm install --legacy-peer-deps --no-audit --no-fund",
   "framework": "create-react-app",
   "env": {
     "CI": "false",
     "NODE_OPTIONS": "--max-old-space-size=4096",
-    "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
-    "VERCEL_BUILD_CACHE": "false"
+    "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
   }
 }
