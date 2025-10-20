@@ -6,7 +6,7 @@
 
 .admin-navigation__inner {
   display: grid;
-  gap: 6px;
+  gap: 4px;
 }
 
 .admin-navigation__row {
@@ -17,14 +17,10 @@
   border: 1px solid #e0d0bd;
   border-bottom: none;
   border-radius: 10px 10px 0 0;
-  padding: 0 0 0;
+  padding: 2px 6px 0;
 }
 
-.admin-navigation__row + .admin-navigation__row {
-  margin-top: 0;
-  padding-top: 0;
-  border-top: none;
-}
+.admin-navigation__row + .admin-navigation__row { margin-top: 0; }
 
 .admin-nav-link {
   background: transparent;
@@ -57,13 +53,13 @@
     padding: 3px 5px;
   }
 
-  .admin-navigation__inner { gap: 4px; }
-  .admin-navigation__row { gap: 4px; flex-wrap: wrap; }
+  .admin-navigation__row { gap: 4px; }
 
   .admin-nav-link {
-    padding: 10px 14px;
+    padding: 10px 12px;
     font-size: 0.95rem;
     border-radius: 8px 8px 0 0;
+    flex: 0 0 auto;
   }
 
 /* Visual separators between tabs */
@@ -85,13 +81,6 @@
 .admin-navigation__row .admin-nav-link:not(:first-child) {
   border-left: 1px solid #e0d0bd; /* base separator */
   box-shadow: -1px 0 0 #e0d0bd inset; /* ensure visible over backgrounds */
-}
-
-/* Ensure left edge separator appears for first tab in second row (kibbutz) */
-.admin-navigation__row:first-child .admin-nav-link:first-child { /* no change for very first tab */ }
-.admin-navigation__row + .admin-navigation__row .admin-nav-link:first-child {
-  border-left: 1px solid #e0d0bd;
-  box-shadow: -1px 0 0 #e0d0bd inset;
 }
 
 /* Ensure visible separator between users and orders (right edge of first tab in first row) */

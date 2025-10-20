@@ -8,7 +8,7 @@ export default function AdminNavigation({ className = "" }) {
   const location = useLocation();
   const { t } = useTranslation();
 
-  // Two rows as requested:
+  // Two rows of tabs
   const row1 = [
     { key: "users",  label: t("ManageUsers"),  to: "/users" },
     { key: "orders", label: t("OrderSummary"), to: "/orders" },
