@@ -9,19 +9,19 @@
 .admin-navigation__inner {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 0;
   justify-content: center;
 }
 
 .admin-navigation__row {
   display: flex;
-  gap: 12px;
+  gap: 0;
   flex-wrap: wrap;
   justify-content: center;
 }
 
 .admin-navigation__row:first-child {
-  margin-bottom: 8px;
+  margin-bottom: 0;
 }
 
 .admin-nav-link {
@@ -30,7 +30,7 @@
   color: #495057;
   background: #ffffff;
   border: 2px solid #dee2e6;
-  border-radius: 8px;
+  border-radius: 0;
   text-align: center;
   font-weight: 500;
   font-size: 15px;
@@ -44,6 +44,28 @@
   overflow: hidden;
   cursor: pointer;
   user-select: none;
+}
+
+/* Round corners only on the outer edges */
+.admin-navigation__row:first-child .admin-nav-link:first-child {
+  border-top-left-radius: 8px;
+}
+
+.admin-navigation__row:first-child .admin-nav-link:last-child {
+  border-top-right-radius: 8px;
+}
+
+.admin-navigation__row:last-child .admin-nav-link:first-child {
+  border-bottom-left-radius: 8px;
+}
+
+.admin-navigation__row:last-child .admin-nav-link:last-child {
+  border-bottom-right-radius: 8px;
+}
+
+/* Remove left border for buttons that are not first in row */
+.admin-nav-link:not(:first-child) {
+  border-left: none;
 }
 
 /* Shimmer effect on hover */
@@ -136,11 +158,11 @@
   }
   
   .admin-navigation__inner {
-    gap: 8px;
+    gap: 0;
   }
   
   .admin-navigation__row {
-    gap: 8px;
+    gap: 0;
   }
   
   .admin-nav-link {
@@ -162,11 +184,11 @@
   }
   
   .admin-navigation__inner {
-    gap: 6px;
+    gap: 0;
   }
   
   .admin-navigation__row {
-    gap: 6px;
+    gap: 0;
   }
   
   .admin-nav-link {
