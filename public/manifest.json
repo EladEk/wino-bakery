@@ -2,7 +2,7 @@
   "short_name": "Wino Bakery",
   "name": "Wino Bakery – קמח מים מלח",
   "description": "Fresh bread ordering system",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "icons": [
     {
       "src": "logo192.png",
@@ -17,7 +17,7 @@
       "purpose": "any maskable"
     }
   ],
-  "start_url": "./?v=0.2.2&t=20241020",
+  "start_url": "./?v=0.2.3&t=20241020",
   "display": "standalone",
   "theme_color": "#8B4513",
   "background_color": "#FFF8DC",
