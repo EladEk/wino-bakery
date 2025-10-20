@@ -162,35 +162,57 @@ export default function HomePage() {
     try {
       const { name, phone } = await ensureProfile();
 
+      // Update local state immediately for better UX
+      const newClaims = { ...userClaims };
+      const newBreads = [...breads];
+      
       await Promise.all(
-        breads.map(async b => {
+        breads.map(async (b, index) => {
           const qty = Number(orderQuantities[b.id] || 0);
           const hasClaim = !!userClaims[b.id];
           if (qty > 0 && !hasClaim) {
+            const newClaim = { 
+              phone, 
+              name, 
+              quantity: qty, 
+              userId: currentUser.uid, 
+              timestamp: new Date(),
+              kibbutzId: userData?.kibbutzId || null,
+              kibbutzName: userData?.kibbutzName || null,
+              discountPercentage: userData?.kibbutzId ? 
+                (kibbutzim.find(k => k.id === userData.kibbutzId)?.discountPercentage || 0) : 0,
+              surchargeType: userData?.kibbutzId ? 
+                (kibbutzim.find(k => k.id === userData.kibbutzId)?.surchargeType || 'none') : 'none',
+              surchargeValue: userData?.kibbutzId ? 
+                (kibbutzim.find(k => k.id === userData.kibbutzId)?.surchargeValue || 0) : 0
+            };
+            
+            // Update local state immediately
+            newClaims[b.id] = newClaim;
+            
+            // Update breads state immediately
+            newBreads[index] = {
+              ...b,
+              claimedBy: [
+                ...(b.claimedBy || []),
+                newClaim
+              ]
+            };
+            
             const ref = doc(db, "breads", b.id);
             await updateDoc(ref, {
               claimedBy: [
                 ...(b.claimedBy || []),
-                { 
-                  phone, 
-                  name, 
-                  quantity: qty, 
-                  userId: currentUser.uid, 
-                  timestamp: new Date(),
-                  kibbutzId: userData?.kibbutzId || null,
-                  kibbutzName: userData?.kibbutzName || null,
-                  discountPercentage: userData?.kibbutzId ? 
-                    (kibbutzim.find(k => k.id === userData.kibbutzId)?.discountPercentage || 0) : 0,
-                  surchargeType: userData?.kibbutzId ? 
-                    (kibbutzim.find(k => k.id === userData.kibbutzId)?.surchargeType || 'none') : 'none',
-                  surchargeValue: userData?.kibbutzId ? 
-                    (kibbutzim.find(k => k.id === userData.kibbutzId)?.surchargeValue || 0) : 0
-                }
+                newClaim
               ]
             });
           }
         })
       );
+
+      // Update local state immediately
+      setUserClaims(newClaims);
+      setBreads(newBreads);
 
       showPopup("success");
     } catch (e) {
@@ -201,18 +223,55 @@ export default function HomePage() {
 
   const handleUpdateOrder = async () => {
     try {
+      // Update local state immediately for better UX
+      const newClaims = { ...userClaims };
+      const newBreads = [...breads];
+      
       await Promise.all(
-        breads.map(async b => {
+        breads.map(async (b, index) => {
           const prev = userClaims[b.id];
           const newQty = Number(orderQuantities[b.id] || 0);
 
         if (prev) {
             if (newQty === 0) {
+              // Remove from local state
+              delete newClaims[b.id];
+              
+              // Update breads state immediately
+              newBreads[index] = {
+                ...b,
+                claimedBy: (b.claimedBy || []).filter(c => c.userId !== currentUser.uid)
+              };
+              
               const ref = doc(db, "breads", b.id);
               await updateDoc(ref, {
                 claimedBy: (b.claimedBy || []).filter(c => c.userId !== currentUser.uid)
               });
             } else if (newQty !== prev.quantity) {
+              // Update local state
+              const updatedClaim = {
+                ...prev,
+                quantity: newQty,
+                kibbutzId: userData?.kibbutzId || prev.kibbutzId || null,
+                kibbutzName: userData?.kibbutzName || prev.kibbutzName || null,
+                discountPercentage: userData?.kibbutzId ? 
+                  (kibbutzim.find(k => k.id === userData.kibbutzId)?.discountPercentage || 0) : (prev.discountPercentage || 0),
+                surchargeType: userData?.kibbutzId ? 
+                  (kibbutzim.find(k => k.id === userData.kibbutzId)?.surchargeType || 'none') : (prev.surchargeType || 'none'),
+                surchargeValue: userData?.kibbutzId ? 
+                  (kibbutzim.find(k => k.id === userData.kibbutzId)?.surchargeValue || 0) : (prev.surchargeValue || 0)
+              };
+              
+              newClaims[b.id] = updatedClaim;
+              
+              // Update breads state immediately
+              newBreads[index] = {
+                ...b,
+                claimedBy: (b.claimedBy || []).map(c =>
+                  c.userId === currentUser.uid ? updatedClaim : c
+                )
+              };
+              
               const ref = doc(db, "breads", b.id);
               await updateDoc(ref, {
                 claimedBy: (b.claimedBy || []).map(c =>
@@ -233,30 +292,48 @@ export default function HomePage() {
             }
           } else if (newQty > 0) {
             const { name, phone } = await ensureProfile();
+            const newClaim = { 
+              phone, 
+              name, 
+              quantity: newQty, 
+              userId: currentUser.uid, 
+              timestamp: new Date(),
+              kibbutzId: userData?.kibbutzId || null,
+              kibbutzName: userData?.kibbutzName || null,
+              discountPercentage: userData?.kibbutzId ? 
+                (kibbutzim.find(k => k.id === userData.kibbutzId)?.discountPercentage || 0) : 0,
+              surchargeType: userData?.kibbutzId ? 
+                (kibbutzim.find(k => k.id === userData.kibbutzId)?.surchargeType || 'none') : 'none',
+              surchargeValue: userData?.kibbutzId ? 
+                (kibbutzim.find(k => k.id === userData.kibbutzId)?.surchargeValue || 0) : 0
+            };
+            
+            // Update local state
+            newClaims[b.id] = newClaim;
+            
+            // Update breads state immediately
+            newBreads[index] = {
+              ...b,
+              claimedBy: [
+                ...(b.claimedBy || []),
+                newClaim
+              ]
+            };
+            
             const ref = doc(db, "breads", b.id);
             await updateDoc(ref, {
               claimedBy: [
                 ...(b.claimedBy || []),
-                { 
-                  phone, 
-                  name, 
-                  quantity: newQty, 
-                  userId: currentUser.uid, 
-                  timestamp: new Date(),
-                  kibbutzId: userData?.kibbutzId || null,
-                  kibbutzName: userData?.kibbutzName || null,
-                  discountPercentage: userData?.kibbutzId ? 
-                    (kibbutzim.find(k => k.id === userData.kibbutzId)?.discountPercentage || 0) : 0,
-                  surchargeType: userData?.kibbutzId ? 
-                    (kibbutzim.find(k => k.id === userData.kibbutzId)?.surchargeType || 'none') : 'none',
-                  surchargeValue: userData?.kibbutzId ? 
-                    (kibbutzim.find(k => k.id === userData.kibbutzId)?.surchargeValue || 0) : 0
-                }
+                newClaim
               ]
             });
           }
         })
       );
+
+      // Update local state immediately
+      setUserClaims(newClaims);
+      setBreads(newBreads);
 
       showPopup("update");
     } catch (e) {
@@ -266,16 +343,35 @@ export default function HomePage() {
   };
 
   const handleCancelOrder = async () => {
+    // Update local state immediately for better UX
+    const newClaims = { ...userClaims };
+    const newBreads = [...breads];
+    
     await Promise.all(
-      breads.map(async b => {
+      breads.map(async (b, index) => {
         const prev = userClaims[b.id];
         if (!prev) return;
+        
+        // Remove from local state
+        delete newClaims[b.id];
+        
+        // Update breads state immediately
+        newBreads[index] = {
+          ...b,
+          claimedBy: (b.claimedBy || []).filter(c => c.userId !== currentUser.uid)
+        };
+        
         const ref = doc(db, "breads", b.id);
         await updateDoc(ref, {
           claimedBy: (b.claimedBy || []).filter(c => c.userId !== currentUser.uid)
         });
       })
     );
+    
+    // Update local state immediately
+    setUserClaims(newClaims);
+    setBreads(newBreads);
+    
     showPopup("cancel");
   };
 
@@ -300,7 +396,8 @@ export default function HomePage() {
 
   const userTotalCost = useMemo(() => {
     const total = breadsOrdered.reduce((sum, b) => {
-      const qty = Number(orderQuantities[b.id] || 0);
+      // Use the saved quantity from userClaims for ordered breads, not orderQuantities
+      const qty = Number(userClaims[b.id]?.quantity || 0);
       if (b.price == null) return sum;
       
       let finalPrice = b.price;
@@ -329,7 +426,7 @@ export default function HomePage() {
     if (userData?.kibbutzId && kibbutzim) {
       const userKibbutz = kibbutzim.find(k => k.id === userData.kibbutzId);
       if (userKibbutz && userKibbutz.surchargeType === 'fixedPerOrder' && userKibbutz.surchargeValue > 0) {
-        const hasAnyOrders = Object.values(orderQuantities).some(q => Number(q) > 0);
+        const hasAnyOrders = Object.values(userClaims).some(claim => Number(claim?.quantity || 0) > 0);
         if (hasAnyOrders) {
           return total + userKibbutz.surchargeValue;
         }
@@ -337,18 +434,18 @@ export default function HomePage() {
     }
     
     return total;
-  }, [breadsOrdered, orderQuantities, userData?.kibbutzId, kibbutzim]);
+  }, [breadsOrdered, userClaims, userData?.kibbutzId, kibbutzim]);
 
   const orderSurcharge = useMemo(() => {
     if (userData?.kibbutzId && kibbutzim) {
       const userKibbutz = kibbutzim.find(k => k.id === userData.kibbutzId);
       if (userKibbutz && userKibbutz.surchargeType === 'fixedPerOrder' && userKibbutz.surchargeValue > 0) {
-        const hasAnyOrders = Object.values(orderQuantities).some(q => Number(q) > 0);
+        const hasAnyOrders = Object.values(userClaims).some(claim => Number(claim?.quantity || 0) > 0);
         return hasAnyOrders ? userKibbutz.surchargeValue : 0;
       }
     }
     return 0;
-  }, [userData?.kibbutzId, kibbutzim, orderQuantities]);
+  }, [userData?.kibbutzId, kibbutzim, userClaims]);
 
   const subtotal = useMemo(() => {
     return userTotalCost - orderSurcharge;

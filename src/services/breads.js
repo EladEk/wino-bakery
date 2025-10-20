@@ -204,8 +204,19 @@ export const breadsService = {
       return sum + (qty || 0);
     }, 0);
     
-    const generalAvailable = bread.availablePieces - totalAllocated;
+    // Calculate claimed quantities from general users (non-kibbutz members and club members)
+    const claimedByGeneral = (bread.claimedBy || []).filter(claim => {
+      // Include claims from non-kibbutz members (kibbutzId is null/undefined)
+      if (!claim.kibbutzId) return true;
+      
+      // Include claims from club members (kibbutz is a club)
+      const kibbutz = kibbutzim.find(k => k.id === claim.kibbutzId);
+      return kibbutz?.isClub;
+    });
     
+    const claimedQuantity = claimedByGeneral.reduce((sum, claim) => sum + (claim.quantity || 0), 0);
+    
+    const generalAvailable = bread.availablePieces - totalAllocated - claimedQuantity;
     
     return Math.max(0, generalAvailable);
   }

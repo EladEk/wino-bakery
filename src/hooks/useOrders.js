@@ -1,9 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useKibbutz } from './useKibbutz';
 import { breadsService } from '../services/breads';
 
 export const useOrders = () => {
-  const { currentUser } = useAuth();
+  const { currentUser, userData } = useAuth();
+  const { kibbutzim } = useKibbutz();
   const [breads, setBreads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [orderQuantities, setOrderQuantities] = useState({});
@@ -57,7 +59,8 @@ export const useOrders = () => {
 
   const userTotalCost = useMemo(() => {
     return breadsOrdered.reduce((sum, bread) => {
-      const qty = Number(orderQuantities[bread.id] || 0);
+      // Use the saved quantity from userClaims for ordered breads, not orderQuantities
+      const qty = Number(userClaims[bread.id]?.quantity || 0);
       if (bread.price == null) return sum;
       
       let finalPrice = bread.price;
@@ -82,7 +85,7 @@ export const useOrders = () => {
       
       return sum + (qty * finalPrice);
     }, 0);
-  }, [breadsOrdered, orderQuantities, userData?.kibbutzId, kibbutzim]);
+  }, [breadsOrdered, userClaims, userData?.kibbutzId, kibbutzim]);
 
   const updateQuantity = (breadId, quantity) => {
     setOrderQuantities(prev => ({ ...prev, [breadId]: quantity }));

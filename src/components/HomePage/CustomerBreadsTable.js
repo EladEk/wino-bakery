@@ -58,6 +58,11 @@ export default function CustomerBreadsTable({
                 baseAvailableQuantity = breadsService.getAvailableQuantityForGeneral(b, kibbutzim);
               }
               
+              // Calculate available quantity accounting for local state changes
+              // Since we now update the breads state immediately, the baseAvailableQuantity
+              // should already reflect the current state. We just need to account for
+              // the difference between saved and current quantities.
+              
               // Calculate temporary available quantity: base + (savedQty - current order)
               // This means if user reduces their order, that quantity temporarily becomes available
               const tempAvailableQuantity = baseAvailableQuantity + (savedQty - value);
@@ -80,7 +85,7 @@ export default function CustomerBreadsTable({
               return b.availableQuantity > 0 || userHasOrdered;
             })
             .map(b => {
-              const { availableQuantity, value, step, max } = b;
+              const { availableQuantity, value, step, max, savedQty } = b;
               
               // Get isClubMember from the original bread object
               const isClubMember = b.isClubMember;
@@ -150,6 +155,9 @@ export default function CustomerBreadsTable({
                 </td>
                 <td className="num-col">
                   {(() => {
+                    // For ordered breads, use saved quantity from userClaims; for available breads, use current input
+                    const quantityToUse = savedQty > 0 ? savedQty : value;
+                    
                     // Calculate total price for this bread (quantity × price per bread, no per-order surcharges)
                     if (isKibbutzMember && kibbutzim) {
                       const userKibbutz = kibbutzim.find(k => k.id === userData.kibbutzId);
@@ -164,11 +172,11 @@ export default function CustomerBreadsTable({
                         
                         // Use calculateDisplayPrice to get price per bread (no per-order surcharges)
                         const pricing = calculateDisplayPrice(b.price, orderWithPricing);
-                        return (pricing.displayPrice * value).toFixed(2);
+                        return (pricing.displayPrice * quantityToUse).toFixed(2);
                       }
                     }
                     // For non-kibbutz members, use simple multiplication since displayPrice already includes per-bread pricing
-                    return (Number(displayPrice) * value).toFixed(2);
+                    return (Number(displayPrice) * quantityToUse).toFixed(2);
                   })()} ₪
                 </td>
               </tr>

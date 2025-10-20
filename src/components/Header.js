@@ -58,9 +58,17 @@ export default function Header() {
   const atOrderHistory = location.pathname === "/order-history";
   const atKibbutzManagement = location.pathname === "/admin/kibbutz";
   const atWorkshops = location.pathname === "/workshops";
-  const atWorkshopManagement = location.pathname === "/workshop-management";
+  const atWorkshopManagement = location.pathname === "/admin/workshops";
   const isAdmin = userData?.isAdmin;
   const isKibbutzMember = userData?.kibbutzId;
+
+  // Debug logging
+  console.log('Header Debug:', {
+    pathname: location.pathname,
+    atWorkshopManagement,
+    isAdmin,
+    shouldShowBack: (atOrderHistory || atOrders || atUsers || atKibbutzManagement || atWorkshopManagement) && isAdmin
+  });
 
   return (
     <header className="app-header">
