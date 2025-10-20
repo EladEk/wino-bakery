@@ -35,6 +35,13 @@ export default function WorkshopScheduling() {
         return;
       }
 
+      // Combine date and time to a single ISO datetime (stored in UTC)
+      let startAt = null;
+      if (formData.date && formData.time) {
+        const localDateTime = new Date(`${formData.date}T${formData.time}:00`);
+        startAt = localDateTime.toISOString();
+      }
+
       const workshopData = {
         templateId: formData.templateId,
         name: selectedTemplate.name,
@@ -45,6 +52,7 @@ export default function WorkshopScheduling() {
         requirements: selectedTemplate.requirements,
         date: formData.date,
         time: formData.time,
+        startAt,
         maxParticipants: parseInt(formData.maxParticipants),
         location: formData.location,
         notes: formData.notes,

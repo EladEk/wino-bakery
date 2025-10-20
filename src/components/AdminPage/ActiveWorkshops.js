@@ -12,6 +12,7 @@ export default function ActiveWorkshops() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedWorkshop, setSelectedWorkshop] = useState(null);
   const [showParticipantModal, setShowParticipantModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [showAddParticipantModal, setShowAddParticipantModal] = useState(false);
   const [searchUsers, setSearchUsers] = useState('');
   const [foundUsers, setFoundUsers] = useState([]);
@@ -24,6 +25,16 @@ export default function ActiveWorkshops() {
   const handleEditWorkshop = (workshop) => {
     setSelectedWorkshop(workshop);
     setShowParticipantModal(true);
+  };
+
+  const openEditModal = (workshop) => {
+    setSelectedWorkshop(workshop);
+    setShowEditModal(true);
+  };
+
+  const closeEditModal = () => {
+    setSelectedWorkshop(null);
+    setShowEditModal(false);
   };
 
   const handleCloseModal = () => {
@@ -165,15 +176,33 @@ export default function ActiveWorkshops() {
     );
   });
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('he-IL', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const formatDate = (workshop) => {
+    // Prefer startAt (ISO) if exists; fallback to date/time
+    if (workshop.startAt) {
+      const dt = new Date(workshop.startAt);
+      return dt.toLocaleString('he-IL', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+    if (workshop.date && workshop.time) {
+      const dt = new Date(`${workshop.date}T${workshop.time}:00`);
+      return dt.toLocaleString('he-IL', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+    if (workshop.date) {
+      const dt = new Date(workshop.date);
+      return dt.toLocaleDateString('he-IL');
+    }
+    return '';
   };
 
   const getAvailableSpots = (workshop) => {
@@ -240,7 +269,7 @@ export default function ActiveWorkshops() {
 
               <div className="workshop-details">
                 <p className="workshop-date">
-                  <strong>{t('workshopDate')}:</strong> {formatDate(workshop.date)}
+                  <strong>{t('workshopDate')}:</strong> {formatDate(workshop)}
                 </p>
                 <p className="workshop-price">
                   <strong>{t('workshopPrice')}:</strong> ₪{workshop.price}
@@ -262,6 +291,12 @@ export default function ActiveWorkshops() {
                   className="edit-workshop-btn"
                 >
                   {t('manageParticipants')}
+                </button>
+                <button
+                  onClick={() => openEditModal(workshop)}
+                  className="edit-workshop-btn"
+                >
+                  {t('editWorkshop')}
                 </button>
                 <button
                   onClick={() => handleMoveToHistory(workshop.id)}
@@ -406,6 +441,110 @@ export default function ActiveWorkshops() {
           </div>
         </div>
       )}
+
+      {showEditModal && selectedWorkshop && (
+        <div className="participant-modal-overlay">
+          <div className="participant-modal">
+            <div className="modal-header">
+              <h3>{t('editWorkshop')} - {selectedWorkshop.name}</h3>
+              <button onClick={closeEditModal} className="close-modal-btn">×</button>
+            </div>
+
+            <EditWorkshopForm
+              workshop={selectedWorkshop}
+              onClose={closeEditModal}
+              onSave={async (updates) => {
+                // If date/time changed, compute startAt
+                let startAt = selectedWorkshop.startAt || null;
+                if (updates.date || updates.time) {
+                  const date = updates.date ?? selectedWorkshop.date;
+                  const time = updates.time ?? selectedWorkshop.time;
+                  if (date && time) {
+                    startAt = new Date(`${date}T${time}:00`).toISOString();
+                  }
+                }
+                await updateActiveWorkshop(selectedWorkshop.id, { ...updates, startAt });
+                closeEditModal();
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+function EditWorkshopForm({ workshop, onClose, onSave }) {
+  const { t } = useTranslation();
+  const [form, setForm] = useState({
+    name: workshop.name || '',
+    description: workshop.description || '',
+    price: workshop.price || 0,
+    date: workshop.date || '',
+    time: workshop.time || '',
+    maxParticipants: workshop.maxParticipants || 0,
+    location: workshop.location || '',
+    notes: workshop.notes || ''
+  });
+
+  const onChange = (e) => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  return (
+    <form className="edit-workshop-form" onSubmit={(e) => { e.preventDefault(); onSave({
+      name: form.name,
+      description: form.description,
+      price: Number(form.price),
+      date: form.date,
+      time: form.time,
+      maxParticipants: Number(form.maxParticipants),
+      location: form.location,
+      notes: form.notes
+    }); }}>
+      <div className="form-row">
+        <label>{t('Name')}
+          <input name="name" value={form.name} onChange={onChange} />
+        </label>
+      </div>
+      <div className="form-row">
+        <label>{t('Description')}
+          <textarea name="description" value={form.description} onChange={onChange} />
+        </label>
+      </div>
+      <div className="form-row">
+        <label>{t('workshopPrice')}
+          <input type="number" name="price" value={form.price} onChange={onChange} />
+        </label>
+      </div>
+      <div className="form-row">
+        <label>{t('workshopDate')}
+          <input type="date" name="date" value={form.date} onChange={onChange} />
+        </label>
+        <label>{t('workshopTime')}
+          <input type="time" name="time" value={form.time} onChange={onChange} />
+        </label>
+      </div>
+      <div className="form-row">
+        <label>{t('maxParticipants')}
+          <input type="number" name="maxParticipants" value={form.maxParticipants} onChange={onChange} />
+        </label>
+      </div>
+      <div className="form-row">
+        <label>{t('workshopLocation')}
+          <input name="location" value={form.location} onChange={onChange} />
+        </label>
+      </div>
+      <div className="form-row">
+        <label>{t('notes')}
+          <textarea name="notes" value={form.notes} onChange={onChange} />
+        </label>
+      </div>
+      <div className="modal-footer">
+        <button type="button" onClick={onClose} className="edit-cancel-btn">{t('Cancel')}</button>
+        <button type="submit" className="add-participant-btn">{t('Save')}</button>
+      </div>
+    </form>
   );
 }

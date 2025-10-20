@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { workshopsService } from '../services/workshops';
 import { useToast } from '../contexts/ToastContext';
 
 export const useWorkshops = () => {
+  const { t } = useTranslation();
   const { showSuccess, showError } = useToast();
   const [templates, setTemplates] = useState([]);
   const [activeWorkshops, setActiveWorkshops] = useState([]);
@@ -45,9 +47,9 @@ export const useWorkshops = () => {
         isActive: true
       });
       await loadWorkshops();
-      showSuccess('Workshop template created successfully');
+      showSuccess(t('templateCreated'));
     } catch (err) {
-      showError(`Error creating template: ${err.message}`);
+      showError(t('errorAddingKibbutz'));
       throw err;
     }
   }, [loadWorkshops, showSuccess, showError]);
@@ -56,9 +58,9 @@ export const useWorkshops = () => {
     try {
       await workshopsService.updateTemplate(id, templateData);
       await loadWorkshops();
-      showSuccess('Workshop template updated successfully');
+      showSuccess(t('templateUpdated'));
     } catch (err) {
-      showError(`Error updating template: ${err.message}`);
+      showError(t('errorUpdatingKibbutz'));
       throw err;
     }
   }, [loadWorkshops, showSuccess, showError]);
@@ -67,9 +69,9 @@ export const useWorkshops = () => {
     try {
       await workshopsService.deleteTemplate(id);
       await loadWorkshops();
-      showSuccess('Workshop template deleted successfully');
+      showSuccess(t('templateDeleted'));
     } catch (err) {
-      showError(`Error deleting template: ${err.message}`);
+      showError(t('errorDeletingKibbutz'));
       throw err;
     }
   }, [loadWorkshops, showSuccess, showError]);
@@ -83,9 +85,9 @@ export const useWorkshops = () => {
         registeredUsers: []
       });
       await loadWorkshops();
-      showSuccess('Workshop scheduled successfully');
+      showSuccess(t('workshopCreated'));
     } catch (err) {
-      showError(`Error creating workshop: ${err.message}`);
+      showError(t('workshopRegistrationError'));
       throw err;
     }
   }, [loadWorkshops, showSuccess, showError]);
@@ -94,9 +96,9 @@ export const useWorkshops = () => {
     try {
       await workshopsService.updateActiveWorkshop(id, workshopData);
       await loadWorkshops();
-      showSuccess('Workshop updated successfully');
+      showSuccess(t('workshopUpdated'));
     } catch (err) {
-      showError(`Error updating workshop: ${err.message}`);
+      showError(t('workshopRegistrationError'));
       throw err;
     }
   }, [loadWorkshops, showSuccess, showError]);
@@ -105,9 +107,9 @@ export const useWorkshops = () => {
     try {
       await workshopsService.deleteActiveWorkshop(id);
       await loadWorkshops();
-      showSuccess('Workshop deleted successfully');
+      showSuccess(t('workshopDeleted'));
     } catch (err) {
-      showError(`Error deleting workshop: ${err.message}`);
+      showError(t('workshopRegistrationError'));
       throw err;
     }
   }, [loadWorkshops, showSuccess, showError]);
@@ -116,9 +118,9 @@ export const useWorkshops = () => {
     try {
       await workshopsService.moveToHistory(id);
       await loadWorkshops();
-      showSuccess('Workshop moved to history');
+      showSuccess(t('workshopMovedToHistory'));
     } catch (err) {
-      showError(`Error moving workshop to history: ${err.message}`);
+      showError(t('workshopRegistrationError'));
       throw err;
     }
   }, [loadWorkshops, showSuccess, showError]);
@@ -128,9 +130,9 @@ export const useWorkshops = () => {
     try {
       await workshopsService.registerUser(workshopId, userData);
       await loadWorkshops();
-      showSuccess('Successfully registered for workshop');
+      showSuccess(t('registrationSuccess'));
     } catch (err) {
-      showError(`Registration failed: ${err.message}`);
+      showError(t('workshopRegistrationError'));
       throw err;
     }
   }, [loadWorkshops, showSuccess, showError]);
@@ -139,9 +141,9 @@ export const useWorkshops = () => {
     try {
       await workshopsService.unregisterUser(workshopId, userId);
       await loadWorkshops();
-      showSuccess('Successfully unregistered from workshop');
+      showSuccess(t('unregistrationSuccess'));
     } catch (err) {
-      showError(`Unregistration failed: ${err.message}`);
+      showError(t('errorUnregisteringFromWorkshop'));
       throw err;
     }
   }, [loadWorkshops, showSuccess, showError]);

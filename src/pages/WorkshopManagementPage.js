@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useWorkshops } from '../hooks/useWorkshops';
-import Header from '../components/Header';
 import './WorkshopManagementPage.css';
 
 // Import sub-components
@@ -25,7 +24,6 @@ export default function WorkshopManagementPage() {
 
   return (
     <div className="workshop-management-page">
-      <Header />
       <div className="page-header">
         <h1>{t('workshops')}</h1>
         <p className="page-description">{t('workshopManagementDescription')}</p>

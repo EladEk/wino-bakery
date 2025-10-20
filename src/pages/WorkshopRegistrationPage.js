@@ -52,15 +52,32 @@ export default function WorkshopRegistrationPage() {
     }
   };
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('he-IL', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+  const formatDate = (workshop) => {
+    if (workshop.startAt) {
+      const dt = new Date(workshop.startAt);
+      return dt.toLocaleString('he-IL', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+    if (workshop.date && workshop.time) {
+      const dt = new Date(`${workshop.date}T${workshop.time}:00`);
+      return dt.toLocaleString('he-IL', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+    if (workshop.date) {
+      const dt = new Date(workshop.date);
+      return dt.toLocaleDateString('he-IL');
+    }
+    return '';
   };
 
   if (loading) {
@@ -116,7 +133,7 @@ export default function WorkshopRegistrationPage() {
                   <div className="workshop-info">
                     <div className="info-row">
                       <span className="info-label">📅 {t('workshopDate')}:</span>
-                      <span className="info-value">{formatDate(workshop.date)}</span>
+                      <span className="info-value">{formatDate(workshop)}</span>
                     </div>
                     
                     <div className="info-row">
