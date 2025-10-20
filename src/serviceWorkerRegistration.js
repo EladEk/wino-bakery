@@ -7,27 +7,7 @@ const isLocalhost = Boolean(
     )
 );
 
-export function register(config) {
-  if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
-    const publicUrl = new URL(process.env.PUBLIC_URL, window.location.href);
-    if (publicUrl.origin !== window.location.origin) {
-      return;
-    }
-
-    window.addEventListener('load', () => {
-      // Append a version to bust iOS/Android SW caching
-      const versionTag = 'v0.2.3';
-      const swUrl = `${process.env.PUBLIC_URL}/service-worker.js?${versionTag}`;
-
-      if (isLocalhost) {
-        checkValidServiceWorker(swUrl, config);
-
-      } else {
-        registerValidSW(swUrl, config);
-      }
-    });
-  }
-}
+export function register() {}
 
 function registerValidSW(swUrl, config) {
   navigator.serviceWorker
@@ -93,14 +73,4 @@ function checkValidServiceWorker(swUrl, config) {
     });
 }
 
-export function unregister() {
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.ready
-      .then(registration => {
-        registration.unregister();
-      })
-      .catch(error => {
-        console.error(error.message);
-      });
-  }
-}
+export function unregister() {}
